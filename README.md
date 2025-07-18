@@ -32,7 +32,6 @@ Here are the major features/modules to be implemented:
 - 💸 Fee Tracking (Month-wise updates)
 - 📢 Notices (Admin & Teacher can post)
 - 📁 Resource Sharing (PDFs, Links, etc.)
-- 📺 Live Class Link Management (YouTube Link with Title, Chapter, Date)
 - 🧠 Last 3 Days Class Recordings Section (student view)
 - 🔐 Login System (Students & Teachers)
 
