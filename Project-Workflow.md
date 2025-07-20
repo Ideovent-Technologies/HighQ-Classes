@@ -8,6 +8,7 @@ This document explains the functional flow of the HighQ Classes application from
 
 ```mermaid
 flowchart TD
+    %% Authentication Flow
     A[User visits login page] --> B{Account exists?}
     B -- Yes --> C[Enter credentials]
     B -- No --> D[Register new account]
@@ -23,6 +24,81 @@ flowchart TD
     M --> N[Submit for approval]
     N --> O[Admin approves]
     O --> C
+
+    %% Admin User Flow
+    J --> AD1[View Dashboard]
+    AD1 --> AD2[Student Management]
+    AD1 --> AD3[Teacher Management]
+    AD1 --> AD4[Course/Batch Management]
+    AD1 --> AD5[Fee Management]
+    AD1 --> AD6[Notice Management]
+    AD1 --> AD7[Study Materials]
+
+    %% Admin - Student Management
+    AD2 --> AD2_1[View Students]
+    AD2 --> AD2_2[Add/Edit Students]
+    AD2 --> AD2_3[Assign to Batch]
+    AD2 --> AD2_4[View Attendance]
+    AD2 --> AD2_5[View Fee Status]
+
+    %% Admin - Course/Batch Management
+    AD4 --> AD4_1[Create/Edit Courses]
+    AD4 --> AD4_2[Create/Edit Batches]
+    AD4 --> AD4_3[Assign Teachers]
+    AD4 --> AD4_4[Set Schedule]
+    AD4_2 --> AD4_5[Manage Students in Batch]
+
+    %% Teacher User Flow
+    K --> TD1[View Dashboard]
+    TD1 --> TD2[View Assigned Batches]
+    TD1 --> TD3[Manage Study Materials]
+    TD1 --> TD4[Create Notices]
+    TD1 --> TD5[Take Attendance]
+
+    %% Teacher - Batch Management
+    TD2 --> TD2_1[View Batch Details]
+    TD2 --> TD2_2[View Student List]
+    TD2 --> TD2_3[Record Attendance]
+    TD2 --> TD2_4[Upload Class Materials]
+
+    %% Student User Flow
+    L --> SD1[View Dashboard]
+    SD1 --> SD2[View Profile]
+    SD1 --> SD3[Access Courses]
+    SD1 --> SD4[View Fee Status]
+    SD1 --> SD5[Access Study Materials]
+
+    %% Student - Course Access
+    SD3 --> SD3_1[View Enrolled Courses]
+    SD3 --> SD3_2[Access Course Materials]
+    SD3 --> SD3_3[Check Attendance]
+    SD3 --> SD3_4[View Schedule]
+
+    %% Fee Management Flow
+    AD5 --> FM1[Set Fee Structure]
+    FM1 --> FM2[Generate Fee Records]
+    FM2 --> FM3[Send Reminders]
+    FM3 --> FM4[Record Payments]
+    FM4 --> FM5[Generate Receipts]
+    SD4 --> FM6[View Payment History]
+    FM4 --> FM6
+
+    %% Study Materials Flow
+    AD7 --> SM1[Upload Materials]
+    TD3 --> SM1
+    SM1 --> SM2[Organize by Course/Batch]
+    SM2 --> SM3[Set Access Permissions]
+    SM3 --> SD5
+
+    %% Notifications Flow
+    AD6 --> N1[Create Notice]
+    TD4 --> N1
+    N1 --> N2[Assign Recipients]
+    N2 --> N3[Publish/Schedule]
+    N3 --> N4[Notify Users]
+    N4 --> AD1
+    N4 --> TD1
+    N4 --> SD1
 ```
 
 1. User navigates to the login page (`/login`)
