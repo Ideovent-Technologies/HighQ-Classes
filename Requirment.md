@@ -265,7 +265,3 @@ Yes! Use:
 -   [ ] Input/File validation
 -   [ ] Password hashing
 -   [ ] Mobile responsiveness
-
----
-
-Let me know if you'd like this formatted into a **PDF**, **Word Document**, or **Markdown** file!
