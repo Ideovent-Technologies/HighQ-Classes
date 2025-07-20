@@ -5,28 +5,28 @@
 ```
 HighQ-Classes/
 ├── public/
-│   ├── favicon.ico
-│   ├── robots.txt
-│   └── placeholder.svg
+│   ├──
+│   ├──
+│   └──
 ├── src/
 │   ├── assets/                      # Images, icons, and other static assets
 │   │   ├── images/
 │   │   └── icons/
 │   ├── components/
-│   │   ├── ui/                      # Shadcn UI components (already exists)
+│   │   ├── ui/                      # Shadcn UI components (*)
 │   │   ├── common/                  # Common components used across the app
 │   │   │   ├── Loader.tsx           # Loading spinner component
 │   │   │   ├── ErrorBoundary.tsx    # Error handling component
 │   │   │   ├── NotificationBadge.tsx
 │   │   │   └── PageHeader.tsx       # Reusable page header
-│   │   ├── Layout.tsx               # Main layout component (already exists)
-│   │   ├── Navbar.tsx               # Navigation bar (already exists)
-│   │   ├── Footer.tsx               # Footer component (already exists)
+│   │   ├── Layout.tsx               # Main layout component (*)
+│   │   ├── Navbar.tsx               # Navigation bar (*)
+│   │   ├── Footer.tsx               # Footer component (*)
 │   │   ├── auth/                    # Authentication related components
 │   │   │   ├── LoginForm.tsx
 │   │   │   ├── RegisterForm.tsx
 │   │   │   └── ForgotPasswordForm.tsx
-│   │   ├── dashboard/              # Dashboard components (already exists)
+│   │   ├── dashboard/              # Dashboard components (*)
 │   │   │   ├── DashboardLayout.tsx
 │   │   │   ├── Sidebar.tsx
 │   │   │   ├── StatCard.tsx        # Stat cards for dashboard
@@ -59,30 +59,30 @@ HighQ-Classes/
 │   │   ├── AuthContext.tsx         # Authentication context
 │   │   └── ThemeContext.tsx        # Theme context if needed
 │   ├── hooks/                      # Custom hooks
-│   │   ├── useAuth.tsx             # Authentication hook (already exists)
-│   │   ├── use-toast.ts            # Toast hook (already exists)
-│   │   ├── use-mobile.tsx          # Mobile detection hook (already exists)
+│   │   ├── useAuth.tsx             # Authentication hook (*)
+│   │   ├── use-toast.ts            # Toast hook (*)
+│   │   ├── use-mobile.tsx          # Mobile detection hook (*)
 │   │   ├── useAxiosPrivate.ts      # Axios with auth token hook
 │   │   └── useOutsideClick.ts      # Detect clicks outside an element
 │   ├── lib/                        # Utility libraries
-│   │   ├── utils.ts                # General utilities (already exists)
+│   │   ├── utils.ts                # General utilities (*)
 │   │   ├── api.ts                  # API client setup
 │   │   ├── validators.ts           # Form validation schemas
 │   │   └── constants.ts            # App constants
 │   ├── pages/                      # Page components
-│   │   ├── Home.tsx                # Home page (already exists)
-│   │   ├── Login.tsx               # Login page (already exists)
-│   │   ├── Register.tsx            # Register page (already exists)
-│   │   ├── Contact.tsx             # Contact page (already exists)
-│   │   ├── Services.tsx            # Services page (already exists)
-│   │   ├── NotFound.tsx            # 404 page (already exists)
-│   │   ├── Index.tsx               # Index page (already exists)
+│   │   ├── Home.tsx                # Home page (*)
+│   │   ├── Login.tsx               # Login page (*)
+│   │   ├── Register.tsx            # Register page (*)
+│   │   ├── Contact.tsx             # Contact page (*)
+│   │   ├── Services.tsx            # Services page (*)
+│   │   ├── NotFound.tsx            # 404 page (*)
+│   │   ├── Index.tsx               # Index page (*)
 │   │   ├── dashboard/              # Dashboard pages
-│   │   │   ├── Dashboard.tsx       # Main dashboard (already exists)
-│   │   │   ├── AllStudents.tsx     # Students list page (already exists)
-│   │   │   ├── FeeStatus.tsx       # Fee status page (already exists)
-│   │   │   ├── StudyMaterials.tsx  # Study materials page (already exists)
-│   │   │   ├── UploadMaterials.tsx # Upload materials page (already exists)
+│   │   │   ├── Dashboard.tsx       # Main dashboard (*)
+│   │   │   ├── AllStudents.tsx     # Students list page (*)
+│   │   │   ├── FeeStatus.tsx       # Fee status page (*)
+│   │   │   ├── StudyMaterials.tsx  # Study materials page (*)
+│   │   │   ├── UploadMaterials.tsx # Upload materials page (*)
 │   │   │   ├── Teachers.tsx        # Teachers management
 │   │   │   ├── Courses.tsx         # Courses management
 │   │   │   ├── Batches.tsx         # Batches management
