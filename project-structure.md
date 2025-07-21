@@ -1,6 +1,6 @@
 # HighQ Classes - Project Structure
 
-## Frontend Structure (React + Vite + TypeScript + Shadcn UI)
+## Frontend Structure (React + Vite + TypeScript + Shadcn UI)----
 
 ```
 HighQ-Classes/
