@@ -13,6 +13,7 @@
   "type": "module",
   "dependencies": {
     "bcryptjs": "^3.0.2",
+    "cloudinary": "^2.7.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
@@ -23,6 +24,7 @@
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.4",
+    "multer": "^2.0.2",
     "nodemailer": "^6.9.9",
     "xss-clean": "^0.1.4"
   },
