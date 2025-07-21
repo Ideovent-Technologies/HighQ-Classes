@@ -1,34 +1,26 @@
 import asyncHandler from 'express-async-handler';
 import Notice from '../models/Notice.js';
-import Teacher from '../models/Teacher.js';
-import Student from '../models/Student.js';
-import Batch from '../models/Batch.js';
 
 /**
- * @desc    Create a new notice (for all, batch, or individual student)
+ * @desc    Create a new notice
  * @route   POST /api/teacher/notices
  * @access  Private (Teacher only)
  */
 export const createNotice = asyncHandler(async (req, res) => {
-  const { title, description, batch, student, scheduledAt, audience } = req.body;
+  const { title, description, targetBatchIds, targetAudience } = req.body;
 
   const notice = new Notice({
     title,
-    description,
-    batch,
-    student,
-    audience,
+    content,
+    targetBatchIds,
+    targetAudience,
     postedBy: req.user._id,
-    isScheduled: scheduledAt ? true : false,
-    scheduledAt: scheduledAt || null,
   });
 
   await notice.save();
 
   res.status(201).json({
-    message: notice.isScheduled
-      ? 'Notice scheduled successfully.'
-      : 'Notice created successfully.',
+    message: 'Notice created successfully.',
     notice,
   });
 });
@@ -43,19 +35,13 @@ export const updateNotice = asyncHandler(async (req, res) => {
   const updates = req.body;
 
   const notice = await Notice.findById(noticeId);
-
-  if (!notice) {
-    return res.status(404).json({ message: 'Notice not found' });
-  }
+  if (!notice) return res.status(404).json({ message: 'Notice not found' });
 
   if (notice.postedBy.toString() !== req.user._id.toString()) {
     return res.status(403).json({ message: 'Unauthorized' });
   }
 
-  const updatedNotice = await Notice.findByIdAndUpdate(noticeId, updates, {
-    new: true,
-  });
-
+  const updatedNotice = await Notice.findByIdAndUpdate(noticeId, updates, { new: true });
   res.status(200).json(updatedNotice);
 });
 
@@ -66,17 +52,13 @@ export const updateNotice = asyncHandler(async (req, res) => {
  */
 export const deleteNotice = asyncHandler(async (req, res) => {
   const notice = await Notice.findById(req.params.id);
-
-  if (!notice) {
-    return res.status(404).json({ message: 'Notice not found' });
-  }
+  if (!notice) return res.status(404).json({ message: 'Notice not found' });
 
   if (notice.postedBy.toString() !== req.user._id.toString()) {
     return res.status(403).json({ message: 'Unauthorized' });
   }
 
   await Notice.findByIdAndDelete(req.params.id);
-
   res.status(200).json({ message: 'Notice deleted successfully' });
 });
 
@@ -86,21 +68,27 @@ export const deleteNotice = asyncHandler(async (req, res) => {
  * @access  Private (Teacher only)
  */
 export const getAllNotices = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, batch, audience, keyword } = req.query;
+  const { page = 1, limit = 10, targetAudience, targetBatchId, keyword, date } = req.query;
   const skip = (page - 1) * limit;
 
   const filter = {
     postedBy: req.user._id,
-    $or: [{ isScheduled: false }, { scheduledAt: { $lte: new Date() } }],
   };
 
-  if (batch) filter.batch = batch;
-  if (audience) filter.audience = audience;
+  if (targetAudience) filter.targetAudience = targetAudience;
+  if (targetBatchId) filter.targetBatchIds = { $in: [targetBatchId] };
   if (keyword) {
     filter.$or = [
       { title: { $regex: keyword, $options: 'i' } },
       { description: { $regex: keyword, $options: 'i' } },
     ];
+  }
+
+  if (date) {
+    const start = new Date(date);
+    const end = new Date(date);
+    end.setHours(23, 59, 59, 999);
+    filter.createdAt = { $gte: start, $lte: end };
   }
 
   const total = await Notice.countDocuments(filter);
@@ -124,11 +112,7 @@ export const getAllNotices = asyncHandler(async (req, res) => {
  */
 export const getNoticeById = asyncHandler(async (req, res) => {
   const notice = await Notice.findById(req.params.id);
-
-  if (!notice) {
-    res.status(404);
-    throw new Error('Notice not found');
-  }
+  if (!notice) return res.status(404).json({ message: 'Notice not found' });
 
   res.json(notice);
 });
@@ -142,8 +126,7 @@ export const getNoticesByBatch = asyncHandler(async (req, res) => {
   const { batchId } = req.params;
 
   const notices = await Notice.find({
-    batch: batchId,
-    $or: [{ isScheduled: false }, { scheduledAt: { $lte: new Date() } }],
+    targetBatchIds: batchId,
   }).sort({ createdAt: -1 });
 
   res.status(200).json({

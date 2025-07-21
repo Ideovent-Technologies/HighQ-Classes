@@ -1,33 +1,39 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const noticeSchema = new mongoose.Schema({
-  message: {
-    type: String,
-    required: true,
-    trim: true
+const noticeSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    content: {
+      type: String,
+      required: true,
+    },
+    postedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    targetAudience: {
+      type: String,
+      enum: ["all", "teachers", "students", "batch"],
+      default: "students",
+      required: true,
+    },
+    targetBatchIds: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Batch",
+      },
+    ],
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   },
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  role: {
-    type: String,
-    enum: ['admin', 'teacher'],
-    required: true
-  },
-  visibleTo: {
-    type: [String],
-    enum: ['student', 'teacher', 'admin'],
-    default: ['student', 'teacher']
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  expiresAt: {
-    type: Date
-  }
-});
+  { timestamps: true }
+);
 
-export default mongoose.model('Notice', noticeSchema);
+export default mongoose.model("Notice", noticeSchema);

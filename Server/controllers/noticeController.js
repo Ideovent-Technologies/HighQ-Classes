@@ -15,8 +15,10 @@ export const getAllNotices = async (req, res) => {
       $or: [{ isScheduled: false }, { scheduledAt: { $lte: new Date() } }],
     };
 
-    if (batch) filter.batch = batch;
-    if (audience) filter.audience = audience;
+    if (batch) filter.targetBatchIds = { $in: [batch] };
+
+    if (audience) filter.targetAudience = audience;
+
 
     if (date) {
       const start = new Date(date);
