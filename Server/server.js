@@ -8,8 +8,11 @@ import helmet from "helmet";
 import mongoSanitize from "express-mongo-sanitize";
 import xss from "xss-clean";
 import rateLimit from "express-rate-limit";
+import fileUpload from "express-fileupload";
 import connectToDb from "./config/db.js";
 import corsOptions from "./config/corsOptions.js";
+import configureCloudinary from "./config/cloudinary.js";
+import "./config/schedule.js"; // Import to initialize scheduled tasks
 
 // Scheduled Notice Publishing
 import { scheduleNoticePublishing } from "./utils/scheduleNotices.js";
@@ -20,6 +23,14 @@ import teacherRoutes from "./routes/teacherRoutes.js";
 import noticeRoutes from "./routes/noticeRoutes.js";
 import scheduleRoutes from "./routes/scheduleRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
+
+import recordingRoutes from "./routes/recordingRoutes.js";
+
+import adminRoutes from "./routes/adminRoutes.js";
+import batchRouter from "./routes/batchRoutes.js";
+import feeRouter from "./routes/feeRoutes.js";
+
+
 
 const app = express();
 
@@ -52,6 +63,13 @@ app.use("/api/teacher/notices", noticeRoutes);        // notices CRUD
 app.use("/api/teacher/schedule", scheduleRoutes);     // schedule
 app.use("/api/attendance", attendanceRoutes);         // attendance
 
+app.use("/api/recordings", recordingRoutes);
+
+app.use("/api/admin", adminRoutes);
+app.use("/api/batch", batchRouter);
+app.use("/api/fee", feeRouter);
+
+
 // Home route
 app.get("/", (req, res) => {
   res.send("Welcome to HighQ Classes API");
@@ -76,5 +94,6 @@ app.use((err, req, res, next) => {
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
     connectToDb();
+    configureCloudinary();
     console.log(`Server is running on http://localhost:${port}/`);
 });
