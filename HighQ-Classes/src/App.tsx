@@ -1,12 +1,15 @@
 
-import React from 'react';
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
+import { AuthProvider } from "@/hooks/useAuth"; 
 
+
+import ClassRecordings from "./modul/ClassRecordings";
+import Footer from "./modul/Footer";
 // Import layout
 import Layout from "@/components/Layout";
 
@@ -28,7 +31,11 @@ import UploadMaterials from "@/pages/dashboard/UploadMaterials";
 const queryClient = new QueryClient();
 
 const App: React.FC = () => {
-  return (
+   return (
+     <div className='min-h-screen flex flex-col'>
+      <ClassRecordings/>
+      <Footer/>
+    
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
@@ -49,7 +56,7 @@ const App: React.FC = () => {
               <Route path="/dashboard/study-materials" element={<StudyMaterials />} />
               <Route path="/dashboard/all-students" element={<AllStudents />} />
               <Route path="/dashboard/upload-materials" element={<UploadMaterials />} />
-              
+             
               {/* 404 Page */}
               <Route path="*" element={<NotFound />} />
             </Routes>
@@ -57,7 +64,9 @@ const App: React.FC = () => {
         </AuthProvider>
       </QueryClientProvider>
     </BrowserRouter>
+     </div>
   );
 };
+
 
 export default App;
