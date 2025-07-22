@@ -1,5 +1,6 @@
 import cron from 'node-cron';
 import Notice from '../models/Notice.js';
+import { mediaService } from '../services/mediaService.js';
 
 // ⏱️ Runs every minute
 cron.schedule('* * * * *', async () => {
@@ -24,5 +25,18 @@ cron.schedule('* * * * *', async () => {
     }
   } catch (err) {
     console.error('❌ Scheduled Notice Error:', err);
+  }
+});
+
+// 🎬 Runs every day at midnight to clean up expired recordings
+cron.schedule('0 0 * * *', async () => {
+  try {
+    console.log('🎬 Running scheduled task: Cleaning up expired recordings');
+
+    const result = await mediaService.cleanupExpiredRecordings();
+
+    console.log(`✅ Recordings cleanup complete: ${result.removed} recordings deactivated, ${result.failed} failed`);
+  } catch (error) {
+    console.error('❌ Recording Cleanup Error:', error);
   }
 });

@@ -2,39 +2,37 @@ import mongoose from 'mongoose';
 
 const feeSchema = new mongoose.Schema(
   {
-    student: {
+    studentId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-    },
-    batch: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Batch',
+      ref: 'Student',
       required: true,
     },
     amount: {
       type: Number,
       required: true,
     },
-    dueDate: {
+    paymentDate: {
       type: Date,
       required: true,
     },
-    isPaid: {
-      type: Boolean,
-      default: false,
+    month: {
+      type: String,
+      required: true,
     },
-    paidAt: {
-      type: Date,
+    year: {
+      type: Number,
+      required: true,
     },
     paymentMethod: {
-      type: String, // e.g., UPI, Cash, Credit Card, Bank Transfer
+      type: String,
+      required: true,
     },
     transactionId: {
-      type: String, // optional, e.g., UPI TXN ID or Receipt #
+      type: String,
     },
-    note: {
-      type: String // optional remark like "Paid in 2 parts" etc.
+    status: {
+      type: String,
+      required: true,
     }
   },
   { timestamps: true }
