@@ -1,9 +1,12 @@
+// Required Imports
 //import Schedule from "../../models/Schedule.js";
 //import Notice from "../../models/Notice.js";
 import Attendance from "../../models/Attendance.js";
 import Material from "../../models/Material.js";
 import Recording from "../../models/Recording.js";
 import Student from "../../models/Student.js";
+import Course from "../../models/Course.js";
+
 import mongoose from "mongoose";
 
 /**
@@ -15,9 +18,9 @@ export const getStudentDashboard = async (req, res) => {
   try {
     const studentId = req.user._id;
 
-    // 🧠 Get Student Info (to know batch, course, etc.)
+    // 🧠 1. Get student info
     const student = await Student.findById(studentId)
-      .populate('batch') // assuming batch is ObjectId
+      .populate('batch')
       .populate('enrolledCourses')
       .lean();
 
@@ -26,13 +29,13 @@ export const getStudentDashboard = async (req, res) => {
     const batchId = student.batch?._id;
     const courseIds = student.enrolledCourses.map(course => course._id);
 
-    // ---------- Get Today’s Day ----------
+    // 📅 2. Get Today’s Day
     const today = new Date();
     const dayOfWeek = today.toLocaleDateString("en-US", { weekday: "long" });
 
-    // ---------- 1. Today’s Schedule ----------
+    // 📆 3. Today's Schedule
     const todaySchedule = await Schedule.find({
-      studentIds: studentId,   // assuming student-specific or batch-mapped schedule
+      studentIds: studentId,
       day: dayOfWeek,
       batchId: batchId
     })
@@ -40,7 +43,7 @@ export const getStudentDashboard = async (req, res) => {
       .populate("courseId", "name")
       .sort({ startTime: 1 });
 
-    // ---------- 2. Active Notices (limit 5) ----------
+    // 🛎 4. Active Notices
     const recentNotices = await Notice.find({
       isActive: true,
       isScheduled: false,
@@ -52,7 +55,7 @@ export const getStudentDashboard = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(5);
 
-    // ---------- 3. Attendance Summary (last 30 days) ----------
+    // 📝 5. Attendance Summary (Last 30 Days)
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 30);
 
@@ -85,20 +88,43 @@ export const getStudentDashboard = async (req, res) => {
       }
     });
 
-    // ---------- 4. Materials Summary ----------
-    const materialsCount = await Material.countDocuments({
+    // 📚 6. Course Content Overview (Topics from enrolled courses)
+    const courseContents = await Course.find(
+      { _id: { $in: courseIds } },
+      { name: 1, topics: 1 }
+    );
+
+    // 📥 7. Material Engagement (viewed/downloaded)
+    const materials = await Material.find({
+      $or: [
+        { batch: batchId },
+        { course: { $in: courseIds } }
+      ]
+    }).lean();
+
+    const materialEngagement = materials.map((m) => ({
+      _id: m._id,
+      title: m.title,
+      fileUrl: m.fileUrl,
+      totalDownloads: m.downloadCount || 0,
+      viewedByStudent: m.viewedBy?.includes(studentId) || false
+    }));
+
+    // 📺 8. Recording Viewing Stats
+    const recordings = await Recording.find({
       batch: batchId,
       isActive: true
-    });
+    }).lean();
 
-    // ---------- 5. Recordings Summary ----------
-    const recordingsCount = await Recording.countDocuments({
-      batch: batchId,
-      isActive: true,
-      accessExpires: { $gt: new Date() }
-    });
+    const recordingStats = recordings.map((r) => ({
+      _id: r._id,
+      title: r.title,
+      videoUrl: r.videoUrl,
+      totalViews: r.views?.length || 0,
+      viewedByStudent: r.views?.some((v) => v.student.toString() === studentId.toString()) || false
+    }));
 
-    // ---------- 6. Final Dashboard Response ----------
+    // ✅ 9. Final Response
     res.json({
       greeting: `Welcome, ${student.name}`,
       dashboardData: {
@@ -106,13 +132,15 @@ export const getStudentDashboard = async (req, res) => {
         recentNotices,
         attendanceSummary,
         materialsSummary: {
-          totalAvailable: materialsCount
+          totalAvailable: materials.length
         },
         recordingsSummary: {
-          totalAvailable: recordingsCount
+          totalAvailable: recordings.length
         },
-        // ✅ Future Ideas:
-        // upcomingExams: [], assignments: [], feeDueSummary: {}
+        // New Features:
+        courseContent: courseContents,
+        materialEngagement,
+        recordingStats
       }
     });
 
