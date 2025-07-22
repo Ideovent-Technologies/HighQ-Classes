@@ -1,28 +1,31 @@
 import Material from '../models/Material.js';
-// import { uploadMaterial } from '../services/cloudinaryService.js';
 import mongoose from 'mongoose';
+import { uploadBufferToCloudinary } from '../services/cloudinaryService.js';
 
-
-// Upload a new study material
+// Upload material (Teachers/Admin only)
 export const uploadMaterial = async (req, res) => {
   try {
     const { title, description, fileType, batchIds, courseId } = req.body;
-    const uploader = req.user; // Auth middleware should add this
+    const uploader = req.user;
 
-    if (!req.file) {
+    if (!req.files || !req.files.file) {
       return res.status(400).json({ message: 'File is required' });
     }
 
-    // Upload to Cloudinary
-    const uploadedFile = await cloudinary.uploadFile(req.file.path);
+    const file = req.files.file;
+    const uploadedFile = await uploadBufferToCloudinary(file.data, file.name);
+
+    const batchIdsArray = Array.isArray(batchIds)
+      ? batchIds
+      : JSON.parse(batchIds);
 
     const material = new Material({
       title,
       description,
       fileUrl: uploadedFile.secure_url,
       fileType,
-      uploadedBy: uploader._id,
-      batchIds: batchIds.map(id => new mongoose.Types.ObjectId(id)),
+      uploadedBy: uploader.id,
+      batchIds: batchIdsArray.map(id => new mongoose.Types.ObjectId(id)),
       courseId: new mongoose.Types.ObjectId(courseId),
     });
 
@@ -35,13 +38,12 @@ export const uploadMaterial = async (req, res) => {
   }
 };
 
-// Get materials for specific batch
+// Get materials by student's batch
 export const getMaterialsByBatch = async (req, res) => {
   try {
-    const studentBatchId = req.user.batch; // Assuming student
-    const materials = await Material.find({
-      batchIds: studentBatchId,
-    })
+    const studentBatchId = req.user.batch;
+
+    const materials = await Material.find({ batchIds: studentBatchId })
       .populate('uploadedBy', 'name role')
       .populate('courseId', 'name')
       .sort({ createdAt: -1 });
@@ -53,7 +55,7 @@ export const getMaterialsByBatch = async (req, res) => {
   }
 };
 
-// Get all materials (for admin or teachers)
+// Get all materials (Admin/Teacher)
 export const getAllMaterials = async (req, res) => {
   try {
     const materials = await Material.find()
@@ -69,16 +71,13 @@ export const getAllMaterials = async (req, res) => {
   }
 };
 
-// Search materials by title
+// Search by title (all roles)
 export const searchMaterials = async (req, res) => {
   try {
     const { query } = req.query;
     const searchRegex = new RegExp(query, 'i');
 
-    const results = await Material.find({
-      title: { $regex: searchRegex },
-    }).sort({ createdAt: -1 });
-
+    const results = await Material.find({ title: { $regex: searchRegex } }).sort({ createdAt: -1 });
     res.json(results);
   } catch (error) {
     console.error('Search error:', error);
@@ -86,7 +85,7 @@ export const searchMaterials = async (req, res) => {
   }
 };
 
-// Delete a material
+// Delete material (Teacher/Admin only)
 export const deleteMaterial = async (req, res) => {
   try {
     const { materialId } = req.params;
