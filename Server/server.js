@@ -29,6 +29,7 @@ import recordingRoutes from "./routes/recordingRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import batchRouter from "./routes/batchRoutes.js";
 import feeRouter from "./routes/feeRoutes.js";
+import materialRoutes from './routes/materialRoutes.js';
 
 
 
@@ -68,6 +69,9 @@ app.use("/api/recordings", recordingRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/batch", batchRouter);
 app.use("/api/fee", feeRouter);
+
+//material routes
+app.use('/api/materials', materialRoutes);
 
 
 // Home route
