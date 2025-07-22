@@ -1,147 +1,39 @@
 import asyncHandler from 'express-async-handler';
-import Notice from '../models/Notice.js';
+import Teacher from '../models/Teacher.js';
 
-/**
- * @desc    Create a new notice
- * @route   POST /api/teacher/notices
- * @access  Private (Teacher only)
- */
-const createNotice = asyncHandler(async (req, res) => {
-  const { title, description, targetBatchIds, targetAudience } = req.body;
-
-  const notice = new Notice({
-    title,
-    description, // 🛠️ fixed: was `content` earlier
-    targetBatchIds,
-    targetAudience,
-    postedBy: req.user._id,
-  });
-
-  await notice.save();
-
-  res.status(201).json({
-    message: 'Notice created successfully.',
-    notice,
-  });
+// @desc    Get logged-in teacher's profile
+// @route   GET /api/teacher/profile
+// @access  Private (Teacher only)
+export const getTeacherProfile = asyncHandler(async (req, res) => {
+  const teacher = await Teacher.findById(req.user._id).select('-password');
+  if (!teacher) {
+    res.status(404);
+    throw new Error('Teacher not found');
+  }
+  res.json(teacher);
 });
 
-/**
- * @desc    Update a notice
- * @route   PUT /api/teacher/notices/:id
- * @access  Private (Teacher only)
- */
-const updateNotice = asyncHandler(async (req, res) => {
-  const noticeId = req.params.id;
-  const updates = req.body;
-
-  const notice = await Notice.findById(noticeId);
-  if (!notice) return res.status(404).json({ message: 'Notice not found' });
-
-  if (notice.postedBy.toString() !== req.user._id.toString()) {
-    return res.status(403).json({ message: 'Unauthorized' });
+// @desc    Update logged-in teacher's profile (email/password only)
+// @route   PUT /api/teacher/profile
+// @access  Private (Teacher only)
+export const updateTeacherProfile = asyncHandler(async (req, res) => {
+  const teacher = await Teacher.findById(req.user._id);
+  if (!teacher) {
+    res.status(404);
+    throw new Error('Teacher not found');
   }
 
-  const updatedNotice = await Notice.findByIdAndUpdate(noticeId, updates, { new: true });
-  res.status(200).json(updatedNotice);
-});
+  // Update only allowed fields
+  const { email, password } = req.body;
 
-/**
- * @desc    Delete a notice
- * @route   DELETE /api/teacher/notices/:id
- * @access  Private (Teacher only)
- */
-const deleteNotice = asyncHandler(async (req, res) => {
-  const notice = await Notice.findById(req.params.id);
-  if (!notice) return res.status(404).json({ message: 'Notice not found' });
+  if (email) teacher.email = email;
+  if (password) teacher.password = password;
 
-  if (notice.postedBy.toString() !== req.user._id.toString()) {
-    return res.status(403).json({ message: 'Unauthorized' });
-  }
-
-  await Notice.findByIdAndDelete(req.params.id);
-  res.status(200).json({ message: 'Notice deleted successfully' });
-});
-
-/**
- * @desc    Get all notices by teacher (filtered and paginated)
- * @route   GET /api/teacher/notices
- * @access  Private (Teacher only)
- */
-const getAllNotices = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, targetAudience, targetBatchId, keyword, date } = req.query;
-  const skip = (page - 1) * limit;
-
-  const filter = {
-    postedBy: req.user._id,
-  };
-
-  if (targetAudience) filter.targetAudience = targetAudience;
-  if (targetBatchId) filter.targetBatchIds = { $in: [targetBatchId] };
-  if (keyword) {
-    filter.$or = [
-      { title: { $regex: keyword, $options: 'i' } },
-      { description: { $regex: keyword, $options: 'i' } },
-    ];
-  }
-
-  if (date) {
-    const start = new Date(date);
-    const end = new Date(date);
-    end.setHours(23, 59, 59, 999);
-    filter.createdAt = { $gte: start, $lte: end };
-  }
-
-  const total = await Notice.countDocuments(filter);
-  const notices = await Notice.find(filter)
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(Number(limit));
+  const updatedTeacher = await teacher.save();
 
   res.json({
-    total,
-    page: Number(page),
-    pages: Math.ceil(total / limit),
-    notices,
+    _id: updatedTeacher._id,
+    name: updatedTeacher.name,
+    email: updatedTeacher.email,
   });
 });
-
-/**
- * @desc    Get a single notice by ID
- * @route   GET /api/teacher/notices/:id
- * @access  Private (Teacher only)
- */
-const getNoticeById = asyncHandler(async (req, res) => {
-  const notice = await Notice.findById(req.params.id);
-  if (!notice) return res.status(404).json({ message: 'Notice not found' });
-
-  res.json(notice);
-});
-
-/**
- * @desc    Get all notices for a specific batch
- * @route   GET /api/teacher/notices/batch/:batchId
- * @access  Private (Teacher only)
- */
-const getNoticesByBatch = asyncHandler(async (req, res) => {
-  const { batchId } = req.params;
-
-  const notices = await Notice.find({
-    targetBatchIds: batchId,
-  }).sort({ createdAt: -1 });
-
-  res.status(200).json({
-    success: true,
-    count: notices.length,
-    data: notices,
-  });
-});
-
-// ✅ Export all at once
-export {
-  createNotice,
-  updateNotice,
-  deleteNotice,
-  getAllNotices,
-  getNoticeById,
-  getNoticesByBatch,
-};
