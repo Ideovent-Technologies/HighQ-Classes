@@ -6,7 +6,7 @@ import {
   getNoticeById,   // ✅ FIXED NAME HERE
   updateNotice,
   deleteNotice,
-} from "../controllers/teacherController.js";
+} from "../controllers/noticeController.js";
 
 import { protect, authorize } from "../middleware/authMiddleware.js";
 
