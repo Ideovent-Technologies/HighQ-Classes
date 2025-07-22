@@ -1,5 +1,3 @@
-// models/Schedule.js
-
 import mongoose from "mongoose";
 
 const scheduleSchema = new mongoose.Schema(
@@ -21,7 +19,15 @@ const scheduleSchema = new mongoose.Schema(
     },
     day: {
       type: String,
-      enum: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+      enum: [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+      ],
       required: true,
     },
     startTime: {

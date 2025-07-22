@@ -1,5 +1,3 @@
-// models/Attendance.js
-
 import mongoose from "mongoose";
 
 const attendanceSchema = new mongoose.Schema(
@@ -32,6 +30,7 @@ const attendanceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Prevent duplicate attendance records for same student and date
 attendanceSchema.index({ studentId: 1, date: 1 }, { unique: true });
 
 export default mongoose.model("Attendance", attendanceSchema);

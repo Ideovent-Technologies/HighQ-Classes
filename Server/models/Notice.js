@@ -1,16 +1,9 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const noticeSchema = new mongoose.Schema(
   {
-    title: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    content: {
-      type: String,
-      required: true,
-    },
+    title: { type: String, required: true, trim: true },
+    description: { type: String, required: true },
     postedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -31,6 +24,14 @@ const noticeSchema = new mongoose.Schema(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    scheduledAt: {
+      type: Date,
+      default: null,
+    },
+    isScheduled: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

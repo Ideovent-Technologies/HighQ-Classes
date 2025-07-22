@@ -4,6 +4,7 @@ import express from "express";
 import {
   markAttendance,
   getAttendanceByBatchAndDate,
+  getAttendanceSummary
 } from "../controllers/attendanceController.js";
 import { protect, authorize } from "../middleware/authMiddleware.js";
 
@@ -21,5 +22,7 @@ router.post("/", protectTeacher, markAttendance);
 // @desc    Get attendance records for a batch on a date
 // @access  Private (Teacher only)
 router.get("/", protectTeacher, getAttendanceByBatchAndDate);
+
+router.get("/summary", protectTeacher, getAttendanceSummary);
 
 export default router;
