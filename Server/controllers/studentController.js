@@ -1,53 +1,57 @@
-import Student from "../models/Student.js";
-import { validationResult } from "express-validator";
+// controllers/studentProfileController.js
+import Student from '../models/Student.js';
 
-// GET student profile
-export const getStudentProfile = async (req, res) => {
+// GET /api/student/:id/profile
+export const getProfile = async (req, res) => {
   try {
-    const studentId = req.user.id;
-    const student = await Student.findById(studentId).select("-password");
-    if (!student) return res.status(404).json({ message: "Student not found" });
-
-    res.status(200).json(student);
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error });
-  }
-};
-
-// UPDATE email/mobile only
-export const updateContactDetails = async (req, res) => {
-  try {
-    const { email, mobile } = req.body;
-    const studentId = req.user.id;
-
-    const updatedStudent = await Student.findByIdAndUpdate(
-      studentId,
-      { email, mobile },
-      { new: true }
-    ).select("-password");
-
-    res.status(200).json(updatedStudent);
+    const student = await Student.findById(req.params.id)
+      .populate('enrolledCourses')
+      .lean();
+    if (!student) return res.status(404).json({ error: 'Student not found' });
+    res.json({
+      name: student.name,
+      email: student.email,
+      mobile: student.mobile,
+      class: student.class,
+      batch: student.batch,
+      profilePicture: student.profilePicture,
+      enrolledCourses: student.enrolledCourses,
+      attendance: student.attendance,
+      paymentHistory: student.paymentHistory,
+      resources: student.resources
+    });
   } catch (err) {
-    res.status(500).json({ message: "Update failed", error: err });
+    res.status(500).json({ error: 'Server error' });
   }
 };
 
-// UPLOAD profile pic
+// PATCH /api/student/:id/profile
+export const updateProfile = async (req, res) => {
+  try {
+    const updates = {};
+    if (req.body.email) updates.email = req.body.email;
+    if (req.body.mobile) updates.mobile = req.body.mobile;
+    const student = await Student.findByIdAndUpdate(
+      req.params.id,
+      { $set: updates },
+      { new: true }
+    );
+    res.json(student);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// POST /api/student/:id/profile-picture
 export const uploadProfilePicture = async (req, res) => {
   try {
-    const studentId = req.user.id;
-    const filePath = req.file?.path;
-
-    if (!filePath) return res.status(400).json({ message: "No file uploaded" });
-
     const student = await Student.findByIdAndUpdate(
-      studentId,
-      { profilePic: filePath },
+      req.params.id,
+      { $set: { profilePicture: req.file.path } },
       { new: true }
-    ).select("-password");
-
-    res.status(200).json(student);
-  } catch (error) {
-    res.status(500).json({ message: "Upload failed", error });
+    );
+    res.json({ profilePicture: student.profilePicture });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
   }
 };

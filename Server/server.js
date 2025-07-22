@@ -1,69 +1,57 @@
-import dotenv from "dotenv";
-dotenv.config({ debug: true });
+// server.js
+import express from 'express';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import morgan from 'morgan';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-import express from "express";
-import cors from "cors";
-import cookieParser from "cookie-parser";
-import helmet from "helmet";
-import mongoSanitize from "express-mongo-sanitize";
-import xss from "xss-clean";
-import rateLimit from "express-rate-limit";
-import connectToDb from "./config/db.js";
-import corsOptions from "./config/corsOptions.js";
+// 🛣 Import Routes
+import studentProfileRoutes from './routes/studentRoutes.js'; // make sure name matches exact Route file
 
-// Import routes
-import authRoutes from "./routes/authRoutes.js";
+// 🔐 Load environment variables from .env file
+dotenv.config();
 
+// 🧠 ES6-compatible __dirname workaround
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// 🚀 Initialize Express App
 const app = express();
 
-// Security middleware
-app.use(helmet()); // Set security HTTP headers
-app.use(mongoSanitize()); // Data sanitization against NoSQL query injection
-app.use(xss()); // Data sanitization against XSS
+// 🧩 Middleware Setup
+app.use(express.json()); // Parse incoming JSON requests
+app.use(cors());         // Enable CORS
+app.use(morgan('dev'));  // Log incoming requests (development only)
 
-// Rate limiting
-const limiter = rateLimit({
-    windowMs: 10 * 60 * 1000, // 10 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
-    message: 'Too many requests from this IP, please try again after 10 minutes'
-});
-app.use('/api', limiter);
+// 📂 Serve static files (e.g. profile pictures, resources for download)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Cors middleware
-app.use(cors(corsOptions));
+// 📌 API Routes
+app.use('/api/student', studentProfileRoutes); // Example: /api/student/:id/profile
 
-// Built-in middleware
-app.use(express.json({ limit: '10mb' })); // Parse JSON bodies
-app.use(express.urlencoded({ extended: true, limit: '10mb' })); // Parse URL-encoded bodies (like from forms)
-app.use(express.static("public")); // Serve static files from the "public" directory
-app.use(cookieParser()); // Parse cookies
-
-// Mount routes
-app.use("/api/auth", authRoutes);
-
-// Home route
-app.get("/", (req, res) => {
-    res.send("Welcome to HighQ Classes API");
+// 🚨 Root route (health check)
+app.get('/', (req, res) => {
+  res.send('✅ API is running...');
 });
 
-// 404 handler
-app.use((req, res, next) => {
-    res.status(404).json({ success: false, message: "Route not found" });
-});
+// ⚙ MongoDB Configuration
+const PORT = process.env.PORT || 5000;
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/studentDB';
 
-// Global error handler --> it will prevent to crash the server
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(err.statusCode || 500).json({
-        success: false,
-        message: err.message || "Something went wrong!",
-        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+mongoose
+  .connect(MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  })
+  .then(() => {
+    console.log(`✅ MongoDB Connected`);
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running at http://localhost:${PORT}`);
     });
-});
-
-// Start server
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-    connectToDb();
-    console.log(`Server is running on http://localhost:${port}/`);
-});
+  })
+  .catch((err) => {
+    console.error(`❌ MongoDB connection error:\n`, err);
+    process.exit(1);
+  });

@@ -1,31 +1,37 @@
-import mongoose from "mongoose";
+// models/Student.js
+import mongoose from 'mongoose';
+
+const attendanceSchema = new mongoose.Schema({
+  date: { type: Date, required: true },
+  status: { type: String, enum: ['Present', 'Absent', 'Leave'], required: true }
+});
+
+const paymentSchema = new mongoose.Schema({
+  amount: { type: Number, required: true },
+  date: { type: Date, required: true },
+  method: { type: String, required: true },  // e.g. 'Cash', 'Online'
+  note: String
+});
+
+const resourceSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  fileUrl: { type: String, required: true },
+  uploadedAt: { type: Date, default: Date.now },
+  batch: String // Or reference batch if you want to relate to batches.
+});
 
 const studentSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  mobile: { type: String, required: true },
-  class: { type: String },
-  batch: { type: String },
-  enrolledCourses: [{ type: String }],
-  attendance: [
-    {
-      date: Date,
-      status: { type: String, enum: ["Present", "Absent", "Leave"] },
-    },
-  ],
-  examHistory: [
-    {
-      subject: String,
-      marks: Number,
-      date: Date,
-    },
-  ],
-  homework: [{ title: String, description: String, fileUrl: String }],
-  notes: [{ title: String, description: String, fileUrl: String }],
-  studyResources: [{ title: String, fileUrl: String }],
-  profilePic: { type: String },
-  password: { type: String, required: true },
-}, { timestamps: true });
+  name: String,
+  email: String,
+  mobile: String,
+  class: String,
+  batch: String,
+  profilePicture: String,
+  enrolledCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
+  attendance: [attendanceSchema],
+  paymentHistory: [paymentSchema],
+  resources: [resourceSchema],
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+});
 
-const Student = mongoose.model("Student", studentSchema);
-export default Student;
+export default mongoose.model('Student', studentSchema);

@@ -1,28 +1,21 @@
-import express from "express";
+// routes/studentProfileRoute.js
+import { Router } from 'express';
 import {
-  getStudentProfile,
-  updateContactDetails,
-  uploadProfilePicture,
-} from "../controllers/studentController.js";
-import { protect, authorize } from "../middlewares/authMiddleware.js";
-import multer from "multer";
+  getProfile,
+  updateProfile,
+  uploadProfilePicture
+} from '../controllers/studentController.js';
 
-const router = express.Router();
+import { authenticate, authorizeStudent } from '../middleware/authMiddleware.js';
+import { upload } from '../middleware/uploadMiddleware.js';
 
-// File upload setup
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
-  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
-});
-const upload = multer({ storage });
+const router = Router();
 
-// ✅ Use team lead's auth middlewares
-router.use(protect);
-router.use(authorize("student"));
-
-// Routes
-router.get("/me", getStudentProfile);
-router.put("/update-contact", updateContactDetails);
-router.post("/upload-profile-pic", upload.single("profilePic"), uploadProfilePicture);
+// Student can view full profile (including attendance, payments, resources)
+router.get('/:id/profile', authenticate, authorizeStudent, getProfile);
+// Student can update ONLY email/mobile
+router.patch('/:id/profile', authenticate, authorizeStudent, updateProfile);
+// Student can upload/change profile picture
+router.post('/:id/profile-picture', authenticate, authorizeStudent, upload.single('profilePicture'), uploadProfilePicture);
 
 export default router;
