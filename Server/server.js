@@ -8,7 +8,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 // 🛣 Import Routes
-import studentProfileRoutes from './routes/studentRoutes.js'; // make sure name matches exact Route file
+import studentProfileRoutes from './routes/studentRoutes.js'; 
+import studentDashboardRoutes from './routes/studentDashboardRoutes.js';// make sure name matches exact Route file
 
 // 🔐 Load environment variables from .env file
 dotenv.config();
@@ -21,7 +22,8 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // 🧩 Middleware Setup
-app.use(express.json()); // Parse incoming JSON requests
+app.use(express.json());
+ // Parse incoming JSON requests
 app.use(cors());         // Enable CORS
 app.use(morgan('dev'));  // Log incoming requests (development only)
 
@@ -29,7 +31,8 @@ app.use(morgan('dev'));  // Log incoming requests (development only)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // 📌 API Routes
-app.use('/api/student', studentProfileRoutes); // Example: /api/student/:id/profile
+app.use('/api/student', studentProfileRoutes);
+app.use('/api/student', studentDashboardRoutes); // Example: /api/student/:id/profile
 
 // 🚨 Root route (health check)
 app.get('/', (req, res) => {
