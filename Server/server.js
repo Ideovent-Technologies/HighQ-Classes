@@ -13,6 +13,10 @@ import corsOptions from "./config/corsOptions.js";
 
 // Import routes
 import authRoutes from "./routes/authRoutes.js";
+import teacherRoutes from "./routes/teacherRoutes.js";
+import noticeRoutes from "./routes/noticeRoutes.js";
+import scheduleRoutes from "./routes/scheduleRoutes.js";
+import attendanceRoutes from "./routes/attendanceRoutes.js";
 
 const app = express();
 
@@ -40,6 +44,10 @@ app.use(cookieParser()); // Parse cookies
 
 // Mount routes
 app.use("/api/auth", authRoutes);
+app.use("/api/teachers", teacherRoutes);
+app.use("/api/notices", noticeRoutes);
+app.use("/api/schedules", scheduleRoutes);
+app.use("/api/attendance", attendanceRoutes);
 
 // Home route
 app.get("/", (req, res) => {

@@ -6,12 +6,12 @@ import Notice from '../models/Notice.js';
  * @route   POST /api/teacher/notices
  * @access  Private (Teacher only)
  */
-export const createNotice = asyncHandler(async (req, res) => {
+const createNotice = asyncHandler(async (req, res) => {
   const { title, description, targetBatchIds, targetAudience } = req.body;
 
   const notice = new Notice({
     title,
-    content,
+    description, // 🛠️ fixed: was `content` earlier
     targetBatchIds,
     targetAudience,
     postedBy: req.user._id,
@@ -30,7 +30,7 @@ export const createNotice = asyncHandler(async (req, res) => {
  * @route   PUT /api/teacher/notices/:id
  * @access  Private (Teacher only)
  */
-export const updateNotice = asyncHandler(async (req, res) => {
+const updateNotice = asyncHandler(async (req, res) => {
   const noticeId = req.params.id;
   const updates = req.body;
 
@@ -50,7 +50,7 @@ export const updateNotice = asyncHandler(async (req, res) => {
  * @route   DELETE /api/teacher/notices/:id
  * @access  Private (Teacher only)
  */
-export const deleteNotice = asyncHandler(async (req, res) => {
+const deleteNotice = asyncHandler(async (req, res) => {
   const notice = await Notice.findById(req.params.id);
   if (!notice) return res.status(404).json({ message: 'Notice not found' });
 
@@ -67,7 +67,7 @@ export const deleteNotice = asyncHandler(async (req, res) => {
  * @route   GET /api/teacher/notices
  * @access  Private (Teacher only)
  */
-export const getAllNotices = asyncHandler(async (req, res) => {
+const getAllNotices = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, targetAudience, targetBatchId, keyword, date } = req.query;
   const skip = (page - 1) * limit;
 
@@ -110,7 +110,7 @@ export const getAllNotices = asyncHandler(async (req, res) => {
  * @route   GET /api/teacher/notices/:id
  * @access  Private (Teacher only)
  */
-export const getNoticeById = asyncHandler(async (req, res) => {
+const getNoticeById = asyncHandler(async (req, res) => {
   const notice = await Notice.findById(req.params.id);
   if (!notice) return res.status(404).json({ message: 'Notice not found' });
 
@@ -122,7 +122,7 @@ export const getNoticeById = asyncHandler(async (req, res) => {
  * @route   GET /api/teacher/notices/batch/:batchId
  * @access  Private (Teacher only)
  */
-export const getNoticesByBatch = asyncHandler(async (req, res) => {
+const getNoticesByBatch = asyncHandler(async (req, res) => {
   const { batchId } = req.params;
 
   const notices = await Notice.find({
@@ -135,3 +135,13 @@ export const getNoticesByBatch = asyncHandler(async (req, res) => {
     data: notices,
   });
 });
+
+// ✅ Export all at once
+export {
+  createNotice,
+  updateNotice,
+  deleteNotice,
+  getAllNotices,
+  getNoticeById,
+  getNoticesByBatch,
+};
