@@ -8,14 +8,21 @@ import helmet from "helmet";
 import mongoSanitize from "express-mongo-sanitize";
 import xss from "xss-clean";
 import rateLimit from "express-rate-limit";
+import fileUpload from "express-fileupload";
 import connectToDb from "./config/db.js";
 import corsOptions from "./config/corsOptions.js";
+import configureCloudinary from "./config/cloudinary.js";
+import "./config/schedule.js"; // Import to initialize scheduled tasks
 
 // Import routes
 import authRoutes from "./routes/authRoutes.js";
+
+import recordingRoutes from "./routes/recordingRoutes.js";
+
 import adminRoutes from "./routes/adminRoutes.js";
 import batchRouter from "./routes/batchRoutes.js";
 import feeRouter from "./routes/feeRoutes.js";
+
 
 
 const app = express();
@@ -44,9 +51,13 @@ app.use(cookieParser()); // Parse cookies
 
 // Mount routes
 app.use("/api/auth", authRoutes);
+
+app.use("/api/recordings", recordingRoutes);
+
 app.use("/api/admin", adminRoutes);
 app.use("/api/batch", batchRouter);
 app.use("/api/fee", feeRouter);
+
 
 // Home route
 app.get("/", (req, res) => {
@@ -72,5 +83,6 @@ app.use((err, req, res, next) => {
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
     connectToDb();
+    configureCloudinary();
     console.log(`Server is running on http://localhost:${port}/`);
 });
