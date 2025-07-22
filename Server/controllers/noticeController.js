@@ -9,16 +9,21 @@ export const getAllNotices = async (req, res) => {
     const parsedPage = parseInt(page) || 1;
     const parsedLimit = parseInt(limit) || 10;
 
-    // 🧠 Build dynamic filter
     const filter = {
       postedBy: teacherId,
-      $or: [{ isScheduled: false }, { scheduledAt: { $lte: new Date() } }],
+      $or: [
+        { isScheduled: false },
+        { isScheduled: true, scheduledAt: { $lte: new Date() } }
+      ],
     };
 
-    if (batch) filter.targetBatchIds = { $in: [batch] };
+    if (batch) {
+      filter.targetBatchIds = { $in: [batch] };
+    }
 
-    if (audience) filter.targetAudience = audience;
-
+    if (audience) {
+      filter.targetAudience = audience;
+    }
 
     if (date) {
       const start = new Date(date);
@@ -33,7 +38,7 @@ export const getAllNotices = async (req, res) => {
       .sort({ createdAt: -1 })
       .skip((parsedPage - 1) * parsedLimit)
       .limit(parsedLimit)
-      .lean(); // 🔹 Performance boost
+      .lean();
 
     res.json({
       success: true,
@@ -43,7 +48,8 @@ export const getAllNotices = async (req, res) => {
       data: notices,
     });
   } catch (error) {
-    console.error("❌ Get Notices Error:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error("❌ Get Notices Error:", error.message);
+    res.status(500).json({ message: "Server error while fetching notices." });
   }
 };
+

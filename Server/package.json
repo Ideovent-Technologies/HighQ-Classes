@@ -18,6 +18,7 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
+    "express-async-handler": "^1.2.0",
     "express-mongo-sanitize": "^2.2.0",
     "express-rate-limit": "^7.1.5",
     "express-validator": "^7.0.1",
@@ -25,7 +26,9 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.4",
     "multer": "^2.0.2",
-    "node-cron": "^3.0.3",
+
+    "node-cron": "^4.2.1",
+
     "nodemailer": "^6.9.9",
     "express-fileupload": "^1.4.3",
     "xss-clean": "^0.1.4"

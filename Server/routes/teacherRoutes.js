@@ -1,46 +1,25 @@
 // routes/teacherRoutes.js
 import express from 'express';
 import {
-  createNotice,
-  getAllNotices,  
-  updateNotice,   
-  deleteNotice,  
-  getNoticeById,        
-  getNoticesByBatch  
+  getTeacherProfile,
+  updateTeacherProfile,
 } from '../controllers/teacherController.js';
 
-import { protectTeacher } from '../middleware/authMiddleware.js';
+import { protect, authorize } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
+const protectTeacher = [protect, authorize('teacher')];
 
-// ------------------ NOTICE ROUTES ------------------
+// ------------------ TEACHER PROFILE ------------------
 
-// @route   POST /api/teacher/notices
-// @desc    Create a new notice
+// @route   GET /api/teacher/profile
+// @desc    Get logged-in teacher's profile
 // @access  Private (Teacher only)
-router.post('/notices', protectTeacher, createNotice);
+router.get('/profile', protectTeacher, getTeacherProfile);
 
-// @route   PUT /api/teacher/notices/:id
-// @desc    Update a specific notice
+// @route   PUT /api/teacher/profile
+// @desc    Update logged-in teacher's profile (email/password only)
 // @access  Private (Teacher only)
-router.put('/notices/:id', protectTeacher, updateNotice);
-
-// @route   DELETE /api/teacher/notices/:id
-// @desc    Delete a specific notice
-// @access  Private (Teacher only)
-router.delete('/notices/:id', protectTeacher, deleteNotice);
-// @route   GET /api/teacher/notices
-// @desc    Get all notices (with pagination & filters)
-// @access  Private (Teacher only)
-router.get('/notices', protectTeacher, getAllNotices);
-// @route   GET /api/teacher/notices/:id
-// @desc    Get a specific notice by ID
-// @access  Private (Teacher only)
-router.get('/notices/:id', protectTeacher, getNoticeById);
-// @route   GET /api/teacher/notices/batch/:batchId
-// @desc    Get all notices for a specific batch
-// @access  Private (Teacher only)
-router.get('/notices/batch/:batchId', protectTeacher, getNoticesByBatch);
-
+router.put('/profile', protectTeacher, updateTeacherProfile);
 
 export default router;

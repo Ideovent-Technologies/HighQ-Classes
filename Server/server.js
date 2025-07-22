@@ -14,8 +14,15 @@ import corsOptions from "./config/corsOptions.js";
 import configureCloudinary from "./config/cloudinary.js";
 import "./config/schedule.js"; // Import to initialize scheduled tasks
 
+// Scheduled Notice Publishing
+import { scheduleNoticePublishing } from "./utils/scheduleNotices.js";
+
 // Import routes
 import authRoutes from "./routes/authRoutes.js";
+import teacherRoutes from "./routes/teacherRoutes.js";
+import noticeRoutes from "./routes/noticeRoutes.js";
+import scheduleRoutes from "./routes/scheduleRoutes.js";
+import attendanceRoutes from "./routes/attendanceRoutes.js";
 
 import recordingRoutes from "./routes/recordingRoutes.js";
 
@@ -34,7 +41,7 @@ app.use(xss()); // Data sanitization against XSS
 
 // Rate limiting
 const limiter = rateLimit({
-    windowMs: 10 * 60 * 1000, // 10 minutes
+  windowMs: 10 * 60 * 1000, // 10 minutes
     max: 100, // limit each IP to 100 requests per windowMs
     message: 'Too many requests from this IP, please try again after 10 minutes'
 });
@@ -50,7 +57,11 @@ app.use(express.static("public")); // Serve static files from the "public" direc
 app.use(cookieParser()); // Parse cookies
 
 // Mount routes
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoutes);                     // /login, /register, /refresh-token
+app.use("/api/teacher", teacherRoutes);               // /profile, /profile PUT
+app.use("/api/teacher/notices", noticeRoutes);        // notices CRUD
+app.use("/api/teacher/schedule", scheduleRoutes);     // schedule
+app.use("/api/attendance", attendanceRoutes);         // attendance
 
 app.use("/api/recordings", recordingRoutes);
 
@@ -61,22 +72,22 @@ app.use("/api/fee", feeRouter);
 
 // Home route
 app.get("/", (req, res) => {
-    res.send("Welcome to HighQ Classes API");
+  res.send("Welcome to HighQ Classes API");
 });
 
 // 404 handler
 app.use((req, res, next) => {
-    res.status(404).json({ success: false, message: "Route not found" });
+  res.status(404).json({ success: false, message: "Route not found" });
 });
 
 // Global error handler --> it will prevent to crash the server
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(err.statusCode || 500).json({
-        success: false,
-        message: err.message || "Something went wrong!",
+  console.error(err.stack);
+  res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message || "Something went wrong!",
         stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
-    });
+  });
 });
 
 // Start server
