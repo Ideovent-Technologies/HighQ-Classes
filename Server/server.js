@@ -16,7 +16,14 @@ import "./config/schedule.js"; // Import to initialize scheduled tasks
 
 // Import routes
 import authRoutes from "./routes/authRoutes.js";
+
 import recordingRoutes from "./routes/recordingRoutes.js";
+
+import adminRoutes from "./routes/adminRoutes.js";
+import batchRouter from "./routes/batchRoutes.js";
+import feeRouter from "./routes/feeRoutes.js";
+
+
 
 const app = express();
 
@@ -44,7 +51,13 @@ app.use(cookieParser()); // Parse cookies
 
 // Mount routes
 app.use("/api/auth", authRoutes);
+
 app.use("/api/recordings", recordingRoutes);
+
+app.use("/api/admin", adminRoutes);
+app.use("/api/batch", batchRouter);
+app.use("/api/fee", feeRouter);
+
 
 // Home route
 app.get("/", (req, res) => {
