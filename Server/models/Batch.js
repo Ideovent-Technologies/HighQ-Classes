@@ -6,25 +6,40 @@ const batchSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    course: {
+    courseId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Course',
+      required: true,
+    },
+    teacherId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Teacher',
       required: true,
     },
     students: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-      }
-    ],
-    teachers: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'Student',
       }
     ],
     schedule: {
-      type: String, // e.g., "Mon-Wed-Fri 5pm to 7pm"
+      days: [
+        {
+          type: String,
+        }
+      ],
+      startTime: {
+        type: String,
+      },
+      endTime: {
+        type: String,
+      }
+    },
+    startDate: {
+      type: Date,
+    },
+    endDate: {
+      type: Date,
     }
   },
   { timestamps: true }
