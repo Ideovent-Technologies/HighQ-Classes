@@ -63,7 +63,10 @@ app.use("/api/auth", authRoutes);                     // /login, /register, /ref
 app.use("/api/teacher", teacherRoutes);               // /profile, /profile PUT
 app.use("/api/teacher/notices", noticeRoutes);        // notices CRUD
 app.use("/api/teacher/schedule", scheduleRoutes);     // schedule
-app.use("/api/attendance", attendanceRoutes);         // attendance
+app.use("/api/attendance", attendanceRoutes);   
+app.use("/api/student", studentRoutes);         // /:id/profile, pic, change-password
+app.use("/api/student", studentDashboardRoutes);        // /dashboard
+app.use("/api/course", courseRoutes);                  // / | GET course list + topics      // attendance
 
 app.use("/api/recordings", recordingRoutes);
 
