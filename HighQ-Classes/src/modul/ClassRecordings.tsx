@@ -11,7 +11,7 @@ type Recording = {
 
 const recordings: Recording[] = [
   {
-    title: 'Javascript - Functions',
+    title: 'Chemistry',
     date: 'July 18, 2025',
     time: '10:00 AM',
     duration: '45 min',
@@ -19,7 +19,7 @@ const recordings: Recording[] = [
     watched: false,
   },
   {
-    title: 'React Hooks Intro',
+    title: 'Mathematics Intro',
     date: 'July 19, 2025',
     time: '11:30 AM',
     duration: '1 hr',
@@ -27,12 +27,13 @@ const recordings: Recording[] = [
     watched: false,
   },
   {
-    title: 'TypeScript Basics',
+    title: 'Physics Basics',
     date: 'July 20, 2025',
     time: '2:00 PM',
     duration: '5-th',
     daysLeft: '3 days left',
     watched: false,
+
   },
 ];
 
@@ -66,7 +67,7 @@ const ClassRecordings: React.FC = () => {
         {recordings.map((rec, index) => (
           <div
             key={index}
-            className="p-4 border rounded-lg flex flex-col md:flex-row md:items-center md:justify-between"
+            className="p-4 border rounded-lg flex flex-col md:flex-row md:items-center md:justify-between hover:shadow-lg hover:scale-105"
           >
             <div>
               <h2 className="text-lg font-semibold">{rec.title}</h2>
@@ -76,7 +77,7 @@ const ClassRecordings: React.FC = () => {
               <p className="text-sm text-orange-500 mt-1">⚠ {rec.daysLeft}</p>
             </div>
 
-            <div className="flex items-center space-x-2 mt-3 md:mt-0">
+            <div className="flex items-center space-x-2 mt-3 md:mt-0 ">
               <button className="border border-blue-600 text-blue-600 px-3 py-1 rounded hover:bg-blue-50">
                 Watch
               </button>
@@ -88,7 +89,7 @@ const ClassRecordings: React.FC = () => {
                   rec.watched ? 'text-green-600' : 'text-red-500'
                 }`}
               >
-                {rec.watched ? 'Watched' : 'Not Watched'}
+                {rec.watched ? 'Watched' : ' Watched'}
               </span>
             </div>
           </div>
