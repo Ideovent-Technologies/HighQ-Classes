@@ -1,29 +1,89 @@
 import express from 'express';
-import * as materialController from '../controllers/materialController.js';
+import {
+  uploadMaterial,
+  getMaterialsByBatch,
+  getAllMaterials,
+  searchMaterials,
+  deleteMaterial,
+  studentViewMaterial, // ✅ NEW: Import view tracker
+} from '../controllers/materialController.js';
+
 import { protect, authorize } from '../middleware/authMiddleware.js';
-import { fileUpload } from '../middleware/fileUpload.js';
+import upload from '../middleware/multerMiddleware.js';
 
 const router = express.Router();
 
-// Routes for teacher & admin
+/**
+ * @route   POST /api/materials
+ * @desc    Upload a new study material
+ * @access  Private (Teachers only)
+ */
 router.post(
-    '/upload',
-    protect,
-    authorize('teacher', 'admin'),
-    fileUpload,
-    materialController.uploadMaterial
+  '/',
+  protect,
+  authorize('teacher'),
+  upload.single('file'), // ✅ Multer middleware for file upload
+  uploadMaterial
 );
 
+/**
+ * @route   GET /api/materials/student
+ * @desc    Get materials assigned to logged-in student's batch
+ * @access  Private (Students only)
+ */
+router.get(
+  '/student',
+  protect,
+  authorize('student'),
+  getMaterialsByBatch
+);
+
+/**
+ * @route   GET /api/materials
+ * @desc    Get all materials (for admin or teachers)
+ * @access  Private (Admins, Teachers)
+ */
+router.get(
+  '/',
+  protect,
+  authorize('admin', 'teacher'),
+  getAllMaterials
+);
+
+/**
+ * @route   GET /api/materials/search
+ * @desc    Search materials by title
+ * @access  Private (All roles)
+ */
+router.get(
+  '/search',
+  protect,
+  searchMaterials
+);
+
+/**
+ * @route   DELETE /api/materials/:materialId
+ * @desc    Delete a material by ID
+ * @access  Private (Teachers or Admins)
+ */
 router.delete(
-    '/:materialId',
-    protect,
-    authorize('teacher', 'admin'),
-    materialController.deleteMaterial
+  '/:materialId',
+  protect,
+  authorize('teacher', 'admin'),
+  deleteMaterial
 );
 
-// Routes for all roles
-router.get('/search', protect, materialController.searchMaterials);
-router.get('/', protect, authorize('teacher', 'admin'), materialController.getAllMaterials);
-router.get('/batch', protect, authorize('student'), materialController.getMaterialsByBatch);
+/**
+ * ✅ NEW ROUTE
+ * @route   POST /api/materials/view/:materialId
+ * @desc    Track when a student views a material
+ * @access  Private (Students only)
+ */
+router.post(
+  '/view/:materialId',
+  protect,
+  authorize('student'),
+  studentViewMaterial
+);
 
 export default router;

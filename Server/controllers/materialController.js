@@ -1,23 +1,30 @@
 import Material from '../models/Material.js';
 import mongoose from 'mongoose';
-import { uploadBufferToCloudinary } from '../services/cloudinaryService.js';
 
-// Upload material (Teachers/Admin only)
+// import { uploadFile } from '../services/cloudinaryService.js'; // Uncomment if needed
+// import { uploadBufferToCloudinary } from '../services/cloudinaryService.js';
+import cloudinary from '../utils/cloudinary.js'; // Adjust based on your setup
+
+// ✅ Upload a new study material (Teacher only)
 export const uploadMaterial = async (req, res) => {
   try {
     const { title, description, fileType, batchIds, courseId } = req.body;
-    const uploader = req.user;
+    const uploader = req.user; // Auth middleware attaches logged-in user
 
     if (!req.files || !req.files.file) {
       return res.status(400).json({ message: 'File is required' });
     }
 
-    const file = req.files.file;
-    const uploadedFile = await uploadBufferToCloudinary(file.data, file.name);
 
-    const batchIdsArray = Array.isArray(batchIds)
-      ? batchIds
-      : JSON.parse(batchIds);
+    // ✅ Upload to Cloudinary
+    const uploadedFile = await cloudinary.uploadFile(req.file.path);
+//     Temparory comment
+//     const file = req.files.file;
+//     const uploadedFile = await uploadBufferToCloudinary(file.data, file.name);
+
+//     const batchIdsArray = Array.isArray(batchIds)
+//       ? batchIds
+//       : JSON.parse(batchIds);
 
     const material = new Material({
       title,
@@ -38,12 +45,15 @@ export const uploadMaterial = async (req, res) => {
   }
 };
 
-// Get materials by student's batch
+// ✅ Student fetch: Get materials by their assigned batch
+
 export const getMaterialsByBatch = async (req, res) => {
   try {
     const studentBatchId = req.user.batch;
 
+
     const materials = await Material.find({ batchIds: studentBatchId })
+
       .populate('uploadedBy', 'name role')
       .populate('courseId', 'name')
       .sort({ createdAt: -1 });
@@ -56,6 +66,7 @@ export const getMaterialsByBatch = async (req, res) => {
 };
 
 // Get all materials (Admin/Teacher)
+
 export const getAllMaterials = async (req, res) => {
   try {
     const materials = await Material.find()
@@ -71,7 +82,9 @@ export const getAllMaterials = async (req, res) => {
   }
 };
 
-// Search by title (all roles)
+
+// ✅ Search materials by title (partial match)
+
 export const searchMaterials = async (req, res) => {
   try {
     const { query } = req.query;
@@ -84,7 +97,7 @@ export const searchMaterials = async (req, res) => {
     res.status(500).json({ message: 'Search failed' });
   }
 };
-
+    
 // Delete material (Teacher/Admin only)
 export const deleteMaterial = async (req, res) => {
   try {
@@ -99,5 +112,34 @@ export const deleteMaterial = async (req, res) => {
   } catch (error) {
     console.error('Delete error:', error);
     res.status(500).json({ message: 'Error deleting material' });
+  }
+};
+
+// ✅ Track student engagement: Log that a student viewed a material
+export const studentViewMaterial = async (req, res) => {
+  try {
+    const studentId = req.user._id;
+    const { materialId } = req.params;
+
+    const material = await Material.findById(materialId);
+
+    if (!material) {
+      return res.status(404).json({ message: 'Material not found' });
+    }
+
+    // Check if already viewed
+    const alreadyViewed = material.viewedBy.some(
+      view => view.user.toString() === studentId.toString()
+    );
+
+    if (!alreadyViewed) {
+      material.viewedBy.push({ user: studentId, viewedAt: new Date() });
+      await material.save();
+    }
+
+    res.json({ message: 'Material view recorded', materialId });
+  } catch (error) {
+    console.error('View tracking error:', error);
+    res.status(500).json({ message: 'Error recording view' });
   }
 };

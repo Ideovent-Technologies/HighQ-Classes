@@ -36,6 +36,20 @@ const materialSchema = new Schema(
       ref: 'Course',
       required: true,
     },
+
+    // ✅ NEW FIELD: Track who has viewed the material
+    viewedBy: [
+      {
+        user: {
+          type: Schema.Types.ObjectId,
+          ref: 'Student', // or 'User' if mixed roles
+        },
+        viewedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   {
     timestamps: true, // createdAt and updatedAt
@@ -44,4 +58,3 @@ const materialSchema = new Schema(
 
 const Material = mongoose.model('Material', materialSchema);
 export default Material;
-
