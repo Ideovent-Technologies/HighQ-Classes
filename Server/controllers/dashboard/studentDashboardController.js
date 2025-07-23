@@ -1,6 +1,6 @@
 // Required Imports
-//import Schedule from "../../models/Schedule.js";
-//import Notice from "../../models/Notice.js";
+import Schedule from "../../models/Schedule.js";
+import Notice from "../../models/Notice.js";
 import Attendance from "../../models/Attendance.js";
 import Material from "../../models/Material.js";
 import Recording from "../../models/Recording.js";
@@ -8,6 +8,7 @@ import Student from "../../models/Student.js";
 import Course from "../../models/Course.js";
 
 import mongoose from "mongoose";
+
 
 /**
  * @desc    Get student dashboard overview
