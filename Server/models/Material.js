@@ -1,14 +1,60 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
+const { Schema } = mongoose;
 
-const materialSchema = new mongoose.Schema({
-  title: String,
-  fileUrl: String,
-  batch: { type: mongoose.Schema.Types.ObjectId, ref: "Batch" },
-  course: { type: mongoose.Schema.Types.ObjectId, ref: "Course" },
-  uploadedAt: { type: Date, default: Date.now },
-  isActive: { type: Boolean, default: true },
-  viewedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }], // For engagement
-  downloadCount: { type: Number, default: 0 } // For engagement
-});
+const materialSchema = new Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    description: {
+      type: String,
+      trim: true,
+    },
+    fileUrl: {
+      type: String,
+      required: true,
+    },
+    fileType: {
+      type: String,
+      required: true,
+    },
+    uploadedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    batchIds: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Batch',
+      },
+    ],
+    courseId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Course',
+      required: true,
+    },
 
-export default mongoose.model("Material", materialSchema);
+    // ✅ NEW FIELD: Track who has viewed the material
+    viewedBy: [
+      {
+        user: {
+          type: Schema.Types.ObjectId,
+          ref: 'Student', // or 'User' if mixed roles
+        },
+        viewedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+  },
+  {
+    timestamps: true, // createdAt and updatedAt
+  }
+);
+
+const Material = mongoose.model('Material', materialSchema);
+export default Material;

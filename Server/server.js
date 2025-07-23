@@ -1,60 +1,99 @@
-// server.js
-import express from 'express';
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import morgan from 'morgan';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import dotenv from "dotenv";
+dotenv.config({ debug: true });
 
-// 🛣 Import Routes
-import studentProfileRoutes from './routes/studentRoutes.js'; 
-import studentDashboardRoutes from './routes/studentDashboardRoutes.js';// make sure name matches exact Route file
+import express from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import helmet from "helmet";
+import mongoSanitize from "express-mongo-sanitize";
+import xss from "xss-clean";
+import rateLimit from "express-rate-limit";
+import fileUpload from "express-fileupload";
+import connectToDb from "./config/db.js";
+import corsOptions from "./config/corsOptions.js";
+import configureCloudinary from "./config/cloudinary.js";
+import "./config/schedule.js"; // Import to initialize scheduled tasks
 
-// 🔐 Load environment variables from .env file
-dotenv.config();
+// Scheduled Notice Publishing
+import { scheduleNoticePublishing } from "./utils/scheduleNotices.js";
 
-// 🧠 ES6-compatible __dirname workaround
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Import routes
+import authRoutes from "./routes/authRoutes.js";
+import teacherRoutes from "./routes/teacherRoutes.js";
+import noticeRoutes from "./routes/noticeRoutes.js";
+import scheduleRoutes from "./routes/scheduleRoutes.js";
+import attendanceRoutes from "./routes/attendanceRoutes.js";
 
-// 🚀 Initialize Express App
+import recordingRoutes from "./routes/recordingRoutes.js";
+
+import adminRoutes from "./routes/adminRoutes.js";
+import batchRouter from "./routes/batchRoutes.js";
+import feeRouter from "./routes/feeRoutes.js";
+
+
+
 const app = express();
 
-// 🧩 Middleware Setup
-app.use(express.json());
- // Parse incoming JSON requests
-app.use(cors());         // Enable CORS
-app.use(morgan('dev'));  // Log incoming requests (development only)
+// Security middleware
+app.use(helmet()); // Set security HTTP headers
+app.use(mongoSanitize()); // Data sanitization against NoSQL query injection
+app.use(xss()); // Data sanitization against XSS
 
-// 📂 Serve static files (e.g. profile pictures, resources for download)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again after 10 minutes'
+});
+app.use('/api', limiter);
 
-// 📌 API Routes
-app.use('/api/student', studentProfileRoutes);
-app.use('/api/student', studentDashboardRoutes); // Example: /api/student/:id/profile
+// Cors middleware
+app.use(cors(corsOptions));
 
-// 🚨 Root route (health check)
-app.get('/', (req, res) => {
-  res.send('✅ API is running...');
+// Built-in middleware
+app.use(express.json({ limit: '10mb' })); // Parse JSON bodies
+app.use(express.urlencoded({ extended: true, limit: '10mb' })); // Parse URL-encoded bodies (like from forms)
+app.use(express.static("public")); // Serve static files from the "public" directory
+app.use(cookieParser()); // Parse cookies
+
+// Mount routes
+app.use("/api/auth", authRoutes);                     // /login, /register, /refresh-token
+app.use("/api/teacher", teacherRoutes);               // /profile, /profile PUT
+app.use("/api/teacher/notices", noticeRoutes);        // notices CRUD
+app.use("/api/teacher/schedule", scheduleRoutes);     // schedule
+app.use("/api/attendance", attendanceRoutes);         // attendance
+
+app.use("/api/recordings", recordingRoutes);
+
+app.use("/api/admin", adminRoutes);
+app.use("/api/batch", batchRouter);
+app.use("/api/fee", feeRouter);
+
+
+// Home route
+app.get("/", (req, res) => {
+  res.send("Welcome to HighQ Classes API");
 });
 
-// ⚙ MongoDB Configuration
-const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/studentDB';
+// 404 handler
+app.use((req, res, next) => {
+  res.status(404).json({ success: false, message: "Route not found" });
+});
 
-mongoose
-  .connect(MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
-  .then(() => {
-    console.log(`✅ MongoDB Connected`);
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running at http://localhost:${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error(`❌ MongoDB connection error:\n`, err);
-    process.exit(1);
+// Global error handler --> it will prevent to crash the server
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message || "Something went wrong!",
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
+});
+
+// Start server
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    connectToDb();
+    configureCloudinary();
+    console.log(`Server is running on http://localhost:${port}/`);
+});
