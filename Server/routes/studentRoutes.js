@@ -4,18 +4,26 @@ import {
   getProfile,
   updateProfile,
   uploadProfilePicture
-} from '../controllers/studentController.js';
+} from '../controllers/studentController.js'; // ✅ Fixed file name
 
 import { authenticate, authorizeStudent } from '../middleware/authMiddleware.js';
 import { upload } from '../middleware/uploadMiddleware.js';
 
 const router = Router();
 
-// Student can view full profile (including attendance, payments, resources)
+// View profile
 router.get('/:id/profile', authenticate, authorizeStudent, getProfile);
-// Student can update ONLY email/mobile
+
+// Update email / phone
 router.patch('/:id/profile', authenticate, authorizeStudent, updateProfile);
-// Student can upload/change profile picture
-router.post('/:id/profile-picture', authenticate, authorizeStudent, upload.single('profilePicture'), uploadProfilePicture);
+
+// Upload profile picture
+router.post(
+  '/:id/profile-picture',
+  authenticate,
+  authorizeStudent,
+  upload.single('profilePicture'),
+  uploadProfilePicture
+);
 
 export default router;

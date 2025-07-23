@@ -1,3 +1,4 @@
+// models/Student.js
 import mongoose from "mongoose";
 
 const studentSchema = new mongoose.Schema(
@@ -5,64 +6,86 @@ const studentSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      trim: true,
+      trim: true
     },
     email: {
       type: String,
       required: true,
       unique: true,
-      lowercase: true,
+      lowercase: true
     },
     phone: {
-      type: String,
+      type: String
     },
-    profilePic: {
-      type: String,
+    profilePicture: {
+      type: String // ✅ changed from profilePic to match controller
     },
     gender: {
       type: String,
-      enum: ["male", "female", "other"],
+      enum: ["male", "female", "other"]
     },
     dateOfBirth: {
-      type: Date,
+      type: Date
     },
     batch: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Batch", // ✅ changed from String to ObjectId reference
+      ref: "Batch"
     },
     class: {
-      type: String,
+      type: String
     },
     attendance: [
       {
         date: Date,
         status: {
           type: String,
-          enum: ["present", "absent", "leave"],
-        },
-      },
+          enum: ["present", "absent", "leave"]
+        }
+      }
     ],
     examHistory: [
       {
         examTitle: String,
         score: Number,
         total: Number,
+        date: Date
+      }
+    ],
+    enrolledCourses: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Course"
+      }
+    ],
+    paymentHistory: [
+      {
+        amount: Number,
         date: Date,
-      },
+        method: String,
+        note: String
+      }
+    ],
+    resources: [
+      {
+        title: String,
+        fileUrl: String,
+        uploadedAt: Date,
+        batch: String
+      }
     ],
     password: {
       type: String,
-      required: true,
+      required: true
     },
     role: {
       type: String,
       enum: ["student"],
-      default: "student",
+      default: "student"
     },
     isActive: {
       type: Boolean,
-      default: true,
-    },
+      default: true
+    }
   },
   { timestamps: true }
 );

@@ -29,7 +29,9 @@ import recordingRoutes from "./routes/recordingRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import batchRouter from "./routes/batchRoutes.js";
 import feeRouter from "./routes/feeRoutes.js";
-
+import studentRoutes from "./routes/studentRoutes.js";
+import studentDashboardRoutes from "./routes/studentDashboardRoutes.js";
+import courseRoutes from "./routes/courseRoutes.js";
 
 
 const app = express();
