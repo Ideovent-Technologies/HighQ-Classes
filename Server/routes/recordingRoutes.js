@@ -7,7 +7,8 @@ import {
     deleteRecording,
     getStudentRecordings,
     getRecordingAnalytics,
-    extendRecordingAccess
+    extendRecordingAccess,
+    searchRecordings,
 } from "../controllers/recordingController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { checkRole } from "../middleware/roleMiddleware.js";
@@ -37,5 +38,9 @@ router.route("/:id")
 
 // Extend recording access
 router.put("/:id/extend", checkRole(["teacher", "admin"]), extendRecordingAccess);
+
+// Search recordings by title
+router.get("/search", checkRole(["teacher", "admin"]), searchRecordings);
+
 
 export default router;
