@@ -492,3 +492,51 @@ export const extendRecordingAccess = async (req, res) => {
         });
     }
 };
+
+/**
+ * @desc    Search recordings by title (partial match)
+ * @route   GET /api/recordings/search?query=
+ * @access  Private (Teachers, Admins)
+ */
+export const searchRecordings = async (req, res) => {
+    try {
+        const { query } = req.query;
+
+        if (!query || query.trim() === '') {
+            return res.status(400).json({
+                success: false,
+                message: "Search query is required",
+            });
+        }
+
+        const searchRegex = new RegExp(query, 'i'); // Case-insensitive partial match
+
+        const filters = {
+            title: { $regex: searchRegex }
+        };
+
+        // For teachers, restrict to their own recordings
+        if (req.user.role === "teacher") {
+            filters.teacher = req.user._id;
+        }
+
+        const results = await Recording.find(filters)
+            .populate("batch", "name")
+            .populate("course", "name")
+            .populate("teacher", "name")
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: results.length,
+            data: results,
+        });
+    } catch (error) {
+        console.error("Error searching recordings:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to search recordings",
+            error: error.message,
+        });
+    }
+};
