@@ -1,3 +1,5 @@
+// controllers/studentController.js
+
 import Student from '../models/Student.js';
 import bcrypt from 'bcryptjs';
 
@@ -58,9 +60,14 @@ export const updateProfile = async (req, res) => {
 // POST /api/student/:id/profile-picture
 export const uploadProfilePicture = async (req, res) => {
   try {
+    // ✅ Using fileUpload-based path from req.profilePicPath
+    if (!req.profilePicPath) {
+      return res.status(400).json({ error: 'No file path found in request' });
+    }
+
     const student = await Student.findByIdAndUpdate(
       req.params.id,
-      { $set: { profilePicture: req.file.path } },
+      { $set: { profilePicture: req.profilePicPath } },
       { new: true }
     );
 
