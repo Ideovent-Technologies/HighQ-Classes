@@ -2,7 +2,12 @@
 
 import Material from '../models/Material.js';
 import mongoose from 'mongoose';
-import cloudinary from '../utils/cloudinary.js'; // Cloudinary utility for file uploads
+import configureCloudinary from '../config/cloudinary.js';
+import { v2 as cloudinary } from 'cloudinary';
+import streamifier from 'streamifier';
+
+// Initialize Cloudinary configuration
+configureCloudinary();
 
 // ---------------------------
 // 📁 Upload New Material
@@ -22,8 +27,21 @@ export const uploadMaterial = async (req, res) => {
       return res.status(400).json({ message: 'File is required' });
     }
 
-    // ✅ Upload to Cloudinary
-    const uploadedFile = await cloudinary.uploadFile(req.file.path);
+    // ✅ Upload to Cloudinary using stream
+    const streamUpload = () => {
+      return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream((error, result) => {
+          if (result) {
+            resolve(result);
+          } else {
+            reject(error);
+          }
+        });
+        streamifier.createReadStream(req.file.buffer).pipe(stream);
+      });
+    };
+
+    const uploadedFile = await streamUpload();
 
     // ✅ Convert batchIds to ObjectId array (ensure it's parsed correctly)
     const batchIdsArray = Array.isArray(batchIds)

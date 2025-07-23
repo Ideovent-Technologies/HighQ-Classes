@@ -9,7 +9,7 @@ import {
 } from '../controllers/materialController.js';
 
 import { protect, authorize } from '../middleware/authMiddleware.js';
-import upload from '../middleware/multerMiddleware.js';
+import { fileUpload } from '../middleware/fileUpload.js'; // ✅ Correct import
 
 const router = express.Router();
 
@@ -22,7 +22,7 @@ router.post(
   '/',
   protect,
   authorize('teacher'),
-  upload.single('file'), // ✅ Multer middleware for file upload
+  fileUpload, // ✅ Use express-fileupload middleware
   uploadMaterial
 );
 
