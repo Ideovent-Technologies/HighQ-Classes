@@ -1,53 +1,109 @@
-import Student from "../models/Student.js";
-import { validationResult } from "express-validator";
+// controllers/studentController.js
 
-// GET student profile
-export const getStudentProfile = async (req, res) => {
+import Student from '../models/Student.js';
+import bcrypt from 'bcryptjs';
+
+// GET /api/student/:id/profile
+export const getProfile = async (req, res) => {
   try {
-    const studentId = req.user.id;
-    const student = await Student.findById(studentId).select("-password");
-    if (!student) return res.status(404).json({ message: "Student not found" });
+    const student = await Student.findById(req.params.id)
+      .populate('enrolledCourses')
+      .populate('batch', 'batchName')
+      .lean();
 
-    res.status(200).json(student);
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error });
-  }
-};
+    if (!student) return res.status(404).json({ error: 'Student not found' });
 
-// UPDATE email/mobile only
-export const updateContactDetails = async (req, res) => {
-  try {
-    const { email, mobile } = req.body;
-    const studentId = req.user.id;
-
-    const updatedStudent = await Student.findByIdAndUpdate(
-      studentId,
-      { email, mobile },
-      { new: true }
-    ).select("-password");
-
-    res.status(200).json(updatedStudent);
+    res.json({
+      name: student.name,
+      email: student.email,
+      phone: student.phone,
+      class: student.class,
+      batch: student.batch,
+      profilePicture: student.profilePicture,
+      enrolledCourses: student.enrolledCourses,
+      attendance: student.attendance,
+      paymentHistory: student.paymentHistory,
+      resources: student.resources
+    });
   } catch (err) {
-    res.status(500).json({ message: "Update failed", error: err });
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
   }
 };
 
-// UPLOAD profile pic
-export const uploadProfilePicture = async (req, res) => {
+// PATCH /api/student/:id/profile
+export const updateProfile = async (req, res) => {
   try {
-    const studentId = req.user.id;
-    const filePath = req.file?.path;
+    const updates = {};
+    if (req.body.email) updates.email = req.body.email;
+    if (req.body.phone) updates.phone = req.body.phone;
 
-    if (!filePath) return res.status(400).json({ message: "No file uploaded" });
+    if (!updates.email && !updates.phone) {
+      return res.status(400).json({ error: "Nothing to update" });
+    }
 
     const student = await Student.findByIdAndUpdate(
-      studentId,
-      { profilePic: filePath },
+      req.params.id,
+      { $set: updates },
       { new: true }
-    ).select("-password");
+    );
 
-    res.status(200).json(student);
-  } catch (error) {
-    res.status(500).json({ message: "Upload failed", error });
+    if (!student) return res.status(404).json({ error: "Student not found" });
+
+    res.json(student);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// POST /api/student/:id/profile-picture
+export const uploadProfilePicture = async (req, res) => {
+  try {
+    // ✅ Using fileUpload-based path from req.profilePicPath
+    if (!req.profilePicPath) {
+      return res.status(400).json({ error: 'No file path found in request' });
+    }
+
+    const student = await Student.findByIdAndUpdate(
+      req.params.id,
+      { $set: { profilePicture: req.profilePicPath } },
+      { new: true }
+    );
+
+    if (!student) return res.status(404).json({ error: "Student not found" });
+
+    res.json({ profilePicture: student.profilePicture });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// PATCH /api/student/:id/change-password
+export const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ error: "Both old and new passwords are required." });
+    }
+
+    const student = await Student.findById(req.params.id);
+    if (!student) return res.status(404).json({ error: "Student not found" });
+
+    const isMatch = await bcrypt.compare(oldPassword, student.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: "Old password is incorrect" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    student.password = await bcrypt.hash(newPassword, salt);
+    await student.save();
+
+    res.json({ message: "Password updated successfully" });
+  } catch (err) {
+    console.error("Change password error:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };

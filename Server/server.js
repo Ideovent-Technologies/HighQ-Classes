@@ -29,8 +29,9 @@ import recordingRoutes from "./routes/recordingRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import batchRouter from "./routes/batchRoutes.js";
 import feeRouter from "./routes/feeRoutes.js";
-import materialRoutes from './routes/materialRoutes.js';
-
+import studentRoutes from "./routes/studentRoutes.js";
+import studentDashboardRoutes from "./routes/studentDashboardRoutes.js";
+import courseRoutes from "./routes/courseRoutes.js";
 
 
 const app = express();
@@ -62,16 +63,16 @@ app.use("/api/auth", authRoutes);                     // /login, /register, /ref
 app.use("/api/teacher", teacherRoutes);               // /profile, /profile PUT
 app.use("/api/teacher/notices", noticeRoutes);        // notices CRUD
 app.use("/api/teacher/schedule", scheduleRoutes);     // schedule
-app.use("/api/attendance", attendanceRoutes);         // attendance
+app.use("/api/attendance", attendanceRoutes);   
+app.use("/api/student", studentRoutes);         // /:id/profile, pic, change-password
+app.use("/api/student", studentDashboardRoutes);        // /dashboard
+app.use("/api/course", courseRoutes);                  // / | GET course list + topics      // attendance
 
 app.use("/api/recordings", recordingRoutes);
 
 app.use("/api/admin", adminRoutes);
 app.use("/api/batch", batchRouter);
 app.use("/api/fee", feeRouter);
-
-//material routes
-app.use('/api/materials', materialRoutes);
 
 
 // Home route

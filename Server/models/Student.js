@@ -1,31 +1,93 @@
+// models/Student.js
 import mongoose from "mongoose";
 
-const studentSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  mobile: { type: String, required: true },
-  class: { type: String },
-  batch: { type: String },
-  enrolledCourses: [{ type: String }],
-  attendance: [
-    {
-      date: Date,
-      status: { type: String, enum: ["Present", "Absent", "Leave"] },
+const studentSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true
     },
-  ],
-  examHistory: [
-    {
-      subject: String,
-      marks: Number,
-      date: Date,
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true
     },
-  ],
-  homework: [{ title: String, description: String, fileUrl: String }],
-  notes: [{ title: String, description: String, fileUrl: String }],
-  studyResources: [{ title: String, fileUrl: String }],
-  profilePic: { type: String },
-  password: { type: String, required: true },
-}, { timestamps: true });
+    phone: {
+      type: String
+    },
+    profilePicture: {
+      type: String // ✅ changed from profilePic to match controller
+    },
+    gender: {
+      type: String,
+      enum: ["male", "female", "other"]
+    },
+    dateOfBirth: {
+      type: Date
+    },
+    batch: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Batch"
+    },
+    class: {
+      type: String
+    },
+    attendance: [
+      {
+        date: Date,
+        status: {
+          type: String,
+          enum: ["present", "absent", "leave"]
+        }
+      }
+    ],
+    examHistory: [
+      {
+        examTitle: String,
+        score: Number,
+        total: Number,
+        date: Date
+      }
+    ],
+    enrolledCourses: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Course"
+      }
+    ],
+    paymentHistory: [
+      {
+        amount: Number,
+        date: Date,
+        method: String,
+        note: String
+      }
+    ],
+    resources: [
+      {
+        title: String,
+        fileUrl: String,
+        uploadedAt: Date,
+        batch: String
+      }
+    ],
+    password: {
+      type: String,
+      required: true
+    },
+    role: {
+      type: String,
+      enum: ["student"],
+      default: "student"
+    },
+    isActive: {
+      type: Boolean,
+      default: true
+    }
+  },
+  { timestamps: true }
+);
 
-const Student = mongoose.model("Student", studentSchema);
-export default Student;
+export default mongoose.model("Student", studentSchema);

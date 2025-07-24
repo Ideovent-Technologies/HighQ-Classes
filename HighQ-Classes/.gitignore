@@ -1,29 +1,43 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# 👉 Node dependencies
+node_modules/
 
-node_modules
-dist
-dist-ssr
-*.local
+# 👉 Production builds (Vite, React, etc.)
+dist/
+build/
 
-# Environment files
+# 👉 Environment files
 .env
 .env.local
-.env.production
+.env.development.local
+.env.production.local
+.env.test.local
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# 👉 OS / Editor files
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
+.vscode/
+.idea/
+
+# 👉 Logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+*.log
+
+# 👉 TypeScript build files (if using TypeScript)
+*.tsbuildinfo
+
+# 👉 Coverage from tests
+coverage/
+
+# 👉 MongoDB dump files
+dump/
+
+# 👉 Temporary files
+*.tgz
+*.swp
+
+# 👉 Optional lock files (keep one if you're using it)
+package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
