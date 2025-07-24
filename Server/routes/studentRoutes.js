@@ -1,9 +1,9 @@
-// routes/studentProfileRoute.js
 import { Router } from 'express';
 import {
     getProfile,
     updateProfile,
-    uploadProfilePicture
+    uploadProfilePicture,
+    changePassword
 } from '../controllers/studentController.js';
 
 import { authenticate, authorizeStudent } from '../middleware/authMiddleware.js';
@@ -17,11 +17,16 @@ router.get('/:id/profile', authenticate, authorizeStudent, getProfile);
 // Update email / phone
 router.patch('/:id/profile', authenticate, authorizeStudent, updateProfile);
 
-// ✅ Upload profile picture (using express-fileupload)
+// Upload profile picture (using express-fileupload)
 router.post(
     '/:id/profile-picture',
     authenticate,
     authorizeStudent,
     fileUpload,
     uploadProfilePicture
-); export default router;
+);
+
+// Change password
+router.patch('/:id/change-password', authenticate, authorizeStudent, changePassword);
+
+export default router;
