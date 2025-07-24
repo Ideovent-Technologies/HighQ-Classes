@@ -7,7 +7,7 @@ import mongoose from "mongoose";
  */
 const studentSchema = new mongoose.Schema(
   {
-    user: {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
@@ -93,15 +93,7 @@ const studentSchema = new mongoose.Schema(
         batch: String
       }
     ],
-    password: {
-      type: String,
-      required: true
-    },
-    role: {
-      type: String,
-      enum: ["student"],
-      default: "student"
-    },
+  
     isActive: {
       type: Boolean,
       default: true
