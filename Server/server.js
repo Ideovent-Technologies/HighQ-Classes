@@ -6,14 +6,18 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
-import fileUpload from "express-fileupload";
+import { fileUpload } from "./middleware/fileUpload.js";
 import connectToDb from "./config/db.js";
 import corsOptions from "./config/corsOptions.js";
 import configureCloudinary from "./config/cloudinary.js";
 import "./config/schedule.js"; // Import to initialize scheduled tasks
+import emailService from "./utils/emailService.js";
 
 // Connect to MongoDB
 connectToDb();
+
+// Initialize email service
+emailService.init();
 
 // Scheduled Notice Publishing
 import { scheduleNoticePublishing } from "./utils/scheduleNotices.js";

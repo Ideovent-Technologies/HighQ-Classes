@@ -13,9 +13,9 @@ export const protect = async (req, res, next) => {
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
     }
-    // Check cookies if not in header
-    else if (req.cookies?.token) {
-      token = req.cookies.token;
+    // Check cookies if not in header - use 'authToken' to match the cookie name set in login
+    else if (req.cookies?.authToken) {
+      token = req.cookies.authToken;
     }
 
     if (!token) {
