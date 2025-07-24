@@ -1,98 +1,104 @@
-import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
 /**
- * Middleware to verify JWT token and protect routes
+ * Authentication middleware to protect routes
+ * Verifies JWT token and adds user data to request
  */
 export const protect = async (req, res, next) => {
-    try {
-        let token;
+  try {
+    let token;
 
-        // Check for token in cookie first
-        if (req.cookies && req.cookies.authToken) {
-            token = req.cookies.authToken;
-        }
-        // Check for token in Authorization header
-        else if (
-            req.headers.authorization &&
-            req.headers.authorization.startsWith('Bearer')
-        ) {
-            token = req.headers.authorization.split(' ')[1];
-        }
-
-        // Check if token exists
-        if (!token) {
-            return res.status(401).json({
-                success: false,
-                message: 'Not authorized to access this route'
-            });
-        }
-
-        try {
-            // Verify token
-            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'highq-classes-secret-key');
-
-            // Check if user still exists
-            const user = await User.findById(decoded.id);
-            if (!user) {
-                return res.status(401).json({
-                    success: false,
-                    message: 'User no longer exists'
-                });
-            }
-
-            // Check if user is active
-            if (user.status !== 'active') {
-                return res.status(403).json({
-                    success: false,
-                    message: 'Your account is not active'
-                });
-            }
-
-            // Add user to request object
-            req.user = {
-                id: user._id,
-                email: user.email,
-                name: user.name,
-                role: user.role
-            };
-
-            next();
-        } catch (error) {
-            return res.status(401).json({
-                success: false,
-                message: 'Token is invalid or expired'
-            });
-        }
-    } catch (error) {
-        console.error('Auth middleware error:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Internal server error'
-        });
+    // Get token from authorization header
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
     }
+    // Check cookies if not in header - use 'authToken' to match the cookie name set in login
+    else if (req.cookies?.authToken) {
+      token = req.cookies.authToken;
+    }
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "Not authorized, no token provided"
+      });
+    }
+
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Get user from token
+    const user = await User.findById(decoded.id).select('-password');
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    // Check if user is active
+    if (user.status !== 'active') {
+      return res.status(403).json({
+        success: false,
+        message: "Account is not active. Please contact admin."
+      });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error("Auth error:", error);
+    return res.status(401).json({
+      success: false,
+      message: "Not authorized, token failed"
+    });
+  }
 };
 
 /**
- * Middleware to restrict access to specific roles
- * @param {...String} roles - Roles allowed to access the route
+ * For backward compatibility - same as protect
  */
-export const authorize = (...roles) => {
-    return (req, res, next) => {
-        if (!req.user) {
-            return res.status(500).json({
-                success: false,
-                message: 'Something went wrong with authorization'
-            });
-        }
+export const authenticate = protect;
 
-        if (!roles.includes(req.user.role)) {
-            return res.status(403).json({
-                success: false,
-                message: `Role '${req.user.role}' is not authorized to access this route`
-            });
-        }
+/**
+ * Middleware to check if user has required role
+ * @param {string|string[]} roles - Single role or array of roles
+ */
+export const authorize = (roles) => {
+  // Convert to array if a single role is passed
+  const allowedRoles = Array.isArray(roles) ? roles : [roles];
 
-        next();
-    };
+  return (req, res, next) => {
+    if (!req.user || !req.user.role) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. User role not found."
+      });
+    }
+
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: `Access denied. ${req.user.role} role not authorized.`
+      });
+    }
+
+    next();
+  };
+};
+
+/**
+ * Student-specific authorization
+ * Ensures the student can only access their own resources
+ */
+export const authorizeStudent = (req, res, next) => {
+  if (req.user.role !== 'student' || req.user.id !== req.params.id) {
+    return res.status(403).json({
+      success: false,
+      message: "Access denied. Students can only access their own data."
+    });
+  }
+  next();
 };

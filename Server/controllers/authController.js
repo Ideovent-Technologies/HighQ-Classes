@@ -1,16 +1,6 @@
 import User from '../models/User.js';
-import { validationResult } from 'express-validator';
-import nodemailer from 'nodemailer';
 import bcrypt from 'bcryptjs';
-
-// Configure email transporter (for sending password reset emails, etc.)
-const transporter = nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE || 'gmail',
-    auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD
-    }
-});
+import emailService from '../utils/emailService.js';
 
 /**
  * @desc    Register a new user
@@ -19,12 +9,6 @@ const transporter = nodemailer.createTransport({
  */
 export const register = async (req, res, next) => {
     try {
-        // Validate request body
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ success: false, errors: errors.array() });
-        }
-
         const { name, email, password, mobile, role } = req.body;
 
         // Check if user already exists
@@ -84,12 +68,6 @@ export const register = async (req, res, next) => {
  */
 export const login = async (req, res, next) => {
     try {
-        // Validate request body
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ success: false, errors: errors.array() });
-        }
-
         const { email, password } = req.body;
 
         // Check if user exists
@@ -369,21 +347,13 @@ export const forgotPassword = async (req, res, next) => {
         // Generate OTP
         const otp = await user.generateResetPasswordToken();
 
-        // Send email with OTP
-        const mailOptions = {
-            from: process.env.EMAIL_FROM,
-            to: user.email,
-            subject: 'Password Reset OTP - HighQ Classes',
-            html: `
-                <h1>Password Reset</h1>
-                <p>You requested a password reset for your HighQ Classes account.</p>
-                <p>Your OTP is: <strong>${otp}</strong></p>
-                <p>This OTP will expire in 10 minutes.</p>
-                <p>If you did not request this, please ignore this email.</p>
-            `
-        };
-
-        await transporter.sendMail(mailOptions);
+        // Send email with OTP using the emailService
+        try {
+            await emailService.sendPasswordResetOTP(user.email, otp);
+        } catch (emailError) {
+            console.error('Failed to send password reset email:', emailError);
+            // Don't expose email failure to client for security reasons
+        }
 
         res.status(200).json({
             success: true,

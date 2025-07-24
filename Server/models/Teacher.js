@@ -1,8 +1,12 @@
 import mongoose from "mongoose";
 
+/**
+ * Teacher Schema - Extended profile information for users with role='teacher'
+ * Links to User model via user field
+ */
 const teacherSchema = new mongoose.Schema(
   {
-    userId: {
+    user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
@@ -23,7 +27,16 @@ const teacherSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    batchIds: [
+    bio: {
+      type: String,
+      trim: true,
+    },
+    subjects: [String],
+    joinDate: {
+      type: Date,
+      default: Date.now
+    },
+    batches: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Batch",

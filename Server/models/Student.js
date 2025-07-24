@@ -1,31 +1,113 @@
+// models/Student.js
 import mongoose from "mongoose";
 
-const studentSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  mobile: { type: String, required: true },
-  class: { type: String },
-  batch: { type: String },
-  enrolledCourses: [{ type: String }],
-  attendance: [
-    {
-      date: Date,
-      status: { type: String, enum: ["Present", "Absent", "Leave"] },
+/**
+ * Student Schema - Extended profile information for users with role='student'
+ * Links to User model via user field
+ */
+const studentSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      unique: true
     },
-  ],
-  examHistory: [
-    {
-      subject: String,
-      marks: Number,
-      date: Date,
+    gender: {
+      type: String,
+      enum: ["male", "female", "other"]
     },
-  ],
-  homework: [{ title: String, description: String, fileUrl: String }],
-  notes: [{ title: String, description: String, fileUrl: String }],
-  studyResources: [{ title: String, fileUrl: String }],
-  profilePic: { type: String },
-  password: { type: String, required: true },
-}, { timestamps: true });
+    dateOfBirth: {
+      type: Date
+    },
+    parentName: {
+      type: String
+    },
+    parentContact: {
+      type: String
+    },
+    address: {
+      street: String,
+      city: String,
+      state: String,
+      zipCode: String
+    },
+    batch: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Batch"
+    },
+    courses: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course"
+    }],
+    grade: {
+      type: String
+    },
+    schoolName: {
+      type: String
+    },
+    joinDate: {
+      type: Date,
+      default: Date.now
+    },
+    attendance: [
+      {
+        date: Date,
+        status: {
+          type: String,
+          enum: ["present", "absent", "leave"]
+        },
+        batch: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Batch"
+        }
+      }
+    ],
+    examHistory: [
+      {
+        examTitle: String,
+        score: Number,
+        total: Number,
+        date: Date
+      }
+    ],
+    enrolledCourses: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Course"
+      }
+    ],
+    paymentHistory: [
+      {
+        amount: Number,
+        date: Date,
+        method: String,
+        note: String
+      }
+    ],
+    resources: [
+      {
+        title: String,
+        fileUrl: String,
+        uploadedAt: Date,
+        batch: String
+      }
+    ],
+    password: {
+      type: String,
+      required: true
+    },
+    role: {
+      type: String,
+      enum: ["student"],
+      default: "student"
+    },
+    isActive: {
+      type: Boolean,
+      default: true
+    }
+  },
+  { timestamps: true }
+);
 
-const Student = mongoose.model("Student", studentSchema);
-export default Student;
+export default mongoose.model("Student", studentSchema);
