@@ -1,4 +1,3 @@
-// models/Student.js
 import mongoose from "mongoose";
 
 /**

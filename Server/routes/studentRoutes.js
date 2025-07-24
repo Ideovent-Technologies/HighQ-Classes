@@ -1,4 +1,3 @@
-// routes/studentProfileRoute.js
 import { Router } from 'express';
 import {
     getProfile,
@@ -17,11 +16,13 @@ router.get('/:id/profile', authenticate, authorizeStudent, getProfile);
 // Update email / phone
 router.patch('/:id/profile', authenticate, authorizeStudent, updateProfile);
 
-// ✅ Upload profile picture (using express-fileupload)
+// Upload profile picture (using express-fileupload)
 router.post(
     '/:id/profile-picture',
     authenticate,
     authorizeStudent,
     fileUpload,
     uploadProfilePicture
-); export default router;
+);
+
+export default router;

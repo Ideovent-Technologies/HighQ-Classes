@@ -1,5 +1,3 @@
-// controllers/studentController.js
-
 import Student from '../models/Student.js';
 import bcrypt from 'bcryptjs';
 import { v2 as cloudinary } from 'cloudinary';
@@ -11,7 +9,7 @@ configureCloudinary();
 // GET /api/student/:id/profile
 export const getProfile = async (req, res) => {
   try {
-    const student = await Student.findById(req.params.id)
+    const student = await Student.findOne({ user: req.params.id })
       .populate('enrolledCourses')
       .populate('batch', 'batchName')
       .lean();
@@ -47,8 +45,8 @@ export const updateProfile = async (req, res) => {
       return res.status(400).json({ error: "Nothing to update" });
     }
 
-    const student = await Student.findByIdAndUpdate(
-      req.params.id,
+    const student = await Student.findOneAndUpdate(
+      { user: req.params.id },
       { $set: updates },
       { new: true }
     );
@@ -65,7 +63,6 @@ export const updateProfile = async (req, res) => {
 // POST /api/student/:id/profile-picture
 export const uploadProfilePicture = async (req, res) => {
   try {
-    // Check if file exists in the request
     if (!req.files || !req.files.profilePic) {
       return res.status(400).json({
         success: false,
@@ -75,15 +72,14 @@ export const uploadProfilePicture = async (req, res) => {
 
     const profilePic = req.files.profilePic;
 
-    // Upload the profile picture to Cloudinary
     const uploadResult = await cloudinary.uploader.upload(profilePic.tempFilePath, {
       folder: 'profile-pictures',
       width: 300,
       crop: 'scale'
     });
 
-    const student = await Student.findByIdAndUpdate(
-      req.params.id,
+    const student = await Student.findOneAndUpdate(
+      { user: req.params.id },
       { $set: { profilePicture: uploadResult.secure_url } },
       { new: true }
     );
@@ -106,7 +102,7 @@ export const changePassword = async (req, res) => {
       return res.status(400).json({ error: "Both old and new passwords are required." });
     }
 
-    const student = await Student.findById(req.params.id);
+    const student = await Student.findOne({ user: req.params.id });
     if (!student) return res.status(404).json({ error: "Student not found" });
 
     const isMatch = await bcrypt.compare(oldPassword, student.password);
