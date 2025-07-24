@@ -2,7 +2,8 @@ import { Router } from 'express';
 import {
     getProfile,
     updateProfile,
-    uploadProfilePicture
+    uploadProfilePicture,
+    changePassword
 } from '../controllers/studentController.js';
 
 import { authenticate, authorizeStudent } from '../middleware/authMiddleware.js';
@@ -24,5 +25,8 @@ router.post(
     fileUpload,
     uploadProfilePicture
 );
+
+// Change password
+router.patch('/:id/change-password', authenticate, authorizeStudent, changePassword);
 
 export default router;

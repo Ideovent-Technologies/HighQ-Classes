@@ -1,4 +1,6 @@
-import User from '../models/User.js';
+import Student from '../models/Student.js';
+import Teacher from '../models/Teacher.js';
+import Admin from '../models/Admin.js';
 import bcrypt from 'bcryptjs';
 import emailService from '../utils/emailService.js';
 
@@ -9,47 +11,99 @@ import emailService from '../utils/emailService.js';
  */
 export const register = async (req, res, next) => {
     try {
-        const { name, email, password, mobile, role } = req.body;
+        const { name, email, password, mobile, role, ...additionalData } = req.body;
+        const userRole = role || 'student';
 
-        // Check if user already exists
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
+        // Check if email already exists across all models
+        const existingEmail = await Promise.all([
+            Student.findOne({ email }),
+            Teacher.findOne({ email }),
+            Admin.findOne({ email })
+        ]);
+
+        if (existingEmail.some(user => user !== null)) {
             return res.status(409).json({
                 success: false,
                 message: 'Email is already registered'
             });
         }
 
-        // Check if mobile already exists
-        const existingMobile = await User.findOne({ mobile });
-        if (existingMobile) {
+        // Check if mobile already exists across all models
+        const existingMobile = await Promise.all([
+            Student.findOne({ mobile }),
+            Teacher.findOne({ mobile }),
+            Admin.findOne({ mobile })
+        ]);
+
+        if (existingMobile.some(user => user !== null)) {
             return res.status(409).json({
                 success: false,
                 message: 'Mobile number is already registered'
             });
         }
 
-        // Create new user
-        const user = new User({
+        let newUser;
+        const commonData = {
             name,
             email,
             password,
             mobile,
-            role: role || 'student',
-            status: role === 'admin' ? 'active' : 'pending' // Auto-approve admin accounts
-        });
+            status: userRole === 'admin' ? 'active' : 'pending'
+        };
 
-        await user.save();
+        // Create user based on role
+        switch (userRole) {
+            case 'student':
+                newUser = new Student({
+                    ...commonData,
+                    parentName: additionalData.parentName || 'Parent Name',
+                    parentContact: additionalData.parentContact || '0000000000',
+                    grade: additionalData.grade || '10th',
+                    schoolName: additionalData.schoolName || 'School Name',
+                    ...additionalData
+                });
+                break;
+
+            case 'teacher':
+                newUser = new Teacher({
+                    ...commonData,
+                    employeeId: additionalData.employeeId || `T${Date.now()}`,
+                    qualification: additionalData.qualification || 'B.Ed',
+                    experience: additionalData.experience || 0,
+                    specialization: additionalData.specialization || 'General',
+                    department: additionalData.department || 'Other',
+                    ...additionalData
+                });
+                break;
+
+            case 'admin':
+                newUser = new Admin({
+                    ...commonData,
+                    employeeId: additionalData.employeeId || `A${Date.now()}`,
+                    department: additionalData.department || 'Administrative',
+                    designation: additionalData.designation || 'System Administrator',
+                    ...additionalData
+                });
+                break;
+
+            default:
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid role specified'
+                });
+        }
+
+        await newUser.save();
 
         res.status(201).json({
             success: true,
             message: 'Registration successful! Please wait for approval.',
             data: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                status: user.status
+                id: newUser._id,
+                name: newUser.name,
+                email: newUser.email,
+                role: userRole,
+                status: newUser.status
             }
         });
     } catch (error) {
@@ -70,8 +124,26 @@ export const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
 
-        // Check if user exists
-        const user = await User.findOne({ email }).select('+password');
+        // Find user across all models
+        let user = null;
+        let userRole = null;
+
+        // Check Student model
+        user = await Student.findOne({ email }).select('+password');
+        if (user) userRole = 'student';
+
+        // Check Teacher model if not found in Student
+        if (!user) {
+            user = await Teacher.findOne({ email }).select('+password');
+            if (user) userRole = 'teacher';
+        }
+
+        // Check Admin model if not found in Teacher
+        if (!user) {
+            user = await Admin.findOne({ email }).select('+password');
+            if (user) userRole = 'admin';
+        }
+
         if (!user) {
             return res.status(401).json({
                 success: false,
@@ -87,27 +159,27 @@ export const login = async (req, res, next) => {
             });
         }
 
-        // Check if account is suspended
-        if (user.status === 'suspended') {
+        // Check if account is active
+        if (user.status !== 'active') {
             return res.status(403).json({
                 success: false,
-                message: 'Your account has been suspended'
+                message: 'Your account is not active. Please contact admin.'
             });
         }
 
         // Check if account is locked
-        if (user.isAccountLocked()) {
-            const lockoutTime = Math.ceil((user.lockoutUntil - new Date()) / (60 * 1000));
-            return res.status(403).json({
+        if (user.isLocked) {
+            return res.status(423).json({
                 success: false,
-                message: `Account is temporarily locked. Try again in ${lockoutTime} minutes.`
+                message: 'Account is temporarily locked due to multiple failed login attempts'
             });
         }
 
-        // Check if password matches
-        const isMatch = await user.comparePassword(password);
-        if (!isMatch) {
-            await user.handleFailedLogin();
+        // Check password
+        const isPasswordCorrect = await user.matchPassword(password);
+        if (!isPasswordCorrect) {
+            // Increment login attempts
+            await user.incLoginAttempts();
 
             return res.status(401).json({
                 success: false,
@@ -115,34 +187,40 @@ export const login = async (req, res, next) => {
             });
         }
 
-        // Reset failed login attempts
-        await user.resetFailedLoginAttempts();
+        // Reset login attempts on successful login
+        if (user.loginAttempts > 0) {
+            await user.resetLoginAttempts();
+        }
 
-        // Update last login timestamp
-        user.lastLogin = Date.now();
+        // Update last login
+        user.lastLogin = new Date();
         await user.save();
 
-        // Generate JWT token
-        const token = user.generateAuthToken();
+        // Generate token
+        const token = user.generateToken();
 
-        // Send token in HTTP-only cookie
-        res.cookie('authToken', token, {
+        // Set HTTP-only cookie
+        const cookieOptions = {
+            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-        });
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
+        };
+
+        res.cookie('authToken', token, cookieOptions);
 
         res.status(200).json({
             success: true,
             message: 'Login successful',
+            token,
             data: {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                role: user.role,
-                profilePicture: user.profilePicture
-            },
-            token
+                role: userRole,
+                status: user.status,
+                lastLogin: user.lastLogin
+            }
         });
     } catch (error) {
         console.error('Login error:', error);
@@ -173,7 +251,8 @@ export const logout = (req, res, next) => {
  */
 export const getMe = async (req, res, next) => {
     try {
-        const user = await User.findById(req.user.id);
+        // User is already attached to req by protect middleware
+        const user = req.user;
 
         if (!user) {
             return res.status(404).json({
@@ -191,6 +270,7 @@ export const getMe = async (req, res, next) => {
                 mobile: user.mobile,
                 role: user.role,
                 profilePicture: user.profilePicture,
+                status: user.status,
                 createdAt: user.createdAt
             }
         });
@@ -210,55 +290,79 @@ export const getMe = async (req, res, next) => {
  */
 export const updateProfile = async (req, res, next) => {
     try {
-        // Validate request body
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ success: false, errors: errors.array() });
+        const { name, mobile, profilePicture } = req.body;
+        const user = req.user; // Get user from protect middleware
+        const userRole = user.role;
+
+        // Check if mobile already exists for another user across all models
+        if (mobile && mobile !== user.mobile) {
+            const existingMobile = await Promise.all([
+                Student.findOne({ mobile, _id: { $ne: user._id } }),
+                Teacher.findOne({ mobile, _id: { $ne: user._id } }),
+                Admin.findOne({ mobile, _id: { $ne: user._id } })
+            ]);
+
+            if (existingMobile.some(u => u !== null)) {
+                return res.status(409).json({
+                    success: false,
+                    message: 'Mobile number is already registered'
+                });
+            }
         }
 
-        const { name, mobile, profilePicture } = req.body;
+        // Find and update user in appropriate model
+        let updatedUser;
+        const updateData = {};
+        if (name) updateData.name = name;
+        if (mobile) updateData.mobile = mobile;
+        if (profilePicture) updateData.profilePicture = profilePicture;
 
-        // Find user
-        const user = await User.findById(req.user.id);
-        if (!user) {
+        switch (userRole) {
+            case 'student':
+                updatedUser = await Student.findByIdAndUpdate(
+                    user._id,
+                    updateData,
+                    { new: true, select: '-password' }
+                );
+                break;
+            case 'teacher':
+                updatedUser = await Teacher.findByIdAndUpdate(
+                    user._id,
+                    updateData,
+                    { new: true, select: '-password' }
+                );
+                break;
+            case 'admin':
+                updatedUser = await Admin.findByIdAndUpdate(
+                    user._id,
+                    updateData,
+                    { new: true, select: '-password' }
+                );
+                break;
+            default:
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid user role'
+                });
+        }
+
+        if (!updatedUser) {
             return res.status(404).json({
                 success: false,
                 message: 'User not found'
             });
         }
 
-        // Update fields
-        if (name) user.name = name;
-        if (mobile) {
-            // Check if mobile already exists for another user
-            const existingMobile = await User.findOne({
-                mobile,
-                _id: { $ne: req.user.id }
-            });
-
-            if (existingMobile) {
-                return res.status(409).json({
-                    success: false,
-                    message: 'Mobile number is already registered'
-                });
-            }
-
-            user.mobile = mobile;
-        }
-        if (profilePicture) user.profilePicture = profilePicture;
-
-        await user.save();
-
         res.status(200).json({
             success: true,
             message: 'Profile updated successfully',
             data: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                mobile: user.mobile,
-                role: user.role,
-                profilePicture: user.profilePicture
+                id: updatedUser._id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                mobile: updatedUser.mobile,
+                role: userRole,
+                profilePicture: updatedUser.profilePicture
             }
         });
     } catch (error) {
@@ -277,17 +381,30 @@ export const updateProfile = async (req, res, next) => {
  */
 export const changePassword = async (req, res, next) => {
     try {
-        // Validate request body
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ success: false, errors: errors.array() });
+        const { currentPassword, newPassword } = req.body;
+        const user = req.user; // Get user from protect middleware
+        const userRole = user.role;
+
+        // Find user with password in appropriate model
+        let userWithPassword;
+        switch (userRole) {
+            case 'student':
+                userWithPassword = await Student.findById(user._id).select('+password');
+                break;
+            case 'teacher':
+                userWithPassword = await Teacher.findById(user._id).select('+password');
+                break;
+            case 'admin':
+                userWithPassword = await Admin.findById(user._id).select('+password');
+                break;
+            default:
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid user role'
+                });
         }
 
-        const { currentPassword, newPassword } = req.body;
-
-        // Find user with password
-        const user = await User.findById(req.user.id).select('+password');
-        if (!user) {
+        if (!userWithPassword) {
             return res.status(404).json({
                 success: false,
                 message: 'User not found'
@@ -295,7 +412,7 @@ export const changePassword = async (req, res, next) => {
         }
 
         // Check if current password is correct
-        const isMatch = await user.comparePassword(currentPassword);
+        const isMatch = await userWithPassword.matchPassword(currentPassword);
         if (!isMatch) {
             return res.status(401).json({
                 success: false,
@@ -304,8 +421,8 @@ export const changePassword = async (req, res, next) => {
         }
 
         // Update password
-        user.password = newPassword;
-        await user.save();
+        userWithPassword.password = newPassword;
+        await userWithPassword.save();
 
         res.status(200).json({
             success: true,
@@ -327,16 +444,14 @@ export const changePassword = async (req, res, next) => {
  */
 export const forgotPassword = async (req, res, next) => {
     try {
-        // Validate request body
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ success: false, errors: errors.array() });
-        }
-
         const { email } = req.body;
 
-        // Find user
-        const user = await User.findOne({ email });
+        // Find user across all models
+        let user = null;
+        user = await Student.findOne({ email });
+        if (!user) user = await Teacher.findOne({ email });
+        if (!user) user = await Admin.findOne({ email });
+
         if (!user) {
             return res.status(200).json({
                 success: true,
@@ -344,8 +459,13 @@ export const forgotPassword = async (req, res, next) => {
             });
         }
 
-        // Generate OTP
-        const otp = await user.generateResetPasswordToken();
+        // Generate OTP and save to user
+        const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+        const hashedOTP = await bcrypt.hash(otp, 12);
+
+        user.passwordResetToken = hashedOTP;
+        user.passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+        await user.save();
 
         // Send email with OTP using the emailService
         try {
@@ -370,24 +490,31 @@ export const forgotPassword = async (req, res, next) => {
 
 /**
  * @desc    Reset password with OTP
- * @route   POST /api/auth/reset-password/:resetToken
+ * @route   POST /api/auth/reset-password
  * @access  Public
  */
 export const resetPassword = async (req, res, next) => {
     try {
-        // Validate request body
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ success: false, errors: errors.array() });
-        }
-
         const { email, otp, newPassword } = req.body;
 
-        // Find user
-        const user = await User.findOne({
+        // Find user across all models with valid reset token
+        let user = null;
+        user = await Student.findOne({
             email,
-            resetPasswordExpiry: { $gt: Date.now() }
-        }).select('+resetPasswordOTP');
+            passwordResetExpires: { $gt: Date.now() }
+        });
+        if (!user) {
+            user = await Teacher.findOne({
+                email,
+                passwordResetExpires: { $gt: Date.now() }
+            });
+        }
+        if (!user) {
+            user = await Admin.findOne({
+                email,
+                passwordResetExpires: { $gt: Date.now() }
+            });
+        }
 
         if (!user) {
             return res.status(400).json({
@@ -397,7 +524,7 @@ export const resetPassword = async (req, res, next) => {
         }
 
         // Verify OTP
-        const isMatch = await bcrypt.compare(otp, user.resetPasswordOTP);
+        const isMatch = await bcrypt.compare(otp, user.passwordResetToken);
         if (!isMatch) {
             return res.status(400).json({
                 success: false,
@@ -407,8 +534,8 @@ export const resetPassword = async (req, res, next) => {
 
         // Update password
         user.password = newPassword;
-        user.resetPasswordOTP = undefined;
-        user.resetPasswordExpiry = undefined;
+        user.passwordResetToken = undefined;
+        user.passwordResetExpires = undefined;
         await user.save();
 
         res.status(200).json({
@@ -433,11 +560,18 @@ export const checkEmail = async (req, res, next) => {
     try {
         const { email } = req.body;
 
-        const user = await User.findOne({ email });
+        // Check if email exists across all models
+        const existingEmail = await Promise.all([
+            Student.findOne({ email }),
+            Teacher.findOne({ email }),
+            Admin.findOne({ email })
+        ]);
+
+        const exists = existingEmail.some(user => user !== null);
 
         res.status(200).json({
             success: true,
-            exists: !!user
+            exists
         });
     } catch (error) {
         console.error('Check email error:', error);
