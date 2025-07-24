@@ -1,32 +1,38 @@
 import express from "express";
 import {
-
-CreateFee,
-UpdateFee,
-getFeesByStudent,
-getFeesByBatch,
-getUpcomingDueFees,
-getMonthlyFeeReport
+    createFee,
+    updateFee,
+    getFeeById,
+    getFeesByStudent,
+    getAllFees,
+    processPayment,
+    deleteFee
 } from "../controllers/feeController.js";
+import { protect, authorize } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Create a new fee entry
-router.post("/", CreateFee);
+// Protect all routes
+router.use(protect);
 
-// Update an existing fee entry
-router.put("/:id", UpdateFee);
+// Admin only routes
+router.use(authorize('admin'));
 
-// Get all fees for a specific student
-router.get("/student/:studentId", getFeesByStudent);
+// Create and get all fees
+router.route('/')
+    .post(createFee)
+    .get(getAllFees);
 
-// Get all fees for a specific batch
-router.get("/batch/:batchId", getFeesByBatch);
+// Operations on specific fee by ID
+router.route('/:id')
+    .get(getFeeById)
+    .put(updateFee)
+    .delete(deleteFee);
 
-// Get all upcoming due fees
-router.get("/upcoming-due", getUpcomingDueFees);
+// Process payment
+router.post('/:id/pay', processPayment);
 
-// Get monthly fee report
-router.get("/monthly-report", getMonthlyFeeReport);
+// Get student fees (accessible by student and admin)
+router.get('/student/:studentId', getFeesByStudent);
 
 export default router;

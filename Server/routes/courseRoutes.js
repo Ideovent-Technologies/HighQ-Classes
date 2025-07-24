@@ -11,7 +11,6 @@ import {
 
 import { protect, authorize } from '../middleware/authMiddleware.js';
 
-
 const router = express.Router();
 
 // Protect all routes - admin only
