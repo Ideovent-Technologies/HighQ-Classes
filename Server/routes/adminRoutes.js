@@ -1,5 +1,6 @@
 import express from "express";
 import { protect, authorize } from "../middleware/authMiddleware.js";
+import { validateAdminCreateUser } from "../middleware/validateRequestBody.js";
 import {
     getAdminDashboard,
     getAllStudents,
@@ -31,8 +32,8 @@ router.put("/user/:id", updateUser);
 // Delete user
 router.delete("/user/:id", deleteUser);
 
-// Create user
-router.post("/user", CreateUser);
+// Create user with validation
+router.post("/user", validateAdminCreateUser, CreateUser);
 
 // Create announcement
 router.post("/announcement", createAnnouncement);
