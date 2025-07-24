@@ -2,6 +2,11 @@
 
 import Student from '../models/Student.js';
 import bcrypt from 'bcryptjs';
+import { v2 as cloudinary } from 'cloudinary';
+import configureCloudinary from '../config/cloudinary.js';
+
+// Initialize Cloudinary configuration
+configureCloudinary();
 
 // GET /api/student/:id/profile
 export const getProfile = async (req, res) => {
@@ -60,14 +65,26 @@ export const updateProfile = async (req, res) => {
 // POST /api/student/:id/profile-picture
 export const uploadProfilePicture = async (req, res) => {
   try {
-    // ✅ Using fileUpload-based path from req.profilePicPath
-    if (!req.profilePicPath) {
-      return res.status(400).json({ error: 'No file path found in request' });
+    // Check if file exists in the request
+    if (!req.files || !req.files.profilePic) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please upload a profile picture'
+      });
     }
+
+    const profilePic = req.files.profilePic;
+
+    // Upload the profile picture to Cloudinary
+    const uploadResult = await cloudinary.uploader.upload(profilePic.tempFilePath, {
+      folder: 'profile-pictures',
+      width: 300,
+      crop: 'scale'
+    });
 
     const student = await Student.findByIdAndUpdate(
       req.params.id,
-      { $set: { profilePicture: req.profilePicPath } },
+      { $set: { profilePicture: uploadResult.secure_url } },
       { new: true }
     );
 

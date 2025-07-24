@@ -30,6 +30,19 @@ router.get("/analytics", checkRole(["teacher", "admin"]), getRecordingAnalytics)
 // Student specific route
 router.get("/student", checkRole(["student"]), getStudentRecordings);
 
+// Search recordings
+router.get("/search", checkRole(["teacher", "admin", "student"]), searchRecordings);
+
+// Routes for specific recordings by ID
+router.route("/:id")
+    .get(checkRole(["teacher", "admin", "student"]), getRecording)
+    .put(checkRole(["teacher", "admin"]), updateRecording)
+    .delete(checkRole(["teacher", "admin"]), deleteRecording);
+
+// Extend recording access for students
+router.put("/:id/extend", checkRole(["teacher", "admin"]), extendRecordingAccess);
+router.get("/student", checkRole(["student"]), getStudentRecordings);
+
 // Individual recording routes
 router.route("/:id")
     .get(getRecording)

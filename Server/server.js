@@ -5,14 +5,15 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
-import mongoSanitize from "express-mongo-sanitize";
-import xss from "xss-clean";
 import rateLimit from "express-rate-limit";
 import fileUpload from "express-fileupload";
 import connectToDb from "./config/db.js";
 import corsOptions from "./config/corsOptions.js";
 import configureCloudinary from "./config/cloudinary.js";
 import "./config/schedule.js"; // Import to initialize scheduled tasks
+
+// Connect to MongoDB
+connectToDb();
 
 // Scheduled Notice Publishing
 import { scheduleNoticePublishing } from "./utils/scheduleNotices.js";
@@ -25,6 +26,8 @@ import scheduleRoutes from "./routes/scheduleRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
 
 import recordingRoutes from "./routes/recordingRoutes.js";
+import materialRoutes from "./routes/materialRoutes.js";
+import assignmentRoutes from "./routes/assignmentRoutes.js";
 
 import adminRoutes from "./routes/adminRoutes.js";
 import batchRouter from "./routes/batchRoutes.js";
@@ -38,15 +41,14 @@ const app = express();
 
 // Security middleware
 app.use(helmet()); // Set security HTTP headers
-app.use(mongoSanitize()); // Data sanitization against NoSQL query injection
-app.use(xss()); // Data sanitization against XSS
 
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
-    message: 'Too many requests from this IP, please try again after 10 minutes'
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again after 10 minutes'
 });
+
 app.use('/api', limiter);
 
 // Cors middleware
@@ -63,12 +65,14 @@ app.use("/api/auth", authRoutes);                     // /login, /register, /ref
 app.use("/api/teacher", teacherRoutes);               // /profile, /profile PUT
 app.use("/api/teacher/notices", noticeRoutes);        // notices CRUD
 app.use("/api/teacher/schedule", scheduleRoutes);     // schedule
-app.use("/api/attendance", attendanceRoutes);   
+app.use("/api/attendance", attendanceRoutes);
 app.use("/api/student", studentRoutes);         // /:id/profile, pic, change-password
 app.use("/api/student", studentDashboardRoutes);        // /dashboard
 app.use("/api/course", courseRoutes);                  // / | GET course list + topics      // attendance
 
 app.use("/api/recordings", recordingRoutes);
+app.use("/api/materials", materialRoutes);            // Study materials routes
+app.use("/api/assignments", assignmentRoutes);        // Assignment routes
 
 app.use("/api/admin", adminRoutes);
 app.use("/api/batch", batchRouter);
@@ -87,18 +91,59 @@ app.use((req, res, next) => {
 
 // Global error handler --> it will prevent to crash the server
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(err.statusCode || 500).json({
+  console.error('Error:', err);
+
+  let statusCode = err.statusCode || 500;
+  let message = err.message || "Something went wrong!";
+
+  // Handle Mongoose validation errors
+  if (err.name === 'ValidationError') {
+    statusCode = 400;
+    message = Object.values(err.errors).map(error => error.message).join(', ');
+  }
+
+  // Handle Mongoose duplicate key errors
+  if (err.code === 11000) {
+    statusCode = 400;
+    const field = Object.keys(err.keyValue)[0];
+    message = `Duplicate value entered for ${field}. Please use another value.`;
+  }
+
+  // Handle Mongoose CastError (invalid ObjectId)
+  if (err.name === 'CastError') {
+    statusCode = 400;
+    message = `Invalid ${err.path}: ${err.value}`;
+  }
+
+  // Handle JWT errors
+  if (err.name === 'JsonWebTokenError') {
+    statusCode = 401;
+    message = 'Invalid token. Please log in again.';
+  }
+
+  // Handle JWT expiration
+  if (err.name === 'TokenExpiredError') {
+    statusCode = 401;
+    message = 'Your token has expired. Please log in again.';
+  }
+
+  res.status(statusCode).json({
     success: false,
-    message: err.message || "Something went wrong!",
-        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    message,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
 });
 
 // Start server
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
-    connectToDb();
-    configureCloudinary();
-    console.log(`Server is running on http://localhost:${port}/`);
+const server = app.listen(port, () => {
+  console.log(`HighQ Classes API running on port ${port}`);
+  console.log(`Server is running on http://localhost:${port}/`);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err, promise) => {
+  console.error(`Error: ${err.message}`);
+  // Close server & exit process
+  server.close(() => process.exit(1));
 });

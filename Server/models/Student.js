@@ -1,24 +1,17 @@
 // models/Student.js
 import mongoose from "mongoose";
 
+/**
+ * Student Schema - Extended profile information for users with role='student'
+ * Links to User model via user field
+ */
 const studentSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
-      trim: true
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true
-    },
-    phone: {
-      type: String
-    },
-    profilePicture: {
-      type: String // ✅ changed from profilePic to match controller
+      unique: true
     },
     gender: {
       type: String,
@@ -27,12 +20,35 @@ const studentSchema = new mongoose.Schema(
     dateOfBirth: {
       type: Date
     },
+    parentName: {
+      type: String
+    },
+    parentContact: {
+      type: String
+    },
+    address: {
+      street: String,
+      city: String,
+      state: String,
+      zipCode: String
+    },
     batch: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Batch"
     },
-    class: {
+    courses: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course"
+    }],
+    grade: {
       type: String
+    },
+    schoolName: {
+      type: String
+    },
+    joinDate: {
+      type: Date,
+      default: Date.now
     },
     attendance: [
       {
@@ -40,6 +56,10 @@ const studentSchema = new mongoose.Schema(
         status: {
           type: String,
           enum: ["present", "absent", "leave"]
+        },
+        batch: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Batch"
         }
       }
     ],
