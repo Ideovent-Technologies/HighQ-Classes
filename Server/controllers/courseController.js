@@ -4,7 +4,7 @@ import Course from '../models/Course.js';
 // Create a new course
 export const createCourse = async (req, res) => {
   try {
-    const { name, description, duration, fee, syllabus } = req.body;
+    const { name, description, duration, fee, topics } = req.body;
     const existingCourse = await Course.findOne({ name });
     if (existingCourse) return res.status(400).json({ error: 'Course already exists' });
 
@@ -13,7 +13,7 @@ export const createCourse = async (req, res) => {
       description,
       duration,
       fee,
-      syllabus
+      topics
     });
     await course.save();
     res.status(201).json(course);
