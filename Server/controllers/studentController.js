@@ -11,28 +11,33 @@ configureCloudinary();
 // GET /api/student/:id/profile
 export const getProfile = async (req, res) => {
   try {
+    // Find student by ID directly (no user reference needed)
     const student = await Student.findById(req.params.id)
-      .populate('enrolledCourses')
-      .populate('batch', 'batchName')
+      .populate('enrolledCourses.course')
+      .populate('batch', 'name schedule')
+      .populate('courses')
       .lean();
 
-    if (!student) return res.status(404).json({ error: 'Student not found' });
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        error: 'Student profile not found'
+      });
+    }
 
-    res.json({
-      name: student.name,
-      email: student.email,
-      phone: student.phone,
-      class: student.class,
-      batch: student.batch,
-      profilePicture: student.profilePicture,
-      enrolledCourses: student.enrolledCourses,
-      attendance: student.attendance,
-      paymentHistory: student.paymentHistory,
-      resources: student.resources
+    // Return student profile data (exclude sensitive fields)
+    const { password, passwordResetToken, emailVerificationToken, loginAttempts, lockUntil, ...profileData } = student;
+
+    res.status(200).json({
+      success: true,
+      data: profileData
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
+  } catch (error) {
+    console.error('Error fetching student profile:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error while fetching profile'
+    });
   }
 };
 
