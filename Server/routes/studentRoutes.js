@@ -1,30 +1,29 @@
-// routes/studentProfileRoute.js
 import { Router } from 'express';
 import {
-  getProfile,
-  updateProfile,
-  uploadProfilePicture
+  getProfile,
+  updateProfile,
+  uploadProfilePicture
 } from '../controllers/studentController.js';
 
-import { authenticate, authorizeStudent } from '../middleware/authMiddleware.js';
-import { fileUploadMiddleware, moveProfilePicToUploads } from '../middleware/fileUpload.js';
+import { protect, authorizeStudent } from '../middleware/authMiddleware.js';
+import { fileUpload, moveProfilePicToUploads } from '../middleware/fileUpload.js';
 
 const router = Router();
 
 // View profile
-router.get('/:id/profile', authenticate, authorizeStudent, getProfile);
+router.get('/:id/profile', protect, authorizeStudent, getProfile);
 
 // Update email / phone
-router.patch('/:id/profile', authenticate, authorizeStudent, updateProfile);
+router.patch('/:id/profile', protect, authorizeStudent, updateProfile);
 
-// ✅ Upload profile picture (using express-fileupload)
+// Upload profile picture
 router.post(
-  '/:id/profile-picture',
-  authenticate,
-  authorizeStudent,
-  fileUploadMiddleware,
-  moveProfilePicToUploads,
-  uploadProfilePicture
+  '/:id/profile-picture',
+  protect,
+  authorizeStudent,
+  fileUpload,
+  moveProfilePicToUploads,
+  uploadProfilePicture
 );
 
 export default router;

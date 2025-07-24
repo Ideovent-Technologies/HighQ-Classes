@@ -9,13 +9,14 @@ import {
   updateStudentsInBatch
 } from '../controllers/courseController.js';
 
-import { authenticate, authorizeAdmin } from '../middleware/authMiddleware.js';
+import { protect, authorize } from '../middleware/authMiddleware.js';
+
 
 const router = express.Router();
 
 // Protect all routes - admin only
-router.use(authenticate);
-router.use(authorizeAdmin);
+router.use(protect);
+router.use(authorize('admin'));
 
 // Courses
 router.post('/', createCourse);
