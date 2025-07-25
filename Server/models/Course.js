@@ -1,23 +1,22 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const courseSchema = new mongoose.Schema(
-  {
-    title: {
-      type: String,
-      required: true,
-    },
-    description: {
-      type: String,
-    },
-    duration: {
-      type: String, // Example: "3 months", "6 weeks"
-    },
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User', // Admin or Teacher who created it
-    }
+const topicSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: String,
+  order: Number
+}, { _id: false });
+
+const courseSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
   },
-  { timestamps: true }
-);
+  description: String,
+  duration: { type: String, required: true },
+  fee: { type: Number, required: true, min: 0 },
+  topics: [topicSchema] // New: course syllabus/topics/sessions
+}, { timestamps: true });
 
-export default mongoose.model('Course', courseSchema);
+export default mongoose.model("Course", courseSchema);

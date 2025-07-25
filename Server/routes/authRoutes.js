@@ -10,19 +10,28 @@ import {
     changePassword
 } from '../controllers/authController.js';
 import { protect } from '../middleware/authMiddleware.js';
+import { initializeEmailService } from '../middleware/emailMiddleware.js';
+import {
+    validateRegistration,
+    validateLogin,
+    validateForgotPassword,
+    validateResetPassword,
+    validateProfileUpdate,
+    validatePasswordChange
+} from '../middleware/validateRequestBody.js';
 
 const router = express.Router();
 
-// Public routes
-router.post('/register', register);
-router.post('/login', login);
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password/:resetToken', resetPassword);
+// Public routes with validation
+router.post('/register', validateRegistration, register);
+router.post('/login', validateLogin, login);
+router.post('/forgot-password', validateForgotPassword, forgotPassword);
+router.post('/reset-password', validateResetPassword, resetPassword);
 
-// Protected routes
+// Protected routes with validation
 router.get('/me', protect, getMe);
 router.post('/logout', protect, logout);
-router.put('/update-profile', protect, updateProfile);
-router.put('/change-password', protect, changePassword);
+router.put('/update-profile', protect, validateProfileUpdate, updateProfile);
+router.put('/change-password', protect, validatePasswordChange, changePassword);
 
 export default router;

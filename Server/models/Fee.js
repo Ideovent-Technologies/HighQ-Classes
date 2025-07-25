@@ -2,38 +2,70 @@ import mongoose from 'mongoose';
 
 const feeSchema = new mongoose.Schema(
   {
-    studentId: {
+    student: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Student',
-      required: true,
+      ref: 'User',
+      required: true
+    },
+    course: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Course'
+    },
+    batch: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Batch'
+    },
+    feeType: {
+      type: String,
+      enum: ['admission', 'tuition', 'examination', 'other'],
+      default: 'tuition'
     },
     amount: {
       type: Number,
       required: true,
+      min: [0, 'Amount cannot be negative']
     },
-    paymentDate: {
+    dueDate: {
       type: Date,
-      required: true,
+      required: true
     },
     month: {
-      type: String,
-      required: true,
+      type: String
     },
     year: {
+      type: Number
+    },
+    isPaid: {
+      type: Boolean,
+      default: false
+    },
+    paidAmount: {
       type: Number,
-      required: true,
+      default: 0
     },
-    paymentMethod: {
-      type: String,
-      required: true,
+    paymentDate: {
+      type: Date
     },
-    transactionId: {
-      type: String,
+    lateCharge: {
+      type: Number,
+      default: 0
+    },
+    discount: {
+      type: Number,
+      default: 0
+    },
+    description: {
+      type: String
     },
     status: {
       type: String,
-      required: true,
-    }
+      enum: ['pending', 'partial', 'paid', 'overdue'],
+      default: 'pending'
+    },
+    payments: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Payment'
+    }]
   },
   { timestamps: true }
 );

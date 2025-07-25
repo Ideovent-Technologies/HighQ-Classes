@@ -1,5 +1,6 @@
 import express from "express";
-import { protect } from "../middleware/authMiddleware.js";
+import { protect, authorize } from "../middleware/authMiddleware.js";
+import { validateAdminCreateUser } from "../middleware/validateRequestBody.js";
 import {
     getAdminDashboard,
     getAllStudents,
@@ -12,25 +13,29 @@ import {
 
 const router = express.Router();
 
+// Protect all routes with admin authorization
+router.use(protect);
+router.use(authorize('admin'));
+
 // Admin dashboard
-router.get("/dashboard", protect, getAdminDashboard);
+router.get("/dashboard", getAdminDashboard);
 
 // Students
-router.get("/students", protect, getAllStudents);
+router.get("/students", getAllStudents);
 
 // Teachers
-router.get("/teachers", protect, getAllTeachers);
+router.get("/teachers", getAllTeachers);
 
 // Update user
-router.put("/user/:id", protect, updateUser);
+router.put("/user/:id", updateUser);
 
 // Delete user
-router.delete("/user/:id", protect, deleteUser);
+router.delete("/user/:id", deleteUser);
 
-// Create user
-router.post("/user", protect, CreateUser);
+// Create user with validation
+router.post("/user", validateAdminCreateUser, CreateUser);
 
 // Create announcement
-router.post("/announcement", protect, createAnnouncement);
+router.post("/announcement", createAnnouncement);
 
 export default router;
