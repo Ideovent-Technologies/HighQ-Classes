@@ -17,36 +17,27 @@ export const getTeacherDashboard = async (req, res) => {
   try {
     const teacherId = req.user._id;
 
-    /** ───────────────────────────────────────
-     * 1️⃣ Today's Schedule for Logged-in Teacher
-     * Filters by today's weekday and current teacher
-     * ─────────────────────────────────────── */
+    // 📅 Today's Schedule for Logged-in Teacher
     const today = new Date();
     const dayOfWeek = today.toLocaleDateString("en-US", { weekday: "long" });
 
-    const todaySchedule = await Schedule.find({
-      teacherId,
-      day: dayOfWeek,
-    })
+    const todaySchedule = await Schedule.find({ teacherId, day: dayOfWeek })
       .populate("batchId", "name")
       .populate("courseId", "title")
-      .sort({ startTime: 1 });
+      .sort({ startTime: 1 })
+      .lean();
 
-    /** ───────────────────────────────────────
-     * 2️⃣ Recent Notices (limit to 5 latest active notices)
-     * ─────────────────────────────────────── */
+    // 🛎 Recent Notices (limit to 5 latest active notices)
     const recentNotices = await Notice.find({
       postedBy: teacherId,
       isActive: true,
       isScheduled: false,
     })
       .sort({ createdAt: -1 })
-      .limit(5);
+      .limit(5)
+      .lean();
 
-    /** ───────────────────────────────────────
-     * 3️⃣ Attendance Summary (for today)
-     * Counts total present, absent, leave
-     * ─────────────────────────────────────── */
+    // 📝 Attendance Summary (for today)
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date();
@@ -81,26 +72,19 @@ export const getTeacherDashboard = async (req, res) => {
       }
     });
 
-    /** ───────────────────────────────────────
-     * 4️⃣ Materials Summary (uploaded by this teacher)
-     * ─────────────────────────────────────── */
+    // 📚 Materials Summary (uploaded by this teacher)
     const materialsCount = await Material.countDocuments({
       uploadedBy: teacherId,
     });
 
-    /** ───────────────────────────────────────
-     * 5️⃣ Recordings Summary (active & valid)
-     * ─────────────────────────────────────── */
+    // 📺 Recordings Summary (active & valid)
     const recordingsCount = await Recording.countDocuments({
       teacher: teacherId,
       isActive: true,
       accessExpires: { $gt: new Date() },
     });
 
-    /** ───────────────────────────────────────
-     * 6️⃣ Assigned Students (by batch)
-     * Uses distinct batchIds from Schedule
-     * ─────────────────────────────────────── */
+    // 🧑‍🏫 Assigned Students (by batch)
     const teacherBatchIds = await Schedule.distinct("batchId", {
       teacherId,
     });
@@ -109,25 +93,23 @@ export const getTeacherDashboard = async (req, res) => {
       batch: { $in: teacherBatchIds },
     })
       .select("name email batch")
-      .populate("batch", "name");
+      .populate("batch", "name")
+      .lean();
 
-    const studentsByBatch = {};
-    batchStudents.forEach((student) => {
+    const studentsByBatch = batchStudents.reduce((acc, student) => {
       const batchName = student.batch?.name || "Unknown";
-      if (!studentsByBatch[batchName]) {
-        studentsByBatch[batchName] = [];
+      if (!acc[batchName]) {
+        acc[batchName] = [];
       }
-      studentsByBatch[batchName].push({
+      acc[batchName].push({
         _id: student._id,
         name: student.name,
         email: student.email,
       });
-    });
+      return acc;
+    }, {});
 
-    /** ───────────────────────────────────────
-     * 7️⃣ Course Content Overview (material + recording stats)
-     * Combined material and recording stats grouped by course
-     * ─────────────────────────────────────── */
+    // 📚 Course Content Overview (material + recording stats)
     const materialCourseStats = await Material.aggregate([
       {
         $match: {
@@ -194,18 +176,17 @@ export const getTeacherDashboard = async (req, res) => {
       };
     });
 
-    /** ───────────────────────────────────────
-     * 8️⃣ Assigned Batches (via Batch model)
-     * Pulls batches assigned to this teacher
-     * ─────────────────────────────────────── */
-    const assignedBatches = await Batch.find({ teacherId: teacherId })
-      .select("name course startDate endDate")
-      .populate("courseId", "title");
+    // 🏫 Assigned Batches (via Batch model)
+  /** ───────────────────────────────────────
+ * 8️⃣ Assigned Batches (via Batch model)
+ * Pulls batches assigned to this teacher
+ * ─────────────────────────────────────── */
+  const assignedBatches = await Batch.find({ teacherId: teacherId })
+  .select("name courseId startDate endDate") // Ensure courseId is selected, not 'course'
+  .populate("courseId", "name"); // Populate courseId with the course's name
 
 
-    /** ───────────────────────────────────────
-     * ✅ Final Response
-     * ─────────────────────────────────────── */
+    // ✅ Final Response
     res.json({
       todaySchedule,
       recentNotices,
