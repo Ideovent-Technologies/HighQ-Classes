@@ -89,12 +89,14 @@ export const deleteBatch = async (req, res) => {
 
 // ✅ Admin: Assign student to batch
 export const assignStudentToBatch = async (req, res) => {
-  const { batchId, studentId } = req.body;
-  try {
-    if (!batchId || !studentId) {
-      return res.status(400).json({ message: "Batch ID and Student ID are required." });
-    }
+  const { studentId } = req.body;
+  const { batchId } = req.params;  // ✅ extract from URL path
 
+  if (!batchId || !studentId) {
+    return res.status(400).json({ message: "Batch ID and Student ID are required." });
+  }
+
+  try {
     const batch = await Batch.findById(batchId);
     if (!batch) {
       return res.status(404).json({ message: "Batch not found." });
@@ -107,11 +109,14 @@ export const assignStudentToBatch = async (req, res) => {
     batch.students.push(studentId);
     await batch.save();
 
+    await Student.findByIdAndUpdate(studentId, { batch: batchId });
+
     res.status(200).json({ message: "Student assigned to batch successfully.", batch });
   } catch (error) {
     res.status(500).json({ message: "Error assigning student to batch", error: error.message });
   }
 };
+
 
 // ✅ Admin: Get batches by course
 export const getBatchesByCourse = async (req, res) => {

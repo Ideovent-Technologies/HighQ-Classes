@@ -198,9 +198,10 @@ export const getTeacherDashboard = async (req, res) => {
      * 8️⃣ Assigned Batches (via Batch model)
      * Pulls batches assigned to this teacher
      * ─────────────────────────────────────── */
-    const assignedBatches = await Batch.find({ teacherIds: teacherId })
+    const assignedBatches = await Batch.find({ teacherId: teacherId })
       .select("name course startDate endDate")
-      .populate("course", "title");
+      .populate("courseId", "title");
+
 
     /** ───────────────────────────────────────
      * ✅ Final Response

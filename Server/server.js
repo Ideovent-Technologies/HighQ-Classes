@@ -79,7 +79,7 @@ app.use("/api/materials", materialRoutes);            // Study materials routes
 app.use("/api/assignments", assignmentRoutes);        // Assignment routes
 
 app.use("/api/admin", adminRoutes);
-app.use("/api/batch", batchRouter);
+app.use("/api/batches", batchRouter);
 app.use("/api/fee", feeRouter);
 
 
