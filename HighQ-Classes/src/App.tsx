@@ -25,6 +25,11 @@ import StudyMaterials from "@/pages/dashboard/StudyMaterials";
 import AllStudents from "@/pages/dashboard/AllStudents";
 import UploadMaterials from "@/pages/dashboard/UploadMaterials";
 
+// Import Fee Management pages
+import StudentFeeStatus from "@/modules/fees/FeeStatus";
+import AdminFeeDashboard from "@/modules/fees/AdminFeeDashboard";
+
+
 const queryClient = new QueryClient();
 
 const App: React.FC = () => {
@@ -49,6 +54,10 @@ const App: React.FC = () => {
               <Route path="/dashboard/study-materials" element={<StudyMaterials />} />
               <Route path="/dashboard/all-students" element={<AllStudents />} />
               <Route path="/dashboard/upload-materials" element={<UploadMaterials />} />
+
+               {/* Custom Fee Management Routes */}
+               <Route path="/dashboard/admin-fees" element={<AdminFeeDashboard />} />
+               <Route path="/dashboard/student-fee-status" element={<StudentFeeStatus />} />
               
               {/* 404 Page */}
               <Route path="*" element={<NotFound />} />
