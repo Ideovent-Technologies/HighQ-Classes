@@ -1,5 +1,5 @@
 import asyncHandler from 'express-async-handler';
-import Notice from '../models/noticeModel.js';
+import Notice from '../models/Notice.js';
 
 // Create a notice
 export const createNotice = asyncHandler(async (req, res) => {
