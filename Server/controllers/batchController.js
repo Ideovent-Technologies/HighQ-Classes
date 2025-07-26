@@ -1,4 +1,5 @@
 import Batch from "../models/Batch.js";
+import Student from "../models/Student.js";  // Import Student model to update batch field
 
 // ✅ Admin: Create a new batch
 export const CreateBatch = async (req, res) => {
@@ -22,6 +23,13 @@ export const CreateBatch = async (req, res) => {
     });
 
     const savedBatch = await newBatch.save();
+
+    // Update students' batch reference
+    await Student.updateMany(
+      { _id: { $in: students } },
+      { $set: { batch: savedBatch._id } }  // Update batch field for each student
+    );
+
     res.status(201).json(savedBatch);
   } catch (error) {
     res.status(500).json({ message: "Error creating batch", error: error.message });
@@ -34,7 +42,7 @@ export const GetAllBatch = async (req, res) => {
     const batches = await Batch.find()
       .populate("courseId")
       .populate("teacherId")
-      .populate("students");
+      .populate("students");  // Populate students' data
     res.status(200).json(batches);
   } catch (error) {
     res.status(500).json({ message: "Error fetching batches", error: error.message });
@@ -54,7 +62,7 @@ export const UpdateBatch = async (req, res) => {
     const updatedBatch = await Batch.findByIdAndUpdate(batchId, updateData, { new: true })
       .populate("courseId")
       .populate("teacherId")
-      .populate("students");
+      .populate("students");  // Populate students after update
 
     if (!updatedBatch) {
       return res.status(404).json({ message: "Batch not found." });
@@ -90,7 +98,7 @@ export const deleteBatch = async (req, res) => {
 // ✅ Admin: Assign student to batch
 export const assignStudentToBatch = async (req, res) => {
   const { studentId } = req.body;
-  const { batchId } = req.params;  // ✅ extract from URL path
+  const { batchId } = req.params;  // ✅ Extract from URL path
 
   if (!batchId || !studentId) {
     return res.status(400).json({ message: "Batch ID and Student ID are required." });
@@ -109,6 +117,7 @@ export const assignStudentToBatch = async (req, res) => {
     batch.students.push(studentId);
     await batch.save();
 
+    // Update student's batch reference
     await Student.findByIdAndUpdate(studentId, { batch: batchId });
 
     res.status(200).json({ message: "Student assigned to batch successfully.", batch });
@@ -116,7 +125,6 @@ export const assignStudentToBatch = async (req, res) => {
     res.status(500).json({ message: "Error assigning student to batch", error: error.message });
   }
 };
-
 
 // ✅ Admin: Get batches by course
 export const getBatchesByCourse = async (req, res) => {
@@ -128,7 +136,7 @@ export const getBatchesByCourse = async (req, res) => {
 
     const batches = await Batch.find({ courseId })
       .populate("teacherId")
-      .populate("students");
+      .populate("students");  // Populate students' data by course
 
     if (batches.length === 0) {
       return res.status(404).json({ message: "No batches found for this course." });
@@ -139,8 +147,6 @@ export const getBatchesByCourse = async (req, res) => {
     res.status(500).json({ message: "Error fetching batches by course", error: error.message });
   }
 };
-
-
 
 // ----------------------------------------------------
 // 📘 TEACHER-SIDE CONTROLLERS 
@@ -155,7 +161,7 @@ export const getBatchesForTeacher = async (req, res) => {
 
     const batches = await Batch.find({ teacherId })
       .populate("courseId", "title topics")
-      .populate("students", "name email");
+      .populate("students", "name email");  // Ensure students are populated
 
     res.status(200).json(batches);
   } catch (error) {
