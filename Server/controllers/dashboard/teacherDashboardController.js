@@ -13,40 +13,32 @@ import mongoose from "mongoose";
  * @route   GET /api/teacher/dashboard
  * @access  Private (Teacher only)
  */
+
 export const getTeacherDashboard = async (req, res) => {
   try {
     const teacherId = req.user._id;
 
-    /** ───────────────────────────────────────
-     * 1️⃣ Today's Schedule for Logged-in Teacher
-     * Filters by today's weekday and current teacher
-     * ─────────────────────────────────────── */
+    // 📅 Today's Schedule
     const today = new Date();
     const dayOfWeek = today.toLocaleDateString("en-US", { weekday: "long" });
 
-    const todaySchedule = await Schedule.find({
-      teacherId,
-      day: dayOfWeek,
-    })
+    const todaySchedule = await Schedule.find({ teacherId, day: dayOfWeek })
       .populate("batchId", "name")
       .populate("courseId", "title")
-      .sort({ startTime: 1 });
+      .sort({ startTime: 1 })
+      .lean();
 
-    /** ───────────────────────────────────────
-     * 2️⃣ Recent Notices (limit to 5 latest active notices)
-     * ─────────────────────────────────────── */
+    // 🛎 Recent Notices
     const recentNotices = await Notice.find({
       postedBy: teacherId,
       isActive: true,
       isScheduled: false,
     })
       .sort({ createdAt: -1 })
-      .limit(5);
+      .limit(5)
+      .lean();
 
-    /** ───────────────────────────────────────
-     * 3️⃣ Attendance Summary (for today)
-     * Counts total present, absent, leave
-     * ─────────────────────────────────────── */
+    // 📝 Attendance Summary
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date();
@@ -81,53 +73,42 @@ export const getTeacherDashboard = async (req, res) => {
       }
     });
 
-    /** ───────────────────────────────────────
-     * 4️⃣ Materials Summary (uploaded by this teacher)
-     * ─────────────────────────────────────── */
+    // 📚 Materials Summary
     const materialsCount = await Material.countDocuments({
       uploadedBy: teacherId,
     });
 
-    /** ───────────────────────────────────────
-     * 5️⃣ Recordings Summary (active & valid)
-     * ─────────────────────────────────────── */
+    // 📺 Recordings Summary
     const recordingsCount = await Recording.countDocuments({
       teacher: teacherId,
       isActive: true,
       accessExpires: { $gt: new Date() },
     });
 
-    /** ───────────────────────────────────────
-     * 6️⃣ Assigned Students (by batch)
-     * Uses distinct batchIds from Schedule
-     * ─────────────────────────────────────── */
-    const teacherBatchIds = await Schedule.distinct("batchId", {
-      teacherId,
-    });
+    // 🧑‍🏫 Assigned Students (by batch)
+    const teacherBatchIds = await Batch.find({ teacherId }).distinct("_id");
 
     const batchStudents = await Student.find({
       batch: { $in: teacherBatchIds },
     })
       .select("name email batch")
-      .populate("batch", "name");
+      .populate("batch", "name")
+      .lean();
 
-    const studentsByBatch = {};
-    batchStudents.forEach((student) => {
+    const studentsByBatch = batchStudents.reduce((acc, student) => {
       const batchName = student.batch?.name || "Unknown";
-      if (!studentsByBatch[batchName]) {
-        studentsByBatch[batchName] = [];
+      if (!acc[batchName]) {
+        acc[batchName] = [];
       }
-      studentsByBatch[batchName].push({
+      acc[batchName].push({
         _id: student._id,
         name: student.name,
         email: student.email,
       });
-    });
+      return acc;
+    }, {});
 
-    /** ───────────────────────────────────────
-     * 7️⃣ Course Content Overview (material + recording stats)
-     * Combined material and recording stats grouped by course
-     * ─────────────────────────────────────── */
+    // 📚 Course Content Overview
     const materialCourseStats = await Material.aggregate([
       {
         $match: {
@@ -157,9 +138,7 @@ export const getTeacherDashboard = async (req, res) => {
       },
     ]);
 
-    // Merge course-wise material & recording stats
     const courseStatsMap = {};
-
     materialCourseStats.forEach((item) => {
       courseStatsMap[item._id?.toString()] = {
         courseId: item._id,
@@ -181,12 +160,13 @@ export const getTeacherDashboard = async (req, res) => {
       }
     });
 
-    // Fetch course titles to map in final response
     const courseIds = Object.values(courseStatsMap).map((c) => c.courseId);
     const courses = await Course.find({ _id: { $in: courseIds } }).select("title");
 
     const courseContentOverview = Object.values(courseStatsMap).map((stat) => {
-      const course = courses.find((c) => c._id.toString() === stat.courseId.toString());
+      const course = courses.find(
+        (c) => c._id.toString() === stat.courseId.toString()
+      );
       return {
         courseTitle: course?.title || "Untitled Course",
         materials: stat.materials,
@@ -194,18 +174,21 @@ export const getTeacherDashboard = async (req, res) => {
       };
     });
 
-    /** ───────────────────────────────────────
-     * 8️⃣ Assigned Batches (via Batch model)
-     * Pulls batches assigned to this teacher
-     * ─────────────────────────────────────── */
-    const assignedBatches = await Batch.find({ teacherId: teacherId })
-      .select("name course startDate endDate")
-      .populate("courseId", "title");
+    // 🏫 Assigned Batches
+    const assignedBatchesRaw = await Batch.find({ teacherId })
+      .select("name courseId startDate endDate")
+      .populate("courseId", "name")
+      .lean();
 
+    const assignedBatches = assignedBatchesRaw.map((batch) => ({
+      _id: batch._id,
+      name: batch.name,
+      course: batch.courseId?.name || "Unknown",
+      startDate: batch.startDate,
+      endDate: batch.endDate,
+    }));
 
-    /** ───────────────────────────────────────
-     * ✅ Final Response
-     * ─────────────────────────────────────── */
+    // ✅ Final Response
     res.json({
       todaySchedule,
       recentNotices,
@@ -220,7 +203,6 @@ export const getTeacherDashboard = async (req, res) => {
       assignedStudents: studentsByBatch,
       assignedBatches,
     });
-
   } catch (error) {
     console.error("Teacher Dashboard Error:", error);
     res.status(500).json({
@@ -228,3 +210,4 @@ export const getTeacherDashboard = async (req, res) => {
     });
   }
 };
+

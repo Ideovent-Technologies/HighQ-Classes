@@ -114,7 +114,6 @@ export const authorize = (roles) => {
  * Ensures the student can only access their own resources
  */
 export const authorizeStudent = (req, res, next) => {
-  // Check if user is a student
   if (req.user.role !== 'student') {
     return res.status(403).json({
       success: false,
@@ -122,8 +121,8 @@ export const authorizeStudent = (req, res, next) => {
     });
   }
 
-  // Check if student is accessing their own data
-  if (req.user._id.toString() !== req.params.id) {
+  // Only check for req.params.id if it's present
+  if (req.params.id && req.user._id.toString() !== req.params.id) {
     return res.status(403).json({
       success: false,
       message: "Access denied. Students can only access their own data."
@@ -132,3 +131,4 @@ export const authorizeStudent = (req, res, next) => {
 
   next();
 };
+
