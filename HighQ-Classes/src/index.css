@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
@@ -46,48 +45,57 @@
     @apply bg-background text-foreground font-sans;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-poppins font-semibold;
   }
 }
 
 @layer components {
+  .animate-fade-in {
+    @apply transition-all duration-300 ease-in-out opacity-100 translate-y-0;
+  }
+
   .hero-section {
     @apply relative bg-gradient-to-br from-navy-600 to-navy-900 text-white py-20 px-4 md:py-32;
   }
-  
+
   .section-container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16;
   }
-  
+
   .card-hover {
     @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
   }
-  
+
   .nav-link {
-    @apply text-gray-600 hover:text-navy-500 font-medium transition-colors px-3 py-2;
-  }
-  
-  .nav-link-active {
-    @apply text-navy-500 font-medium;
-  }
-  
+  @apply text-gray-600 hover:text-navy-500 font-medium transition px-3 py-2;
+}
+.nav-link-active {
+  @apply text-navy-600 font-semibold underline underline-offset-4;
+}
+
+
   .btn-primary {
     @apply bg-navy-500 text-white font-medium px-6 py-2.5 rounded-lg hover:bg-navy-600 transition-colors;
   }
-  
+
   .btn-secondary {
     @apply bg-teal-500 text-white font-medium px-6 py-2.5 rounded-lg hover:bg-teal-600 transition-colors;
   }
-  
+
   .btn-accent {
     @apply bg-coral-500 text-white font-medium px-6 py-2.5 rounded-lg hover:bg-coral-600 transition-colors;
   }
-  
+
   .btn-outline {
     @apply border-2 border-navy-500 text-navy-500 font-medium px-6 py-2.5 rounded-lg hover:bg-navy-500 hover:text-white transition-colors;
   }
-  
+
   .input-field {
     @apply w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500/50 focus:border-navy-500;
   }
