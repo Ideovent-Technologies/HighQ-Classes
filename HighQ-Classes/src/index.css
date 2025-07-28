@@ -72,11 +72,12 @@
     @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
   }
 
-  .nav-link {
-  @apply text-gray-600 hover:text-navy-500 font-medium transition px-3 py-2;
+.nav-link {
+  @apply text-gray-600 hover:text-navy-500 transition-colors duration-200;
 }
+
 .nav-link-active {
-  @apply text-navy-600 font-semibold underline underline-offset-4;
+  @apply text-navy-600 font-semibold border-b-2 border-navy-500;
 }
 
 

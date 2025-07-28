@@ -1,11 +1,8 @@
-import { ChevronRight } from "lucide-react";
-import { Link } from "react-router-dom";
-
-// Proper paths using alias "@/assets/..."
 import Icon1 from "@/assets/featured-course/1.svg";
 import Icon2 from "@/assets/featured-course/2.svg";
 import Icon3 from "@/assets/featured-course/3.svg";
 import Icon4 from "@/assets/featured-course/4.svg";
+import CourseCarousel from "./CourseCarousel";
 
 const courses = [
   {
@@ -36,10 +33,10 @@ const courses = [
 
 const FeaturedCourses = () => {
   return (
-    <section className="min-h-screen flex flex-col justify-center py-20 px-4 bg-white">
-      <div className="max-w-7xl mx-auto">
+    <section className="py-20 bg-white">
+      <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-navy-700">
+          <h2 className="text-3xl md:text-4xl font-bold text-navy-700 mb-3">
             Our Featured Programs
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -47,38 +44,7 @@ const FeaturedCourses = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {courses.map((course) => (
-            <div
-              key={course.id}
-              className="relative overflow-hidden rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 group bg-white"
-            >
-              <img
-                src={course.image}
-                alt={course.title}
-                className="w-full h-48 object-cover"
-              />
-
-              <div className="p-6 flex flex-col justify-between h-[200px]">
-                <div>
-                  <h3 className="text-xl font-semibold mb-2 text-navy-700">
-                    {course.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    {course.description}
-                  </p>
-                </div>
-                <Link
-                  to="/services"
-                  className="inline-flex items-center text-navy-500 font-medium hover:underline mt-4"
-                >
-                  Learn More
-                  <ChevronRight className="h-4 w-4 ml-1 transition-transform group-hover:translate-x-1" />
-                </Link>
-              </div>
-            </div>
-          ))}
-        </div>
+        <CourseCarousel courses={courses} />
       </div>
     </section>
   );

@@ -1,36 +1,67 @@
-import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Menu, X, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const { user, logout, isAuthenticated } = useAuth();
 
-  // Toggle mobile menu
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
-  // Highlight active page link
   const isActive = (path: string) =>
-    location.pathname === path ? 'nav-link-active' : 'nav-link';
+    location.pathname === path
+      ? "font-semibold text-teal-400"
+      : scrolled
+      ? "text-gray-700 hover:text-navy-600"
+      : "text-white hover:text-teal-300";
 
-  // Define top-level menu items
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 30);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const menuItems = [
-    { title: 'Services', path: '/services' },
-    { title: 'About', path: '/about' },
-    { title: 'Contact', path: '/contact' },
+    { title: "Services", path: "/services" },
+    { title: "About", path: "/about" },
+    { title: "Contact", path: "/contact" },
   ];
 
   return (
-    <header className="bg-white shadow border-b border-gray-200 sticky top-0 z-50">
+    <header
+      className={`fixed w-full top-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? "bg-white shadow border-b border-gray-200"
+          : "bg-transparent text-white"
+      }`}
+    >
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex justify-between items-center">
           {/* Logo */}
-          <Link to="/" className="flex items-center text-2xl font-bold font-poppins">
-            <span className="text-navy-600">Bloom</span>
-            <span className="text-teal-500">Scholar</span>
+          <Link
+            to="/"
+            className="flex items-center text-2xl font-bold font-poppins"
+          >
+            <span
+              className={`transition-colors ${
+                scrolled ? "text-navy-600" : "text-white"
+              }`}
+            >
+              Bloom
+            </span>
+            <span
+              className={`transition-colors ${
+                scrolled ? "text-teal-500" : "text-teal-300"
+              }`}
+            >
+              Scholar
+            </span>
           </Link>
 
           {/* Desktop Menu */}
@@ -47,12 +78,16 @@ const Navbar = () => {
               ))}
             </div>
 
-            {/* Auth buttons (dashboard or login/register) */}
+            {/* Auth Buttons */}
             <div className="ml-6 flex items-center space-x-2">
               {isAuthenticated ? (
                 <>
                   <Link to="/dashboard">
-                    <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center gap-1"
+                    >
                       <User className="h-4 w-4" />
                       Dashboard
                     </Button>
@@ -61,7 +96,11 @@ const Navbar = () => {
                     variant="outline"
                     size="sm"
                     onClick={logout}
-                    className="border-gray-300 hover:border-navy-500"
+                    className={`border ${
+                      scrolled
+                        ? "border-gray-300 text-gray-700"
+                        : "border-white text-white hover:bg-white hover:text-navy-600"
+                    }`}
                   >
                     Logout
                   </Button>
@@ -69,14 +108,25 @@ const Navbar = () => {
               ) : (
                 <>
                   <Link to="/login">
-                    <Button variant="outline" size="sm">
+                    <Button
+                      size="sm"
+                      className={`transition-colors duration-300 ${
+                        scrolled
+                          ? "bg-white text-navy-700 border border-gray-300 hover:bg-gray-100"
+                          : "bg-orange-500 text-white hover:bg-orange-600"
+                      }`}
+                    >
                       Login
                     </Button>
                   </Link>
                   <Link to="/register">
                     <Button
                       size="sm"
-                      className="bg-navy-500 text-white hover:bg-navy-600"
+                      className={`${
+                        scrolled
+                          ? "bg-navy-500 text-white hover:bg-navy-600"
+                          : "bg-white text-navy-700 hover:bg-gray-100"
+                      }`}
                     >
                       Register
                     </Button>
@@ -86,13 +136,13 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile menu icon */}
           <div className="md:hidden">
             <button onClick={toggleMenu} className="outline-none">
               {isMenuOpen ? (
-                <X className="h-6 w-6 text-navy-500" />
+                <X className="h-6 w-6" />
               ) : (
-                <Menu className="h-6 w-6 text-navy-500" />
+                <Menu className="h-6 w-6" />
               )}
             </button>
           </div>
@@ -107,20 +157,15 @@ const Navbar = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`${isActive(item.path)} block`}
+                className="text-gray-800 hover:text-navy-600"
                 onClick={() => setIsMenuOpen(false)}
               >
                 {item.title}
               </Link>
             ))}
-
             {isAuthenticated ? (
               <>
-                <Link
-                  to="/dashboard"
-                  className="nav-link block"
-                  onClick={() => setIsMenuOpen(false)}
-                >
+                <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
                   Dashboard
                 </Link>
                 <button
@@ -128,25 +173,17 @@ const Navbar = () => {
                     logout();
                     setIsMenuOpen(false);
                   }}
-                  className="nav-link block text-left"
+                  className="text-left text-gray-800"
                 >
                   Logout
                 </button>
               </>
             ) : (
               <>
-                <Link
-                  to="/login"
-                  className="nav-link block"
-                  onClick={() => setIsMenuOpen(false)}
-                >
+                <Link to="/login" onClick={() => setIsMenuOpen(false)}>
                   Login
                 </Link>
-                <Link
-                  to="/register"
-                  className="nav-link block"
-                  onClick={() => setIsMenuOpen(false)}
-                >
+                <Link to="/register" onClick={() => setIsMenuOpen(false)}>
                   Register
                 </Link>
               </>
