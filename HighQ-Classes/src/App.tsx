@@ -27,6 +27,10 @@ import StudyMaterials from "@/pages/dashboard/StudyMaterials";
 import AllStudents from "@/pages/dashboard/AllStudents";
 import UploadMaterials from "@/pages/dashboard/UploadMaterials";
 
+// Import Fee Management pages
+import StudentFeeStatus from "@/modules/fees/FeeStatus";
+import AdminFeeDashboard from "@/modules/fees/AdminFeeDashboard";
+
 const queryClient = new QueryClient();
 
 const App: React.FC = () => {
