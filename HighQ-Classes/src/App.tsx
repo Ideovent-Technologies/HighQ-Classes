@@ -19,6 +19,7 @@ import Register from "@/pages/auth/Register";
 import Profile from "@/pages/auth/Profile";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
 import NotFound from "@/pages/NotFound";
+import About from "./pages/About";
 
 // Import dashboard pages
 import Dashboard from "@/pages/dashboard/Dashboard";
@@ -64,6 +65,14 @@ const App: React.FC = () => {
                                 element={
                                     <Layout>
                                         <Contact />
+                                    </Layout>
+                                }
+                            />
+                            <Route
+                                path="/about"
+                                element={
+                                    <Layout>
+                                        <About />
                                     </Layout>
                                 }
                             />

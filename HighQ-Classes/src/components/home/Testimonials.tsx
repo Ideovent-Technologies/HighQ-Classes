@@ -39,27 +39,27 @@ const stats = [
 const Testimonials = () => {
   return (
     <section className="relative bg-gradient-to-br from-[#f8fafc] to-[#eef2ff] py-24 px-4 overflow-hidden">
-      {/* Wave Divider Top */}
-      <div className="absolute top-0 left-0 w-full overflow-hidden leading-none rotate-180">
+      {/* Subtle Top Wave Divider */}
+      <div className="absolute top-0 left-0 w-full overflow-hidden leading-none rotate-180 z-0">
         <svg
           viewBox="0 0 500 50"
           preserveAspectRatio="none"
-          className="w-full h-20 fill-white opacity-70"
+          className="w-full h-20 fill-white opacity-60"
         >
           <path d="M0.00,49.98 C150.00,0.00 350.00,100.00 500.00,49.98 L500.00,50.00 L0.00,50.00 Z" />
         </svg>
       </div>
 
-      <div className="max-w-7xl mx-auto text-center">
+      <div className="max-w-7xl mx-auto text-center relative z-10">
         {/* Section Heading */}
         <motion.h2
-          className="text-4xl md:text-5xl font-extrabold mb-4 text-navy-800"
+          className="text-4xl md:text-5xl font-extrabold mb-4 text-navy-700"
           initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           viewport={{ once: true }}
         >
-          Hear from Our Toppers
+          💬 Hear from Our Toppers
         </motion.h2>
 
         <motion.p
@@ -69,7 +69,7 @@ const Testimonials = () => {
           transition={{ delay: 0.2 }}
           viewport={{ once: true }}
         >
-          Real stories from students who achieved success through our programs.
+          Real journeys. Real ranks. Real impact.
         </motion.p>
 
         {/* Testimonials Grid */}
@@ -77,25 +77,32 @@ const Testimonials = () => {
           {testimonials.map((t, index) => (
             <motion.div
               key={t.id}
-              className="relative bg-white p-6 rounded-3xl shadow-xl hover:shadow-orange-200 hover:scale-[1.03] transition-all duration-300"
+              className="relative bg-white p-6 rounded-3xl shadow-xl hover:shadow-orange-200 hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 group"
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.2 }}
               viewport={{ once: true }}
             >
-              <Quote className="absolute top-4 right-4 text-orange-200 w-6 h-6" />
+              {/* Floating quote icon */}
+              <Quote className="absolute top-4 right-4 text-orange-100 w-6 h-6 group-hover:text-orange-400 transition-colors" />
+
               <div className="flex items-center gap-4 mb-4">
                 <img
                   src={t.image}
                   alt={t.name}
-                  className="w-14 h-14 rounded-full object-cover border-2 border-orange-500"
+                  className="w-14 h-14 rounded-full object-cover border-2 border-orange-500 shadow-sm"
                 />
                 <div className="text-left">
-                  <h4 className="text-navy-700 font-semibold">{t.name}</h4>
-                  <p className="text-sm text-orange-500 font-medium">{t.role}</p>
+                  <h4 className="text-navy-700 font-semibold text-lg">
+                    {t.name}
+                  </h4>
+                  <p className="text-sm text-orange-500 font-medium">
+                    {t.role}
+                  </p>
                 </div>
               </div>
-              <p className="text-gray-600 text-sm leading-relaxed">
+
+              <p className="text-gray-600 text-sm leading-relaxed mt-2">
                 “{t.comment}”
               </p>
             </motion.div>
@@ -113,7 +120,7 @@ const Testimonials = () => {
               transition={{ delay: i * 0.15 }}
               viewport={{ once: true }}
             >
-              <div className="absolute inset-0 bg-orange-100/10 rounded-2xl blur-sm z-0" />
+              <div className="absolute inset-0 bg-orange-100/10 rounded-2xl blur-md z-0" />
               <p className="text-3xl font-bold text-orange-600 z-10">
                 <CountUp
                   end={stat.value}
@@ -129,6 +136,9 @@ const Testimonials = () => {
           ))}
         </div>
       </div>
+
+      {/* Glow blob for background magic */}
+      <div className="absolute -bottom-20 -left-20 w-[50vw] h-[50vw] bg-orange-300 opacity-10 rounded-full blur-3xl z-0" />
     </section>
   );
 };
