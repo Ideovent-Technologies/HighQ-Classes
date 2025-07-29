@@ -1,4 +1,6 @@
 import { motion } from "framer-motion";
+import { Quote } from "lucide-react";
+import CountUp from "react-countup";
 
 const testimonials = [
   {
@@ -28,35 +30,60 @@ const testimonials = [
 ];
 
 const stats = [
-  { label: "JEE Top Rankers", value: "250+" },
-  { label: "NEET Selections", value: "400+" },
-  { label: "WBJEE Qualifiers", value: "300+" },
-  { label: "Doubt Sessions", value: "10,000+" },
+  { label: "JEE Top Rankers", value: 250 },
+  { label: "NEET Selections", value: 400 },
+  { label: "WBJEE Qualifiers", value: 300 },
+  { label: "Doubt Sessions", value: 10000 },
 ];
 
 const Testimonials = () => {
   return (
-    <section className="bg-gradient-to-br from-[#f8fafc] to-[#eef2ff] py-20 px-4">
-      <div className="max-w-7xl mx-auto text-center">
-        {/* Heading */}
-        <h2 className="text-4xl md:text-5xl font-extrabold mb-4 text-navy-800">
-          Hear from Our Toppers
-        </h2>
-        <p className="text-lg text-gray-600 mb-16 max-w-2xl mx-auto">
-          Real stories from students who achieved success through our programs.
-        </p>
+    <section className="relative bg-gradient-to-br from-[#f8fafc] to-[#eef2ff] py-24 px-4 overflow-hidden">
+      {/* Wave Divider Top */}
+      <div className="absolute top-0 left-0 w-full overflow-hidden leading-none rotate-180">
+        <svg
+          viewBox="0 0 500 50"
+          preserveAspectRatio="none"
+          className="w-full h-20 fill-white opacity-70"
+        >
+          <path d="M0.00,49.98 C150.00,0.00 350.00,100.00 500.00,49.98 L500.00,50.00 L0.00,50.00 Z" />
+        </svg>
+      </div>
 
-        {/* Testimonials */}
+      <div className="max-w-7xl mx-auto text-center">
+        {/* Section Heading */}
+        <motion.h2
+          className="text-4xl md:text-5xl font-extrabold mb-4 text-navy-800"
+          initial={{ opacity: 0, y: -20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          viewport={{ once: true }}
+        >
+          Hear from Our Toppers
+        </motion.h2>
+
+        <motion.p
+          className="text-lg text-gray-600 mb-16 max-w-2xl mx-auto"
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          viewport={{ once: true }}
+        >
+          Real stories from students who achieved success through our programs.
+        </motion.p>
+
+        {/* Testimonials Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-20">
           {testimonials.map((t, index) => (
             <motion.div
               key={t.id}
-              className="bg-white p-6 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300"
+              className="relative bg-white p-6 rounded-3xl shadow-xl hover:shadow-orange-200 hover:scale-[1.03] transition-all duration-300"
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.2 }}
               viewport={{ once: true }}
             >
+              <Quote className="absolute top-4 right-4 text-orange-200 w-6 h-6" />
               <div className="flex items-center gap-4 mb-4">
                 <img
                   src={t.image}
@@ -75,19 +102,29 @@ const Testimonials = () => {
           ))}
         </div>
 
-        {/* Stats */}
+        {/* Stats Counter Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {stats.map((stat, i) => (
             <motion.div
               key={i}
-              className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-center hover:scale-105 transition-transform duration-300"
-              initial={{ opacity: 0, y: 20 }}
+              className="relative bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:scale-105 transition-transform duration-300"
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.15 }}
               viewport={{ once: true }}
             >
-              <p className="text-3xl font-bold text-orange-600">{stat.value}</p>
-              <p className="text-gray-600 mt-2 text-sm font-medium">{stat.label}</p>
+              <div className="absolute inset-0 bg-orange-100/10 rounded-2xl blur-sm z-0" />
+              <p className="text-3xl font-bold text-orange-600 z-10">
+                <CountUp
+                  end={stat.value}
+                  duration={2}
+                  separator=","
+                  suffix="+"
+                />
+              </p>
+              <p className="text-gray-600 mt-2 text-sm font-medium z-10">
+                {stat.label}
+              </p>
             </motion.div>
           ))}
         </div>
