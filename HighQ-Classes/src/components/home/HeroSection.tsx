@@ -29,7 +29,7 @@ const HeroSection = () => {
     >
       {/* Background zoom effect */}
       <motion.div
-        className="absolute inset-0 bg-black/30 z-0"
+        className="absolute inset-0 bg-black/40 z-0"
         initial={{ scale: 1.1 }}
         animate={{ scale: 1 }}
         transition={{ duration: 2, ease: "easeOut" }}
@@ -42,10 +42,10 @@ const HeroSection = () => {
           initial="hidden"
           animate="visible"
         >
-          {/* Gradient animated heading */}
+          {/* Gradient heading with 135deg theme */}
           <motion.h1
             variants={itemVariants}
-            className="text-4xl md:text-5xl lg:text-6xl font-extrabold bg-gradient-to-r from-orange-400 via-yellow-300 to-orange-500 bg-clip-text text-transparent drop-shadow-lg mb-4"
+            className="text-4xl md:text-5xl lg:text-6xl font-extrabold bg-[linear-gradient(135deg,#ffffff,#3533cd)] bg-clip-text text-transparent drop-shadow-lg mb-4"
           >
             Unlock Your Academic Potential
           </motion.h1>
@@ -70,7 +70,7 @@ const HeroSection = () => {
             />
           </motion.p>
 
-          {/* Buttons with animation */}
+          {/* CTA Buttons */}
           <motion.div variants={itemVariants} className="flex flex-wrap gap-4">
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button asChild variant="default" size="lg" className="shadow-lg">
@@ -82,7 +82,7 @@ const HeroSection = () => {
                 asChild
                 variant="outline"
                 size="lg"
-                className="border-orange-400 text-orange-400 hover:bg-orange-400 hover:text-white transition-colors duration-300"
+                className="border-[#3533cd] text-[#3533cd] hover:bg-[#3533cd] hover:text-white transition-colors duration-300"
               >
                 <Link to="/contact">Contact Us</Link>
               </Button>

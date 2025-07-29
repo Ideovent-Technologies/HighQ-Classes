@@ -16,7 +16,7 @@ const Services = () => {
         transition={{ duration: 0.6 }}
         className="text-center py-16 px-4 bg-gradient-to-br from-indigo-900 to-slate-800 text-white shadow-xl rounded-b-3xl"
       >
-        <h1 className="text-4xl md:text-5xl font-bold mb-3 tracking-tight">
+        <h1 className="text-4xl md:text-5xl font-bold mb-4">
           Explore Our Services
         </h1>
         <p className="text-lg md:text-xl max-w-2xl mx-auto opacity-90 leading-relaxed">
@@ -24,28 +24,28 @@ const Services = () => {
         </p>
       </motion.div>
 
-      {/* TABS */}
-      <div className="py-10 px-4 sm:px-8 lg:px-16">
+      {/* SERVICE TABS */}
+      <section className="py-10 px-4 sm:px-8 lg:px-20">
         <ServiceTabs activeTab={activeTab} setActiveTab={setActiveTab} />
-      </div>
+      </section>
 
-      {/* CONTENT */}
-      <motion.div
+      {/* SERVICE CONTENT */}
+      <motion.section
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2, duration: 0.5 }}
-        className="px-4 sm:px-8 lg:px-16"
+        className="px-4 sm:px-8 lg:px-20"
       >
         <ServiceContent activeTab={activeTab} />
-      </motion.div>
+      </motion.section>
 
       {/* FAQ */}
-      <div className="mt-20 px-4 sm:px-8 lg:px-16">
+      <section className="mt-20 px-4 sm:px-8 lg:px-20">
         <ServiceFaq />
-      </div>
+      </section>
 
       {/* CTA */}
-      <motion.div
+      <motion.section
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
@@ -53,10 +53,10 @@ const Services = () => {
         className="mt-24 mb-16 px-6"
       >
         <div className="max-w-5xl mx-auto bg-gradient-to-r from-indigo-700 to-indigo-500 text-white py-12 px-8 rounded-3xl shadow-2xl text-center">
-          <h2 className="text-2xl md:text-3xl font-semibold mb-3">
+          <h2 className="text-2xl md:text-3xl font-semibold mb-4">
             Still Confused? We Can Help!
           </h2>
-          <p className="mb-6 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
+          <p className="mb-6 max-w-2xl mx-auto text-base md:text-lg leading-relaxed">
             Speak with our academic advisors and let us recommend the perfect track tailored to your goals and strengths.
           </p>
           <a
@@ -66,7 +66,7 @@ const Services = () => {
             Enquire Now
           </a>
         </div>
-      </motion.div>
+      </motion.section>
     </div>
   );
 };

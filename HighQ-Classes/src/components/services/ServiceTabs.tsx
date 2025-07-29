@@ -13,7 +13,7 @@ const tabVariants = {
 
 const ServiceTabs = ({ activeTab, setActiveTab }) => {
   return (
-    <div className="w-full max-w-5xl mx-auto py-6 px-4 sm:px-6 lg:px-0">
+    <div className="w-full max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <div className="flex justify-center flex-wrap gap-4">
         {serviceTabs.map((tab, index) => {
           const isActive = activeTab === tab.id;
@@ -29,10 +29,10 @@ const ServiceTabs = ({ activeTab, setActiveTab }) => {
               whileTap={{ scale: 0.95 }}
               onClick={() => setActiveTab(tab.id)}
               aria-pressed={isActive}
-              className={`flex items-center gap-2 px-5 sm:px-6 py-3 rounded-full border-2 font-semibold text-sm sm:text-base transition-all duration-300 shadow backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+              className={`flex items-center gap-2 px-6 py-3 rounded-full font-semibold text-sm sm:text-base transition-all duration-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                 isActive
-                  ? "bg-indigo-600 text-white border-indigo-600"
-                  : "bg-white text-gray-800 border-gray-300 hover:border-indigo-500 hover:text-indigo-600"
+                  ? "bg-indigo-700 text-white border border-indigo-700 ring-indigo-700"
+                  : "bg-white text-gray-800 border border-gray-300 hover:border-indigo-500 hover:text-indigo-600"
               }`}
             >
               <span className="text-xl">{tab.icon}</span>
