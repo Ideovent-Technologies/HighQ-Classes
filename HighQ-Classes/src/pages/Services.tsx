@@ -1,11 +1,22 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import ServiceTabs from "../components/services/ServiceTabs";
 import ServiceContent from "../components/services/ServiceContent";
 import ServiceFaq from "../components/services/ServiceFaq";
 import { motion } from "framer-motion";
 
 const Services = () => {
-  const [activeTab, setActiveTab] = useState("foundation");
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get("tab") || "foundation";
+  const [activeTab, setActiveTab] = useState(defaultTab);
+
+  // Sync tab with query param if user clicks "Learn More" from elsewhere
+  useEffect(() => {
+    const currentTab = searchParams.get("tab");
+    if (currentTab && currentTab !== activeTab) {
+      setActiveTab(currentTab);
+    }
+  }, [searchParams, activeTab]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-white text-gray-800 pt-24">
