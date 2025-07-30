@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -18,6 +18,34 @@ const Login: React.FC = () => {
         (location.state as { from?: { pathname: string } })?.from?.pathname ||
         null;
 
+    // Get success message from registration
+    const successMessage =
+        (location.state as { message?: string })?.message || null;
+
+    // Redirect already authenticated users
+    useEffect(() => {
+        if (!state.isLoading && state.isAuthenticated && state.user) {
+            // If there's a specific redirect path, use it
+            if (from) {
+                navigate(from, { replace: true });
+                return;
+            }
+
+            // Otherwise redirect to role-based dashboard
+            const dashboardRoutes = {
+                student: "/student/dashboard",
+                teacher: "/teacher/dashboard",
+                admin: "/admin/dashboard",
+            };
+
+            const targetRoute =
+                dashboardRoutes[
+                    state.user.role as keyof typeof dashboardRoutes
+                ] || "/dashboard";
+            navigate(targetRoute, { replace: true });
+        }
+    }, [state.isLoading, state.isAuthenticated, state.user, from, navigate]);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({
             ...formData,
@@ -30,27 +58,24 @@ const Login: React.FC = () => {
         setIsLoading(true);
 
         try {
-            const success = await login(formData);
+            const result = await login(formData);
 
-            if (success) {
+            if (result && result.success && result.user) {
                 // Redirect to the appropriate dashboard or the intended page
-                const user = state.user;
+                const user = result.user;
                 if (from) {
                     navigate(from, { replace: true });
-                } else if (user) {
+                } else {
                     const dashboardRoutes = {
                         student: "/student/dashboard",
                         teacher: "/teacher/dashboard",
                         admin: "/admin/dashboard",
                     };
-                    navigate(
+                    const targetRoute =
                         dashboardRoutes[
                             user.role as keyof typeof dashboardRoutes
-                        ] || "/",
-                        { replace: true }
-                    );
-                } else {
-                    navigate("/", { replace: true });
+                        ] || "/";
+                    navigate(targetRoute, { replace: true });
                 }
             }
         } catch (error) {
@@ -59,7 +84,6 @@ const Login: React.FC = () => {
             setIsLoading(false);
         }
     };
-
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md w-full space-y-8">
@@ -79,6 +103,12 @@ const Login: React.FC = () => {
                 </div>
 
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                    {successMessage && (
+                        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+                            {successMessage}
+                        </div>
+                    )}
+
                     {state.error && (
                         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
                             {state.error}

@@ -45,9 +45,10 @@ export interface User {
   name: string;
   email: string;
   role: 'student' | 'teacher' | 'admin';
-  phone?: string;
-  avatar?: string;
-  isEmailVerified?: boolean;
+  mobile?: string;
+  profilePicture?: string;
+  status?: string;
+  lastLogin?: string;
 }
 
 export interface AuthResponse {
@@ -59,8 +60,8 @@ export interface AuthResponse {
 
 export interface UpdateProfileData {
   name?: string;
-  phone?: string;
-  avatar?: string;
+  mobile?: string;
+  profilePicture?: string;
 }
 
 export interface ChangePasswordData {
@@ -80,26 +81,44 @@ export interface ResetPasswordData {
 class AuthService {
   // Login user
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await api.post('/auth/login', credentials);
-    
-    if (response.data.success && response.data.token) {
-      localStorage.setItem('authToken', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+    console.log('🔐 AuthService: Attempting login with:', credentials.email);
+    try {
+      const response = await api.post('/auth/login', credentials);
+      console.log('🔐 AuthService: Raw response:', response.data);
+      
+      // Transform backend response to match our interface
+      const authResponse: AuthResponse = {
+        success: response.data.success,
+        message: response.data.message,
+        user: response.data.data, // Backend returns user data in 'data' field
+        token: response.data.token
+      };
+      
+      console.log('🔐 AuthService: Transformed response:', authResponse);
+      
+      if (authResponse.success && authResponse.token && authResponse.user) {
+        localStorage.setItem('authToken', authResponse.token);
+        localStorage.setItem('user', JSON.stringify(authResponse.user));
+        console.log('✅ AuthService: Login successful, user role:', authResponse.user.role);
+      }
+      
+      return authResponse;
+    } catch (error) {
+      console.error('💥 AuthService: Login error:', error);
+      throw error;
     }
-    
-    return response.data;
   }
 
   // Register user
   async register(userData: RegisterData): Promise<AuthResponse> {
     const response = await api.post('/auth/register', userData);
     
-    if (response.data.success && response.data.token) {
-      localStorage.setItem('authToken', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-    }
-    
-    return response.data;
+    // Note: Registration doesn't return token immediately due to approval process
+    return {
+      success: response.data.success,
+      message: response.data.message,
+      user: response.data.data
+    };
   }
 
   // Logout user
@@ -119,8 +138,8 @@ class AuthService {
     try {
       const response = await api.get('/auth/me');
       if (response.data.success) {
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        return response.data.user;
+        localStorage.setItem('user', JSON.stringify(response.data.data));
+        return response.data.data;
       }
     } catch (error) {
       console.error('Get current user error:', error);
@@ -131,13 +150,17 @@ class AuthService {
 
   // Update user profile
   async updateProfile(data: UpdateProfileData): Promise<AuthResponse> {
-    const response = await api.put('/auth/profile', data);
+    const response = await api.put('/auth/update-profile', data);
     
-    if (response.data.success && response.data.user) {
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+    if (response.data.success && response.data.data) {
+      localStorage.setItem('user', JSON.stringify(response.data.data));
     }
     
-    return response.data;
+    return {
+      success: response.data.success,
+      message: response.data.message,
+      user: response.data.data
+    };
   }
 
   // Change password
