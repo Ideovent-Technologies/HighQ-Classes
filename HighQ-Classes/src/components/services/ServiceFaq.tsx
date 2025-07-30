@@ -3,12 +3,28 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const faqs = [
   {
-    question: "Can I switch between online and offline?",
-    answer: "Yes, we allow hybrid flexibility based on performance and availability.",
+    question: "Can I switch between online and offline classes?",
+    answer: "Yes, we offer hybrid flexibility. Based on your performance and seat availability, you can request a shift.",
   },
   {
     question: "How are doubts solved?",
-    answer: "Via live Zoom sessions, discussion boards, and WhatsApp chat with faculty.",
+    answer: "We solve doubts via live Zoom sessions, teacher-led discussion boards, and active WhatsApp support groups.",
+  },
+  {
+    question: "Are recorded lectures available for all classes?",
+    answer: "Yes, every class is recorded and made available for 3–5 days after the session so students can revise or catch up.",
+  },
+  {
+    question: "Is there any scholarship or discount available?",
+    answer: "We offer scholarships based on entrance tests and past academic performance. Reach out to our team for eligibility.",
+  },
+  {
+    question: "How can parents track student progress?",
+    answer: "Through our HighQ portal and monthly performance reports. We also conduct regular PTMs (Parent Teacher Meetings).",
+  },
+  {
+    question: "What if I miss a test or assignment?",
+    answer: "We provide makeup tests and extra assignment slots in genuine cases. Contact your coordinator for rescheduling.",
   },
 ];
 
@@ -20,8 +36,8 @@ const ServiceFaq = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-0">
-      <h3 className="text-2xl font-bold text-center text-slate-800 mb-10">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-0 pb-20">
+      <h3 className="text-3xl font-bold text-center text-slate-800 mb-10">
         Frequently Asked Questions
       </h3>
 
@@ -32,16 +48,15 @@ const ServiceFaq = () => {
           return (
             <div
               key={index}
-              className="border border-gray-300 rounded-xl bg-white shadow-sm transition-all duration-300"
+              className="border border-gray-200 rounded-xl bg-white shadow-sm transition-all duration-300"
             >
               <button
                 onClick={() => toggleFAQ(index)}
-                className="w-full flex justify-between items-center px-5 py-4 text-left font-medium text-slate-700 hover:text-indigo-600 focus:outline-none"
+                className="w-full flex justify-between items-center px-5 py-4 text-left font-medium text-slate-800 hover:text-indigo-600 focus:outline-none"
+                aria-expanded={isOpen}
               >
                 <span>{faq.question}</span>
-                <span className="text-xl font-bold">
-                  {isOpen ? "−" : "+"}
-                </span>
+                <span className="text-xl font-bold">{isOpen ? "−" : "+"}</span>
               </button>
 
               <AnimatePresence>
@@ -54,7 +69,9 @@ const ServiceFaq = () => {
                     transition={{ duration: 0.3 }}
                     className="px-5 pb-4"
                   >
-                    <p className="text-sm text-gray-600">{faq.answer}</p>
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      {faq.answer}
+                    </p>
                   </motion.div>
                 )}
               </AnimatePresence>
