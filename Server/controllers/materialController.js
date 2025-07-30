@@ -22,24 +22,31 @@ export const uploadMaterial = async (req, res) => {
   try {
     const { title, description, fileType, batchIds, courseId } = req.body;
     const uploader = req.user;
-
-    if (!req.file) {
+    const file = req.files?.file;
+    if (!file) {
       return res.status(400).json({ message: 'File is required' });
     }
 
     // ✅ Upload to Cloudinary using stream
     const streamUpload = () => {
       return new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream((error, result) => {
-          if (result) {
-            resolve(result);
-          } else {
-            reject(error);
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            resource_type: "raw", // ✅ Ensure PDFs are handled correctly
+            folder: "materials",
+          },
+          (error, result) => {
+            if (result) {
+              resolve(result);
+            } else {
+              reject(error);
+            }
           }
-        });
-        streamifier.createReadStream(req.file.buffer).pipe(stream);
+        );
+        streamifier.createReadStream(file.data).pipe(stream);
       });
     };
+    
 
     const uploadedFile = await streamUpload();
 

@@ -1,19 +1,20 @@
 import express from "express";
 import { protect, authorize } from "../middleware/authMiddleware.js";
+import { validateAdminCreateUser } from "../middleware/validateRequestBody.js";
 import {
     getAdminDashboard,
     getAllStudents,
     getAllTeachers,
     updateUser,
     deleteUser,
-    
     createAnnouncement,
     addStudent,
     updateStudent,
     deleteStudent,
     addTeacher,
     updateTeacher,
-    deleteTeacher
+    deleteTeacher,
+    CreateUser // ⬅️ Make sure this exists in your adminController
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -26,9 +27,9 @@ router.use(authorize('admin'));
 router.get("/dashboard", getAdminDashboard);
 
 // Users
+router.post("/user", validateAdminCreateUser, CreateUser); // ✅ new
 router.put("/user/:id", updateUser);
 router.delete("/user/:id", deleteUser);
-
 
 // Students
 router.get("/students", getAllStudents);

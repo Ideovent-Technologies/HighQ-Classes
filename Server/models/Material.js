@@ -22,7 +22,7 @@ const materialSchema = new Schema(
     },
     uploadedBy: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'Teacher',
       required: true,
     },
     batchIds: [

@@ -1,6 +1,6 @@
 import Fee from "../models/Fee.js";
 import Payment from "../models/Payment.js";
-import User from "../models/User.js";
+import Student from "../models/Student.js";
 import mongoose from "mongoose";
 
 /**
@@ -23,7 +23,7 @@ export const createFee = async (req, res) => {
         } = req.body;
 
         // Check if student exists
-        const student = await User.findOne({ _id: studentId, role: 'student' });
+        const student = await Student.findById(studentId);
         if (!student) {
             return res.status(404).json({
                 success: false,
@@ -136,7 +136,7 @@ export const getFeesByStudent = async (req, res) => {
         }
 
         // Check if student exists
-        const student = await User.findOne({ _id: studentId, role: 'student' });
+        const student = await Student.findById(studentId);
         if (!student) {
             return res.status(404).json({
                 success: false,

@@ -1,7 +1,7 @@
 // Server/services/cloudinaryService.js
-import cloudinary from 'cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
 
-cloudinary.v2.config({
+cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
@@ -14,7 +14,7 @@ cloudinary.v2.config({
  */
 export const uploadBufferToCloudinary = (buffer, filename) => {
   return new Promise((resolve, reject) => {
-    const uploadStream = cloudinary.v2.uploader.upload_stream(
+    const uploadStream = cloudinary.uploader.upload_stream(
       {
         resource_type: 'auto',
         folder: 'materials',
@@ -31,5 +31,5 @@ export const uploadBufferToCloudinary = (buffer, filename) => {
 
 export const deleteFileFromCloudinary = async (fileUrl) => {
   const publicId = fileUrl.split('/').pop().split('.')[0];
-  await cloudinary.v2.uploader.destroy(`materials/${publicId}`, { resource_type: 'auto' });
+  await cloudinary.uploader.destroy(`materials/${publicId}`, { resource_type: 'auto' });
 };

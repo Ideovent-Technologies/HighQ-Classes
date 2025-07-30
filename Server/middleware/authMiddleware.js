@@ -1,5 +1,7 @@
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
+import Student from "../models/Student.js";
+import Teacher from "../models/Teacher.js";
+import Admin from "../models/Admin.js";
 
 /**
  * Authentication middleware to protect routes
@@ -13,7 +15,7 @@ export const protect = async (req, res, next) => {
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
     }
-    // Check cookies if not in header - use 'authToken' to match the cookie name set in login
+    // Check cookies if not in header
     else if (req.cookies?.authToken) {
       token = req.cookies.authToken;
     }
@@ -28,8 +30,24 @@ export const protect = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Get user from token
-    const user = await User.findById(decoded.id).select('-password');
+    // Get user based on role from token
+    let user;
+    switch (decoded.role) {
+      case 'student':
+        user = await Student.findById(decoded.id).select('-password');
+        break;
+      case 'teacher':
+        user = await Teacher.findById(decoded.id).select('-password');
+        break;
+      case 'admin':
+        user = await Admin.findById(decoded.id).select('-password');
+        break;
+      default:
+        return res.status(401).json({
+          success: false,
+          message: "Invalid user role in token"
+        });
+    }
 
     if (!user) {
       return res.status(401).json({
@@ -46,6 +64,8 @@ export const protect = async (req, res, next) => {
       });
     }
 
+    // Add role to user object for consistency
+    user.role = decoded.role;
     req.user = user;
     next();
   } catch (error) {
@@ -94,11 +114,21 @@ export const authorize = (roles) => {
  * Ensures the student can only access their own resources
  */
 export const authorizeStudent = (req, res, next) => {
-  if (req.user.role !== 'student' || req.user.id !== req.params.id) {
+  if (req.user.role !== 'student') {
+    return res.status(403).json({
+      success: false,
+      message: "Access denied. This endpoint is for students only."
+    });
+  }
+
+  // Only check for req.params.id if it's present
+  if (req.params.id && req.user._id.toString() !== req.params.id) {
     return res.status(403).json({
       success: false,
       message: "Access denied. Students can only access their own data."
     });
   }
+
   next();
 };
+

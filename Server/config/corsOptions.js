@@ -1,6 +1,6 @@
 const allowedOrigins = [
     'http://localhost:5000',
-    'http://localhost:5173', // For React/Vite frontend
+    'http://localhost:8080', // For React/Vite frontend
     // 'https://highq-classes.vercel.app'
 ];
 

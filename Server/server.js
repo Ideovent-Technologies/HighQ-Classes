@@ -16,6 +16,9 @@ import emailService from "./utils/emailService.js";
 // Connect to MongoDB
 connectToDb();
 
+// Initialize Cloudinary configuration
+configureCloudinary();
+
 // Initialize email service
 emailService.init();
 
@@ -72,14 +75,14 @@ app.use("/api/teacher/schedule", scheduleRoutes);     // schedule
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/student", studentRoutes);         // /:id/profile, pic, change-password
 app.use("/api/student", studentDashboardRoutes);        // /dashboard
-app.use("/api/course", courseRoutes);                  // / | GET course list + topics      // attendance
+app.use("/api/courses", courseRoutes);                  // / | GET course list + topics      // attendance
 
 app.use("/api/recordings", recordingRoutes);
 app.use("/api/materials", materialRoutes);            // Study materials routes
 app.use("/api/assignments", assignmentRoutes);        // Assignment routes
 
 app.use("/api/admin", adminRoutes);
-app.use("/api/batch", batchRouter);
+app.use("/api/batches", batchRouter);
 app.use("/api/fee", feeRouter);
 
 
