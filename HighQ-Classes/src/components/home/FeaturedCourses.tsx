@@ -4,85 +4,96 @@ import { ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import "swiper/css";
 
-import Icon1 from "@/assets/featured-course/1.svg";
-import Icon2 from "@/assets/featured-course/2.svg";
-import Icon3 from "@/assets/featured-course/3.svg";
-import Icon4 from "@/assets/featured-course/4.svg";
+import Thumb1 from "@/assets/featured-course/1.svg"; // Replace with real thumbnail images
+import Thumb2 from "@/assets/featured-course/2.svg";
+import Thumb3 from "@/assets/featured-course/3.svg";
+import Thumb4 from "@/assets/featured-course/4.svg";
 
-const courses = [
+const featuredCourses = [
   {
-    id: 1,
-    image: Icon1,
-    title: "JEE Advanced Program",
-    description: "Intensive training focused on cracking JEE Advanced with top ranks.",
+    tab: "foundation",
+    image: Thumb1,
+    title: "Foundation Batch (8–10)",
+    description: "Start early with IIT/NEET concepts for classes 8–10.",
   },
   {
-    id: 2,
-    image: Icon2,
-    title: "NEET Coaching",
-    description: "Comprehensive NEET prep with regular mock tests & analysis.",
+    tab: "classroom",
+    image: Thumb2,
+    title: "Classroom Coaching",
+    description: "Engaging offline sessions with top mentors and doubt solving.",
   },
   {
-    id: 3,
-    image: Icon3,
-    title: "WBJEE Foundation",
-    description: "Early preparation with concept clarity for WBJEE aspirants.",
+    tab: "online",
+    image: Thumb3,
+    title: "Live Online Batches",
+    description: "Join live interactive online classes from anywhere.",
   },
   {
-    id: 4,
-    image: Icon4,
+    tab: "doubt",
+    image: Thumb4,
+    title: "Doubt Solving Support",
+    description: "Get your doubts resolved by subject experts 24/7.",
+  },
+  {
+    tab: "testprep",
+    image: Thumb1,
+    title: "Test Series & Analytics",
+    description: "Mock tests with performance tracking & analysis.",
+  },
+  {
+    tab: "crashcourse",
+    image: Thumb2,
     title: "Crash Courses",
-    description: "High-impact short-term programs before board & entrance exams.",
+    description: "Quick revision boosters for boards & entrances.",
   },
   {
-    id: 5,
-    image: Icon1,
-    title: "CUET Preparation",
-    description: "Focused CUET training with section-wise practice and tips.",
+    tab: "boardsupport",
+    image: Thumb3,
+    title: "Board Exam Support",
+    description: "Subject-wise guidance for CBSE, ICSE & state boards.",
   },
   {
-    id: 6,
-    image: Icon2,
-    title: "Class 11 Science Bridge",
-    description: "Strengthen basics and bridge the gap for Class 11 Science students.",
+    tab: "ntse",
+    image: Thumb4,
+    title: "NTSE & KVPY Prep",
+    description: "Special mentoring for NTSE, KVPY & talent exams.",
   },
   {
-    id: 7,
-    image: Icon3,
-    title: "Foundation Batch (8-10)",
-    description: "Early start for IIT/NEET with concept-building for grades 8 to 10.",
+    tab: "jee",
+    image: Thumb1,
+    title: "JEE Advanced Program",
+    description: "Elite batch for top JEE aspirants with focused mentoring.",
   },
   {
-    id: 8,
-    image: Icon4,
-    title: "Revision & Test Series",
-    description: "Rigorous revision batches with full-length tests and discussions.",
+    tab: "olympiad",
+    image: Thumb2,
+    title: "Olympiad Training",
+    description: "Rigorous prep for NSO, IMO, IJSO & more.",
   },
 ];
 
-
 const FeaturedCourses = () => {
   return (
-    <section className="py-24 bg-white relative z-10">
+    <section className="py-28 bg-gradient-to-b from-orange-50 to-white">
       <div className="max-w-7xl mx-auto px-4">
-        {/* Heading */}
-        <div className="text-center mb-16">
-          <h2 className="text-5xl font-extrabold bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 text-transparent bg-clip-text mb-5 tracking-tight drop-shadow-md animate-gradient-x">
+        {/* Section Header */}
+        <div className="text-center mb-20">
+          <h2 className="text-5xl font-extrabold bg-gradient-to-r from-orange-600 via-red-500 to-pink-500 text-transparent bg-clip-text mb-4 animate-gradient-x drop-shadow-xl">
             Our Featured Programs
           </h2>
           <p className="text-lg text-gray-700 max-w-2xl mx-auto leading-relaxed">
-            Discover our specialized coaching programs designed to help students excel in competitive exams with confidence and clarity.
+            Crafted learning journeys from the best academic mentors — explore the right path for your future.
           </p>
-          <div className="relative mt-6 flex justify-center">
+          <div className="mt-6 flex justify-center">
             <div className="w-36 h-1 bg-gradient-to-r from-orange-400 via-red-400 to-pink-400 rounded-full animate-pulse" />
           </div>
         </div>
 
-        {/* Swiper Carousel */}
+        {/* Course Carousel */}
         <Swiper
           modules={[Autoplay]}
-          loop={true}
-          grabCursor={true}
+          loop
+          grabCursor
           spaceBetween={24}
           speed={4000}
           autoplay={{
@@ -97,35 +108,48 @@ const FeaturedCourses = () => {
             1280: { slidesPerView: 4 },
           }}
         >
-          {courses.map((course) => (
-            <SwiperSlide key={course.id}>
-              <div className="group bg-white/60 backdrop-blur-lg border border-orange-100 rounded-3xl shadow-md hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-[1.03] hover:rotate-[0.3deg] overflow-hidden relative">
-                <div className="relative">
+          {featuredCourses.map((course, i) => (
+            <SwiperSlide key={i}>
+              <div className="group relative bg-white border border-orange-100 rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500">
+                
+                {/* Image Thumbnail */}
+                <div className="relative h-48 overflow-hidden">
                   <img
                     src={course.image}
                     alt={course.title}
-                    className="w-full h-48 object-contain p-6 bg-gradient-to-br from-orange-50 to-white scale-90 group-hover:scale-100 transition-transform duration-500"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-orange-500/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-70 group-hover:opacity-90 transition" />
+                  <span className="absolute top-3 left-3 bg-orange-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                    Featured
+                  </span>
                 </div>
-                <div className="p-6 h-[220px] flex flex-col justify-between">
+
+                {/* Content */}
+                <div className="p-5 flex flex-col justify-between h-[240px]">
                   <div>
-                    <h3 className="text-xl font-semibold text-navy-700 mb-2 group-hover:text-orange-600 transition-colors">
+                    <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-orange-600 transition">
                       {course.title}
                     </h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 leading-relaxed">
                       {course.description}
                     </p>
                   </div>
-                  <Link
-                    to="/services"
-                    className="inline-flex items-center text-orange-600 font-medium mt-4 group/link"
-                  >
-                    <span className="relative after:block after:absolute after:h-[2px] after:bg-orange-400 after:w-0 group-hover/link:after:w-full after:transition-all after:duration-300">
+                  <div className="mt-4 flex justify-between items-center">
+                    <Link
+                      to={`/services?tab=${course.tab}`}
+                      className="text-sm text-orange-600 font-medium group/link hover:underline flex items-center"
+                    >
                       Learn More
-                    </span>
-                    <ChevronRight className="ml-1 h-4 w-4 transition-transform duration-300 group-hover/link:translate-x-1" />
-                  </Link>
+                      <ChevronRight className="ml-1 h-4 w-4 transition-transform duration-300 group-hover/link:translate-x-1" />
+                    </Link>
+                    <Link
+                      to="/contact"
+                      className="text-xs bg-orange-100 text-orange-700 font-semibold px-3 py-1 rounded-full shadow hover:bg-orange-200 transition"
+                    >
+                      Enroll Now
+                    </Link>
+                  </div>
                 </div>
               </div>
             </SwiperSlide>
