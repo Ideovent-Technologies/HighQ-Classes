@@ -31,7 +31,7 @@ type AuthAction =
     | { type: "UPDATE_USER"; payload: User };
 
 // Define the context type
-interface AuthContextType {
+ export interface AuthContextType {
     state: AuthState;
     login: (
         credentials: LoginCredentials
