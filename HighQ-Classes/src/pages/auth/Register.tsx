@@ -135,23 +135,14 @@ const Register: React.FC = () => {
             const success = await register(registerData);
 
             if (success) {
-                // Redirect to the appropriate dashboard
-                const user = state.user;
-                if (user) {
-                    const dashboardRoutes = {
-                        student: "/student/dashboard",
-                        teacher: "/teacher/dashboard",
-                        admin: "/admin/dashboard",
-                    };
-                    navigate(
-                        dashboardRoutes[
-                            user.role as keyof typeof dashboardRoutes
-                        ] || "/",
-                        { replace: true }
-                    );
-                } else {
-                    navigate("/", { replace: true });
-                }
+                // Registration successful - redirect to login with success message
+                navigate("/login", {
+                    replace: true,
+                    state: {
+                        message:
+                            "Registration successful! Please wait for admin approval before logging in.",
+                    },
+                });
             }
         } catch (error) {
             console.error("Registration error:", error);

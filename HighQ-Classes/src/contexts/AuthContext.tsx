@@ -33,7 +33,9 @@ type AuthAction =
 // Define the context type
 interface AuthContextType {
     state: AuthState;
-    login: (credentials: LoginCredentials) => Promise<boolean>;
+    login: (
+        credentials: LoginCredentials
+    ) => Promise<{ success: boolean; user?: User }>;
     register: (userData: RegisterData) => Promise<boolean>;
     logout: () => Promise<void>;
     updateProfile: (data: UpdateProfileData) => Promise<boolean>;
@@ -114,6 +116,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             try {
                 if (authService.isAuthenticated()) {
                     const user = await authService.getCurrentUser();
+
                     if (user) {
                         dispatch({ type: "AUTH_SUCCESS", payload: user });
                     } else {
@@ -132,29 +135,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, []);
 
     // Login function
-    const login = async (credentials: LoginCredentials): Promise<boolean> => {
+    const login = async (
+        credentials: LoginCredentials
+    ): Promise<{ success: boolean; user?: User }> => {
         try {
             dispatch({ type: "AUTH_START" });
             const response = await authService.login(credentials);
 
             if (response.success && response.user) {
                 dispatch({ type: "AUTH_SUCCESS", payload: response.user });
-                return true;
+                return { success: true, user: response.user };
             } else {
                 dispatch({
                     type: "AUTH_ERROR",
                     payload: response.message || "Login failed",
                 });
-                return false;
+                return { success: false };
             }
         } catch (error: unknown) {
+            console.error("Login error:", error);
             const errorMessage =
                 error instanceof Error && "response" in error
                     ? (error as { response?: { data?: { message?: string } } })
                           .response?.data?.message || "Login failed"
                     : "Login failed";
             dispatch({ type: "AUTH_ERROR", payload: errorMessage });
-            return false;
+            return { success: false };
         }
     };
 
@@ -164,8 +170,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             dispatch({ type: "AUTH_START" });
             const response = await authService.register(userData);
 
-            if (response.success && response.user) {
-                dispatch({ type: "AUTH_SUCCESS", payload: response.user });
+            if (response.success) {
+                // Registration successful but user needs approval (except admin)
+                // Don't set user as authenticated until approved
+                dispatch({
+                    type: "AUTH_ERROR",
+                    payload:
+                        response.message ||
+                        "Registration successful! Please wait for approval.",
+                });
                 return true;
             } else {
                 dispatch({

@@ -1,34 +1,43 @@
 import React from "react";
-import { motion } from "framer-motion";
-import { easeOut } from "framer-motion";
+import { motion, Variants, easeOut } from "framer-motion";
+import {
+  CheckCircle,
+  Users,
+  Clock,
+  BookOpenText,
+} from "lucide-react";
 import { serviceDescriptions } from "../data/servicesData";
-import { CheckCircle, Users, Clock, BookOpenText } from "lucide-react"; // Icon set
 
-const sectionVariants = {
+interface ServiceContentProps {
+  activeTab: string;
+}
+
+const sectionVariants: Variants = {
   initial: { opacity: 0, y: 40 },
   animate: {
     opacity: 1,
     y: 0,
     transition: {
       duration: 0.6,
-      ease: easeOut, 
+      ease: easeOut,
     },
   },
 };
 
-
-const ServiceContent = ({ activeTab }) => {
+const ServiceContent: React.FC<ServiceContentProps> = ({ activeTab }) => {
   const service = serviceDescriptions[activeTab];
 
-  if (!service)
+  if (!service) {
     return (
       <p className="text-center text-red-500 font-semibold mt-10">
         Service details not found.
       </p>
     );
+  }
 
   return (
     <motion.div
+      id="service-details"
       className="relative z-10 max-w-6xl mx-auto bg-white/90 backdrop-blur-md border border-gray-200 rounded-3xl shadow-2xl px-8 py-12 sm:px-14 sm:py-16 mt-6"
       initial="initial"
       animate="animate"
@@ -74,41 +83,26 @@ const ServiceContent = ({ activeTab }) => {
 
       {/* Details Grid with Icons */}
       <div className="grid sm:grid-cols-2 gap-6 text-base mb-10">
-        <div className="flex items-start gap-3">
-          <Users className="w-5 h-5 text-indigo-600 mt-1" />
-          <div>
-            <p className="text-gray-900 font-semibold">Target Audience</p>
-            <p className="text-gray-600">
-              {service.targetAudience || "Students interested in this field."}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-start gap-3">
-          <BookOpenText className="w-5 h-5 text-indigo-600 mt-1" />
-          <div>
-            <p className="text-gray-900 font-semibold">Mode</p>
-            <p className="text-gray-600">{service.mode || "Online/Offline"}</p>
-          </div>
-        </div>
-        <div className="flex items-start gap-3">
-          <Clock className="w-5 h-5 text-indigo-600 mt-1" />
-          <div>
-            <p className="text-gray-900 font-semibold">Duration</p>
-            <p className="text-gray-600">
-              {service.duration || "Flexible duration"}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-start gap-3">
-          <CheckCircle className="w-5 h-5 text-indigo-600 mt-1" />
-          <div>
-            <p className="text-gray-900 font-semibold">Includes</p>
-            <p className="text-gray-600">
-              {service.includes ||
-                "Course materials, mentorship, and assessments"}
-            </p>
-          </div>
-        </div>
+        <DetailItem
+          icon={<Users className="w-5 h-5 text-indigo-600 mt-1" />}
+          title="Target Audience"
+          content={service.targetAudience || "Students interested in this field."}
+        />
+        <DetailItem
+          icon={<BookOpenText className="w-5 h-5 text-indigo-600 mt-1" />}
+          title="Mode"
+          content={service.mode || "Online/Offline"}
+        />
+        <DetailItem
+          icon={<Clock className="w-5 h-5 text-indigo-600 mt-1" />}
+          title="Duration"
+          content={service.duration || "Flexible duration"}
+        />
+        <DetailItem
+          icon={<CheckCircle className="w-5 h-5 text-indigo-600 mt-1" />}
+          title="Includes"
+          content={service.includes || "Course materials, mentorship, and assessments"}
+        />
       </div>
 
       {/* Optional Image */}
@@ -144,3 +138,22 @@ const ServiceContent = ({ activeTab }) => {
 };
 
 export default ServiceContent;
+
+// Reusable Detail Item
+const DetailItem = ({
+  icon,
+  title,
+  content,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  content: string;
+}) => (
+  <div className="flex items-start gap-3">
+    {icon}
+    <div>
+      <p className="text-gray-900 font-semibold">{title}</p>
+      <p className="text-gray-600">{content}</p>
+    </div>
+  </div>
+);

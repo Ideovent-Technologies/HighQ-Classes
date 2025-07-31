@@ -18,6 +18,7 @@ import Login from "@/pages/auth/Login";
 import Register from "@/pages/auth/Register";
 import Profile from "@/pages/auth/Profile";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
+import ResetPassword from "@/pages/auth/ResetPassword";
 import NotFound from "@/pages/NotFound";
 import About from "./pages/About";
 
@@ -82,7 +83,10 @@ const App: React.FC = () => {
                                 path="/forgot-password"
                                 element={<ForgotPassword />}
                             />
-
+                            <Route
+                                path="/reset-password"
+                                element={<ResetPassword />}
+                            />
                             {/* Protected auth pages */}
                             <Route
                                 path="/profile"
@@ -92,7 +96,6 @@ const App: React.FC = () => {
                                     </ProtectedRoute>
                                 }
                             />
-
                             {/* Protected dashboard pages - accessible to all authenticated users */}
                             <Route
                                 path="/dashboard"
@@ -102,7 +105,14 @@ const App: React.FC = () => {
                                     </ProtectedRoute>
                                 }
                             />
-
+                            <Route
+                                path="/dashboard/profile"
+                                element={
+                                    <ProtectedRoute>
+                                        <Profile />
+                                    </ProtectedRoute>
+                                }
+                            />{" "}
                             {/* Student-specific routes */}
                             <Route
                                 path="/student/dashboard"
@@ -128,7 +138,6 @@ const App: React.FC = () => {
                                     </ProtectedRoute>
                                 }
                             />
-
                             {/* Teacher-specific routes */}
                             <Route
                                 path="/teacher/dashboard"
@@ -148,7 +157,6 @@ const App: React.FC = () => {
                                     </ProtectedRoute>
                                 }
                             />
-
                             {/* Admin-specific routes */}
                             <Route
                                 path="/admin/dashboard"
@@ -158,6 +166,8 @@ const App: React.FC = () => {
                                     </ProtectedRoute>
                                 }
                             />
+                            {/* <Route path="/admin/dashboard" element={<Dashboard />}/>
+                             */}
                             <Route
                                 path="/dashboard/all-students"
                                 element={
@@ -166,7 +176,6 @@ const App: React.FC = () => {
                                     </ProtectedRoute>
                                 }
                             />
-
                             {/* 404 Page */}
                             <Route path="*" element={<NotFound />} />
                         </Routes>
