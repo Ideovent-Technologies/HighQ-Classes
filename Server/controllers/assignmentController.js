@@ -1,7 +1,7 @@
 // controllers/assignmentController.js
 import Assignment from '../models/Assignment.js';
 import mongoose from 'mongoose';
-import cloudinary from 'cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
 import streamifier from 'streamifier';
 import configureCloudinary from '../config/cloudinary.js';
 
@@ -33,7 +33,7 @@ export const createAssignment = async (req, res) => {
             // Upload file to Cloudinary
             const streamUpload = () => {
                 return new Promise((resolve, reject) => {
-                    const stream = cloudinary.uploader.upload_stream({
+                    const stream = cloudinary.v2.uploader.upload_stream({
                         folder: 'assignments',
                         resource_type: 'auto'
                     }, (error, result) => {

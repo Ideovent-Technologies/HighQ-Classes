@@ -16,6 +16,9 @@ import emailService from "./utils/emailService.js";
 // Connect to MongoDB
 connectToDb();
 
+// Initialize Cloudinary configuration
+configureCloudinary();
+
 // Initialize email service
 emailService.init();
 

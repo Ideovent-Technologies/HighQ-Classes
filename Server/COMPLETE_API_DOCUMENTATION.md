@@ -2010,7 +2010,7 @@ category: "notes|assignment|reference"
 
 **POST** `/api/recordings`
 
-**Access**: Private (Teacher only)
+**Access**: Private (Teacher, Admin)
 
 **Headers**:
 
@@ -2020,19 +2020,126 @@ category: "notes|assignment|reference"
 **Request Body** (Form Data):
 
 ```
-file: <video_file>
+video: <video_file>
 title: "Physics Lecture 1"
 description: "Introduction to mechanics"
+subject: "Physics"
 batchId: "batch_id"
-date: "2025-01-01"
-duration: "60"
+courseId: "course_id"
 ```
 
-### 2. Get Recordings by Batch
+**Response**:
 
-**GET** `/api/recordings/batch/:batchId`
+```json
+{
+    "success": true,
+    "data": {
+        "_id": "recording_id",
+        "title": "Physics Lecture 1",
+        "description": "Introduction to mechanics",
+        "subject": "Physics",
+        "fileUrl": "https://cloudinary.com/video_url",
+        "thumbnailUrl": "https://cloudinary.com/thumbnail_url",
+        "duration": 3600,
+        "batch": "batch_id",
+        "course": "course_id",
+        "teacher": "teacher_id",
+        "accessExpires": "2025-01-29T00:00:00Z",
+        "isActive": true,
+        "views": 0
+    },
+    "message": "Recording uploaded successfully"
+}
+```
 
-**Access**: Private (Teacher, Student - own batch)
+### 2. Get All Recordings
+
+**GET** `/api/recordings`
+
+**Access**: Private (Teacher, Admin, Student)
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Query Parameters**:
+
+-   `batchId` (string, optional): Filter by batch
+-   `courseId` (string, optional): Filter by course
+-   `subject` (string, optional): Filter by subject
+-   `active` (boolean, optional): Filter by active status
+
+**Response**:
+
+```json
+{
+    "success": true,
+    "count": 5,
+    "data": [
+        {
+            "_id": "recording_id",
+            "title": "Physics Lecture 1",
+            "description": "Introduction to mechanics",
+            "subject": "Physics",
+            "fileUrl": "https://cloudinary.com/video_url",
+            "duration": 3600,
+            "views": 25,
+            "accessExpires": "2025-01-29T00:00:00Z",
+            "batch": {
+                "name": "Physics Batch A"
+            },
+            "course": {
+                "name": "Advanced Physics"
+            },
+            "teacher": {
+                "name": "Prof. Smith"
+            }
+        }
+    ]
+}
+```
+
+### 3. Get Student Recordings
+
+**GET** `/api/recordings/student`
+
+**Access**: Private (Student)
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Query Parameters**:
+
+-   `batchId` (string, optional): Filter by batch ID
+
+**Response**:
+
+```json
+{
+    "success": true,
+    "count": 3,
+    "data": [
+        {
+            "_id": "recording_id",
+            "title": "Physics Lecture 1",
+            "subject": "Physics",
+            "fileUrl": "https://cloudinary.com/video_url",
+            "duration": 3600,
+            "views": 15,
+            "accessExpires": "2025-01-29T00:00:00Z",
+            "course": {
+                "name": "Advanced Physics"
+            },
+            "teacher": {
+                "name": "Prof. Smith"
+            }
+        }
+    ]
+}
+```
+
+### 4. Get Single Recording
+
+**GET** `/api/recordings/:id`
+
+**Access**: Private (Teacher, Admin, Student)
 
 **Headers**: `Authorization: Bearer <token>`
 
@@ -2041,29 +2148,190 @@ duration: "60"
 ```json
 {
     "success": true,
+    "data": {
+        "_id": "recording_id",
+        "title": "Physics Lecture 1",
+        "description": "Introduction to mechanics",
+        "subject": "Physics",
+        "fileUrl": "https://cloudinary.com/video_url",
+        "thumbnailUrl": "https://cloudinary.com/thumbnail_url",
+        "duration": 3600,
+        "views": 25,
+        "accessExpires": "2025-01-29T00:00:00Z",
+        "isActive": true,
+        "batch": {
+            "_id": "batch_id",
+            "name": "Physics Batch A"
+        },
+        "course": {
+            "_id": "course_id",
+            "name": "Advanced Physics"
+        },
+        "teacher": {
+            "_id": "teacher_id",
+            "name": "Prof. Smith"
+        },
+        "viewedBy": [
+            {
+                "student": "student_id",
+                "viewCount": 3,
+                "lastViewed": "2025-01-26T10:30:00Z"
+            }
+        ]
+    }
+}
+```
+
+### 5. Update Recording
+
+**PUT** `/api/recordings/:id`
+
+**Access**: Private (Teacher - own recordings, Admin)
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Request Body**:
+
+```json
+{
+    "title": "Updated Physics Lecture 1",
+    "description": "Updated description",
+    "subject": "Advanced Physics",
+    "accessExpires": "2025-02-15T00:00:00Z",
+    "isActive": true
+}
+```
+
+**Response**:
+
+```json
+{
+    "success": true,
+    "data": {
+        "_id": "recording_id",
+        "title": "Updated Physics Lecture 1",
+        "description": "Updated description",
+        "subject": "Advanced Physics",
+        "accessExpires": "2025-02-15T00:00:00Z",
+        "isActive": true
+    },
+    "message": "Recording updated successfully"
+}
+```
+
+### 6. Delete Recording
+
+**DELETE** `/api/recordings/:id`
+
+**Access**: Private (Teacher - own recordings, Admin)
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Response**:
+
+```json
+{
+    "success": true,
+    "message": "Recording deleted successfully"
+}
+```
+
+### 7. Search Recordings
+
+**GET** `/api/recordings/search`
+
+**Access**: Private (Teacher, Admin, Student)
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Query Parameters**:
+
+-   `query` (string, required): Search term for title
+
+**Response**:
+
+```json
+{
+    "success": true,
+    "count": 2,
     "data": [
         {
-            "id": "recording_id",
+            "_id": "recording_id",
             "title": "Physics Lecture 1",
-            "description": "Introduction to mechanics",
-            "videoUrl": "https://cloudinary.com/video_url",
-            "thumbnailUrl": "https://cloudinary.com/thumbnail_url",
-            "duration": 3600,
-            "uploadDate": "2025-01-01T00:00:00Z",
-            "viewCount": 25,
-            "size": 104857600
+            "subject": "Physics",
+            "fileUrl": "https://cloudinary.com/video_url",
+            "batch": {
+                "name": "Physics Batch A"
+            },
+            "course": {
+                "name": "Advanced Physics"
+            },
+            "teacher": {
+                "name": "Prof. Smith"
+            }
         }
     ]
 }
 ```
 
-### 3. Get Single Recording
+### 8. Get Recording Analytics
 
-**GET** `/api/recordings/:recordingId`
+**GET** `/api/recordings/analytics`
 
-**Access**: Private (Teacher, Student - own batch)
+**Access**: Private (Teacher, Admin)
 
 **Headers**: `Authorization: Bearer <token>`
+
+**Query Parameters**:
+
+-   `batchId` (string, optional): Filter by batch
+-   `courseId` (string, optional): Filter by course
+-   `period` (string, optional): Time period (week, month, quarter)
+
+**Response**:
+
+```json
+{
+    "success": true,
+    "data": {
+        "summary": {
+            "totalRecordings": 15,
+            "totalViews": 450,
+            "averageViews": 30.5,
+            "uniqueViewers": 85,
+            "subjectDistribution": {
+                "Physics": 8,
+                "Chemistry": 5,
+                "Math": 2
+            }
+        },
+        "topRecordings": [
+            {
+                "_id": "recording_id",
+                "title": "Physics Lecture 1",
+                "views": 75,
+                "subject": "Physics"
+            }
+        ]
+    }
+}
+```
+
+### 9. Extend Recording Access
+
+**PUT** `/api/recordings/:id/extend`
+
+**Access**: Private (Teacher - own recordings, Admin)
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Request Body**:
+
+```json
+{
+    "days": 7
+}
+```
 
 **Response**:
 
@@ -2073,169 +2341,10 @@ duration: "60"
     "data": {
         "id": "recording_id",
         "title": "Physics Lecture 1",
-        "description": "Introduction to mechanics",
-        "videoUrl": "https://cloudinary.com/video_url",
-        "thumbnailUrl": "https://cloudinary.com/thumbnail_url",
-        "duration": 3600,
-        "uploadDate": "2025-01-01T00:00:00Z",
-        "viewCount": 25,
-        "size": 104857600,
-        "batch": {
-            "id": "batch_id",
-            "name": "Physics Batch A"
-        }
-    }
-}
-```
-
-### 4. Update Recording
-
-**PUT** `/api/recordings/:recordingId`
-
-**Access**: Private (Teacher only)
-
-**Headers**: `Authorization: Bearer <token>`
-
-**Request Body**:
-
-```json
-{
-    "title": "Updated Physics Lecture 1",
-    "description": "Updated description"
-}
-```
-
-### 5. Delete Recording
-
-**DELETE** `/api/recordings/:recordingId`
-
-**Access**: Private (Teacher, Admin)
-
-**Headers**: `Authorization: Bearer <token>`
-
-### 6. Get Student Recordings
-
-**GET** `/api/recordings/student/:studentId`
-
-**Access**: Private (Student - own recordings, Teacher, Admin)
-
-**Headers**: `Authorization: Bearer <token>`
-
-**Response**:
-
-```json
-{
-    "success": true,
-    "data": [
-        {
-            "id": "recording_id",
-            "title": "Physics Lecture 1",
-            "videoUrl": "https://cloudinary.com/video_url",
-            "duration": 3600,
-            "viewCount": 5,
-            "lastWatched": "2025-01-01T10:30:00Z"
-        }
-    ]
-}
-```
-
-### 7. Search Recordings
-
-**GET** `/api/recordings/search`
-
-**Access**: Private (Teacher, Student)
-
-**Headers**: `Authorization: Bearer <token>`
-
-**Query Parameters**:
-
--   `q` (string): Search query
--   `batchId` (string, optional): Filter by batch
--   `limit` (number, optional): Results limit (default: 10)
-
-**Response**:
-
-```json
-{
-    "success": true,
-    "data": {
-        "recordings": [
-            {
-                "id": "recording_id",
-                "title": "Physics Lecture 1",
-                "description": "Introduction to mechanics",
-                "videoUrl": "https://cloudinary.com/video_url",
-                "relevanceScore": 0.95
-            }
-        ],
-        "total": 1
-    }
-}
-```
-
-### 8. Get Recording Analytics
-
-**GET** `/api/recordings/:recordingId/analytics`
-
-**Access**: Private (Teacher, Admin)
-
-**Headers**: `Authorization: Bearer <token>`
-
-**Response**:
-
-```json
-{
-    "success": true,
-    "data": {
-        "totalViews": 125,
-        "uniqueViewers": 45,
-        "averageWatchTime": 2400,
-        "completionRate": 0.85,
-        "viewsByDate": [
-            {
-                "date": "2025-01-01",
-                "views": 25
-            }
-        ],
-        "topViewers": [
-            {
-                "studentName": "John Doe",
-                "viewCount": 3,
-                "totalWatchTime": 7200
-            }
-        ]
-    }
-}
-```
-
-### 9. Extend Recording Access
-
-**POST** `/api/recordings/:recordingId/extend-access`
-
-**Access**: Private (Teacher, Admin)
-
-**Headers**: `Authorization: Bearer <token>`
-
-**Request Body**:
-
-```json
-{
-    "studentIds": ["student_id_1", "student_id_2"],
-    "expiryDate": "2025-06-01"
-}
-```
-
-**Response**:
-
-```json
-{
-    "success": true,
-    "message": "Recording access extended successfully",
-    "data": {
-        "recordingId": "recording_id",
-        "extendedStudents": 2,
-        "newExpiryDate": "2025-06-01T00:00:00Z"
-    }
+        "previousExpiry": "2025-01-29T00:00:00Z",
+        "newExpiry": "2025-02-05T00:00:00Z"
+    },
+    "message": "Recording access extended by 7 days"
 }
 ```
 
@@ -2744,15 +2853,15 @@ POST   /api/fee/:id/pay            - Process payment
 ### 🎥 Recording Management
 
 ```
-POST /api/recordings                              - Upload recording
-GET  /api/recordings/batch/:batchId               - Get recordings by batch
-GET  /api/recordings/:recordingId                 - Get single recording
-PUT  /api/recordings/:recordingId                 - Update recording
-DELETE /api/recordings/:recordingId               - Delete recording
-GET  /api/recordings/student/:studentId           - Get student recordings
-GET  /api/recordings/search                       - Search recordings
-GET  /api/recordings/:recordingId/analytics       - Get recording analytics
-POST /api/recordings/:recordingId/extend-access   - Extend recording access
+POST   /api/recordings                    - Upload recording (teachers/admins)
+GET    /api/recordings                    - Get all recordings (with filters)
+GET    /api/recordings/student            - Get student accessible recordings
+GET    /api/recordings/:id                - Get single recording
+PUT    /api/recordings/:id                - Update recording
+DELETE /api/recordings/:id                - Delete recording
+GET    /api/recordings/search             - Search recordings by title
+GET    /api/recordings/analytics          - Get recording analytics
+PUT    /api/recordings/:id/extend         - Extend recording access
 ```
 
 ### 📝 Assignment Management

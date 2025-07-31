@@ -46,7 +46,7 @@ router.get(
 router.get(
   '/',
   protect,
-  authorize('admin', 'teacher'),
+  authorize('teacher', 'admin'),
   getAllMaterials
 );
 

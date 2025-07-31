@@ -5,6 +5,9 @@ node_modules/
 dist/
 build/
 
+# it's Avinash's Docs
+/myDoc
+
 # 👉 Environment files
 .env
 .env.local
