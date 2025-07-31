@@ -22,20 +22,16 @@ import ResetPassword from "@/pages/auth/ResetPassword";
 import NotFound from "@/pages/NotFound";
 import About from "./pages/About";
 
-// Import dashboard pages
 import Dashboard from "@/pages/dashboard/Dashboard";
 import FeeStatus from "@/pages/dashboard/FeeStatus";
-import StudyMaterials from "@/pages/dashboard/StudyMaterials";
+import StudyMaterials from "@/pages/dashboard/StudyMaterials"; 
 import AllStudents from "@/pages/dashboard/AllStudents";
-// import UploadMaterials from "@/pages/dashboard/UploadMaterials";
 import MyStudents from "@/components/dashboard/teacher/MyStudents";
 import UploadMaterials from "@/components/dashboard/teacher/UploadMaterials";
 import Schedule from "@/components/dashboard/teacher/Schedule";
 import Recordings from "@/components/dashboard/teacher/Recordings";
 import Batches from "@/components/dashboard/teacher/Batches";
 import Notices from "@/components/dashboard/teacher/Notices";
-
-
 
 // Import Fee Management pages
 import StudentFeeStatus from "@/modules/fees/FeeStatus";
@@ -52,171 +48,92 @@ const App: React.FC = () => {
             <Toaster />
             <Sonner />
             <Routes>
-              {/* Public pages */}
-              <Route
-                path="/"
-                element={
-                  <Layout>
-                    <Home />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/services"
-                element={
-                  <Layout>
-                    <Services />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/contact"
-                element={
-                  <Layout>
-                    <Contact />
-                  </Layout>
-                }
-              />
-              <Route
-                path="/about"
-                element={
-                  <Layout>
-                    <About />
-                  </Layout>
-                }
-              />
+              
+              {/* // 1. PUBLIC PAGES */}
+              <Route path="/" element={<Layout><Home /></Layout>} />
+              <Route path="/services" element={<Layout><Services /></Layout>} />
+              <Route path="/contact" element={<Layout><Contact /></Layout>} />
+              <Route path="/about" element={<Layout><About /></Layout>} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
-              {/* Protected auth pages */}
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
-              {/* Protected dashboard pages - accessible to all authenticated users */}
+
+              
+              {/* // 2. SHARED PROTECTED ROUTES (All Roles) */}
               <Route
                 path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
+                element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
               />
               <Route
-                path="/dashboard/profile"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />{" "}
-              {/* Student-specific routes */}
-              <Route
-                path="/student/dashboard"
-                element={
-                  <ProtectedRoute roles={["student"]}>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
+                path="/profile" 
+                element={<ProtectedRoute><Profile /></ProtectedRoute>}
               />
-              <Route
-                path="/dashboard/fee-status"
-                element={
-                  <ProtectedRoute roles={["student"]}>
-                    <FeeStatus />
-                  </ProtectedRoute>
-                }
-              />
+              
+              {/* This route allows students, teachers, and admins to access the same page. */}
               <Route
                 path="/dashboard/study-materials"
                 element={
-                  <ProtectedRoute roles={["student"]}>
+                  <ProtectedRoute roles={["student", "teacher", "admin"]}>
                     <StudyMaterials />
                   </ProtectedRoute>
                 }
               />
-              {/* -------------------- Teacher-specific routes -------------------- */}
+
+              {/* // 3. STUDENT-SPECIFIC ROUTES */}
+              <Route
+                path="/student/dashboard"
+                element={<ProtectedRoute roles={["student"]}><Dashboard /></ProtectedRoute>}
+              />
+              <Route
+                path="/dashboard/fee-status"
+                element={<ProtectedRoute roles={["student"]}><FeeStatus /></ProtectedRoute>}
+              />
+
+
+              {/* // 4. TEACHER-SPECIFIC ROUTES */}
               <Route
                 path="/teacher/dashboard"
-                element={
-                  <ProtectedRoute roles={["teacher"]}>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
+                element={<ProtectedRoute roles={["teacher"]}><Dashboard /></ProtectedRoute>}
               />
               <Route
                 path="/dashboard/my-students"
-                element={
-                  <ProtectedRoute roles={["teacher"]}>
-                    <MyStudents />
-                  </ProtectedRoute>
-                }
+                element={<ProtectedRoute roles={["teacher"]}><MyStudents /></ProtectedRoute>}
               />
               <Route
                 path="/dashboard/upload-materials"
-                element={
-                  <ProtectedRoute roles={["teacher", "admin"]}>
-                    <UploadMaterials />
-                  </ProtectedRoute>
-                }
+                element={<ProtectedRoute roles={["teacher", "admin"]}><UploadMaterials /></ProtectedRoute>}
               />
               <Route
                 path="/dashboard/schedule"
-                element={
-                  <ProtectedRoute roles={["teacher"]}>
-                    <Schedule />
-                  </ProtectedRoute>
-                }
+                element={<ProtectedRoute roles={["teacher"]}><Schedule /></ProtectedRoute>}
               />
               <Route
                 path="/dashboard/recordings"
-                element={
-                  <ProtectedRoute roles={["teacher"]}>
-                    <Recordings />
-                  </ProtectedRoute>
-                }
+                element={<ProtectedRoute roles={["teacher"]}><Recordings /></ProtectedRoute>}
               />
               <Route
                 path="/dashboard/batches"
-                element={
-                  <ProtectedRoute roles={["teacher"]}>
-                    <Batches />
-                  </ProtectedRoute>
-                }
+                element={<ProtectedRoute roles={["teacher"]}><Batches /></ProtectedRoute>}
               />
               <Route
                 path="/dashboard/notices"
-                element={
-                  <ProtectedRoute roles={["teacher"]}>
-                    <Notices />
-                  </ProtectedRoute>
-                }
+                element={<ProtectedRoute roles={["teacher"]}><Notices /></ProtectedRoute>}
               />
-              {/* Admin-specific routes */}
+
+
+              {/* // 5. ADMIN-SPECIFIC ROUTES */}
               <Route
                 path="/admin/dashboard"
-                element={
-                  <ProtectedRoute roles={["admin"]}>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
+                element={<ProtectedRoute roles={["admin"]}><Dashboard /></ProtectedRoute>}
               />
-              {/* <Route path="/admin/dashboard" element={<Dashboard />}/>
-               */}
               <Route
                 path="/dashboard/all-students"
-                element={
-                  <ProtectedRoute roles={["admin"]}>
-                    <AllStudents />
-                  </ProtectedRoute>
-                }
+                element={<ProtectedRoute roles={["admin"]}><AllStudents /></ProtectedRoute>}
               />
-              {/* 404 Page */}
+
+
+              {/* 6. NOT FOUND */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>
