@@ -8,6 +8,9 @@ import Notice from "../models/Notice.js";
 import bcrypt from "bcryptjs";
 
 // 🧠 Admin Dashboard Data
+
+
+// ✅ GET /api/admin/dashboard
 export const getAdminDashboard = async (req, res) => {
   try {
     const [totalStudents, totalTeachers, totalCourses, totalBatches] = await Promise.all([
@@ -36,9 +39,31 @@ export const getAdminDashboard = async (req, res) => {
       totalFeePending: pendingFees[0]?.total || 0
     });
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch dashboard data", error: error.message });
+    res.status(500).json({
+      message: "Failed to fetch dashboard data",
+      error: error.message
+    });
   }
 };
+
+// ✅ GET /api/admin/profile
+export  const getAdminProfile = async (req, res) => {
+  try {
+    const admin = await Admin.findById(req.user.id).select(
+      '-password -loginAttempts -lockUntil -passwordResetToken -passwordResetExpires -emailVerificationToken'
+    );
+
+    if (!admin) return res.status(404).json({ message: 'Admin not found' });
+
+    res.status(200).json(admin);
+  } catch (error) {
+    res.status(500).json({
+      message: 'Failed to fetch admin profile',
+      error: error.message
+    });
+  }
+};
+
 
 // ✅ All Students
 export const getAllStudents = async (req, res) => {

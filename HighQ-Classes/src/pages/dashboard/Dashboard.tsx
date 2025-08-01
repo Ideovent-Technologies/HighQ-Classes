@@ -11,6 +11,8 @@ import {
     DollarSign,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import AdminService from "@/API/services/AdminService";
+import { useEffect, useState } from "react";
 
 const Dashboard = () => {
     const { state } = useAuth();
@@ -385,135 +387,103 @@ const TeacherDashboard = () => {
 };
 
 const AdminDashboard = () => {
+    const [dashboardData, setDashboardData] = useState({
+        totalStudents: 0,
+        feeCollection: 0,
+        pendingDues: 0,
+        totalTeachers: 0,
+        recentPayments: [],
+        pendingStudents: [],
+    });
+
+    useEffect(() => {
+  const fetchData = async () => {
+    const response = await AdminService.getAdminData();
+    if (response.success && response.data) {
+      setDashboardData(response.data);
+      console.log("Admin Dashboard Data:", response.data);
+    }
+  };
+
+  fetchData();
+}, []);
+
     return (
         <div className="space-y-6">
+            {/* Top Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                        <CardTitle className="text-sm font-medium">
-                            Total Students
-                        </CardTitle>
+                        <CardTitle className="text-sm font-medium">Total Students</CardTitle>
                         <Users className="h-4 w-4 text-navy-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">367</div>
+                        <div className="text-2xl font-bold">{dashboardData.totalStudents}</div>
                         <p className="text-xs text-gray-500">+24 this month</p>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                        <CardTitle className="text-sm font-medium">
-                            Fee Collection
-                        </CardTitle>
+                        <CardTitle className="text-sm font-medium">Fee Collection</CardTitle>
                         <DollarSign className="h-4 w-4 text-navy-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">₹287,560</div>
+                        <div className="text-2xl font-bold">₹{dashboardData.feeCollection}</div>
                         <p className="text-xs text-gray-500">This month</p>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                        <CardTitle className="text-sm font-medium">
-                            Pending Dues
-                        </CardTitle>
+                        <CardTitle className="text-sm font-medium">Pending Dues</CardTitle>
                         <DollarSign className="h-4 w-4 text-coral-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">₹124,890</div>
-                        <p className="text-xs text-gray-500">
-                            From 42 students
-                        </p>
+                        <div className="text-2xl font-bold">₹{dashboardData.pendingDues}</div>
+                        <p className="text-xs text-gray-500">From {dashboardData.pendingStudents} students</p>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                        <CardTitle className="text-sm font-medium">
-                            Teachers
-                        </CardTitle>
+                        <CardTitle className="text-sm font-medium">Teachers</CardTitle>
                         <Users className="h-4 w-4 text-navy-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">18</div>
-                        <p className="text-xs text-gray-500">
-                            Across all departments
-                        </p>
+                        <div className="text-2xl font-bold">{dashboardData.totalTeachers}</div>
+                        <p className="text-xs text-gray-500">Across all departments</p>
                     </CardContent>
                 </Card>
             </div>
 
+            {/* Recent Payments & Dues */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Recent Fee Payments */}
                 <Card>
                     <CardHeader>
                         <CardTitle>Recent Fee Payments</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium mr-3">
-                                        AS
+                            {dashboardData.recentPayments?.map((payment, index) => (
+                                <div key={index} className="flex items-center justify-between">
+                                    <div className="flex items-center">
+                                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium mr-3">
+                                            {payment.name.split(" ").map(word => word[0]).join("").toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <p className="font-medium">{payment.name}</p>
+                                            <p className="text-xs text-gray-500">
+                                                {payment.batch} • ₹{payment.amount}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="font-medium">
-                                            Anuj Sharma
-                                        </p>
-                                        <p className="text-xs text-gray-500">
-                                            Physics Batch A • ₹12,000
-                                        </p>
-                                    </div>
+                                    <div className="text-xs text-gray-500">{payment.time}</div>
                                 </div>
-                                <div className="text-xs text-gray-500">
-                                    Today, 11:23 AM
-                                </div>
-                            </div>
-
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium mr-3">
-                                        RP
-                                    </div>
-                                    <div>
-                                        <p className="font-medium">
-                                            Riya Patel
-                                        </p>
-                                        <p className="text-xs text-gray-500">
-                                            Chemistry Batch B • ₹8,000
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                    Yesterday, 3:45 PM
-                                </div>
-                            </div>
-
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium mr-3">
-                                        VK
-                                    </div>
-                                    <div>
-                                        <p className="font-medium">
-                                            Vikram Kumar
-                                        </p>
-                                        <p className="text-xs text-gray-500">
-                                            Mathematics Batch C • ₹10,000
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                    Yesterday, 1:12 PM
-                                </div>
-                            </div>
-
+                            ))}
                             <div className="text-center mt-4">
-                                <Link
-                                    to="/dashboard/fee-management"
-                                    className="text-sm text-navy-600 hover:text-navy-800"
-                                >
+                                <Link to="/dashboard/fee-management" className="text-sm text-navy-600 hover:text-navy-800">
                                     View all payments
                                 </Link>
                             </div>
@@ -521,72 +491,33 @@ const AdminDashboard = () => {
                     </CardContent>
                 </Card>
 
+                {/* Pending Dues */}
                 <Card>
                     <CardHeader>
                         <CardTitle>Payment Due Students</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium mr-3">
-                                        NK
+                            {dashboardData.pendingStudents?.map((student, index) => (
+                                <div key={index} className="flex items-center justify-between">
+                                    <div className="flex items-center">
+                                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium mr-3">
+                                            {student.name.split(" ").map(word => word[0]).join("").toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <p className="font-medium">{student.name}</p>
+                                            <p className="text-xs text-gray-500">
+                                                Due: ₹{student.amount} • Due Date: {student.dueDate}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="font-medium">Neha Khan</p>
-                                        <p className="text-xs text-gray-500">
-                                            Due: ₹6,000 • Due Date: 15th Apr
-                                        </p>
-                                    </div>
+                                    <button className="text-xs bg-coral-500 text-white px-2 py-1 rounded">
+                                        Remind
+                                    </button>
                                 </div>
-                                <button className="text-xs bg-coral-500 text-white px-2 py-1 rounded">
-                                    Remind
-                                </button>
-                            </div>
-
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium mr-3">
-                                        RJ
-                                    </div>
-                                    <div>
-                                        <p className="font-medium">
-                                            Rahul Joshi
-                                        </p>
-                                        <p className="text-xs text-gray-500">
-                                            Due: ₹8,000 • Due Date: 18th Apr
-                                        </p>
-                                    </div>
-                                </div>
-                                <button className="text-xs bg-coral-500 text-white px-2 py-1 rounded">
-                                    Remind
-                                </button>
-                            </div>
-
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium mr-3">
-                                        SM
-                                    </div>
-                                    <div>
-                                        <p className="font-medium">
-                                            Sanjay Mehra
-                                        </p>
-                                        <p className="text-xs text-gray-500">
-                                            Due: ₹4,000 • Due Date: 20th Apr
-                                        </p>
-                                    </div>
-                                </div>
-                                <button className="text-xs bg-coral-500 text-white px-2 py-1 rounded">
-                                    Remind
-                                </button>
-                            </div>
-
+                            ))}
                             <div className="text-center mt-4">
-                                <Link
-                                    to="/dashboard/fee-management"
-                                    className="text-sm text-navy-600 hover:text-navy-800"
-                                >
+                                <Link to="/dashboard/fee-management" className="text-sm text-navy-600 hover:text-navy-800">
                                     View all pending dues
                                 </Link>
                             </div>

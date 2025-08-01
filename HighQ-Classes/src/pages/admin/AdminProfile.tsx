@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AdminService from "@/API/services/AdminService";
 import { Separator } from "@/components/ui/separator";
 import {
     User,
@@ -36,25 +37,27 @@ const AdminProfile: React.FC = () => {
     const [profileData, setProfileData] = useState<Partial<AdminUser>>({});
     const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
-        if (user) {
-            setProfileData(user);
-        }
-    }, [user]);
-
-    const handleSave = async () => {
+   useEffect(() => {
+    async function fetchProfile() {
         setIsLoading(true);
         try {
-            // TODO: Implement API call to update profile
-            // await authService.updateProfile(profileData);
-            console.log("Saving profile:", profileData);
-            setIsEditing(false);
+            const response = await AdminService.getAdminProfile();
+            if (response.success && response.admin) {
+                setProfileData(response.admin);
+                console.log(response.admin)
+            } else {
+                console.error("Failed to fetch admin profile:", response.message);
+            }
         } catch (error) {
-            console.error("Error updating profile:", error);
+            console.error("Unexpected error while fetching profile:", error);
         } finally {
             setIsLoading(false);
         }
-    };
+    }
+
+    fetchProfile();
+}, []);
+
 
     const handleCancel = () => {
         setProfileData(user);
