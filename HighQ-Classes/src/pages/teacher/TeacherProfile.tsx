@@ -1,737 +1,223 @@
-import React, { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import React, { useEffect, useState } from "react";
+import { useTeacherProfile } from "@/hooks/useTeacherProfile";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
-import {
-    User,
-    Mail,
-    Phone,
-    MapPin,
-    Calendar,
-    GraduationCap,
-    Users,
-    BookOpen,
-    Award,
-    Building,
-    Camera,
-    Edit,
-    Save,
-    X,
-    IdCard,
-} from "lucide-react";
-import { TeacherUser } from "@/types/teacher.types";
+import { toast } from "@/components/ui/use-toast";
+import { Card, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
 
-const TeacherProfile: React.FC = () => {
-    const { state } = useAuth();
-    const user = state.user as TeacherUser;
-    const [isEditing, setIsEditing] = useState(false);
-    const [profileData, setProfileData] = useState<Partial<TeacherUser>>({});
-    const [isLoading, setIsLoading] = useState(false);
+const TeacherProfile = () => {
+  const { profile, loading, error, updateProfile } = useTeacherProfile();
 
-    useEffect(() => {
-        if (user) {
-            setProfileData(user);
+  const [email, setEmail] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [bio, setBio] = useState("");
+  const [password, setPassword] = useState("");
+  const [profilePicture, setProfilePicture] = useState("");
+  const [updating, setUpdating] = useState(false);
+
+  const [address, setAddress] = useState({
+    street: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    country: "",
+  });
+
+  useEffect(() => {
+    if (profile) {
+      setEmail(profile.email || "");
+      setMobile(profile.mobile || "");
+      setBio(profile.bio || "");
+      setProfilePicture(profile.profilePicture || "");
+      setAddress(
+        profile.address || {
+          street: "",
+          city: "",
+          state: "",
+          zipCode: "",
+          country: "",
         }
-    }, [user]);
-
-    const handleSave = async () => {
-        setIsLoading(true);
-        try {
-            // TODO: Implement API call to update profile
-            // await authService.updateProfile(profileData);
-            console.log("Saving profile:", profileData);
-            setIsEditing(false);
-        } catch (error) {
-            console.error("Error updating profile:", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleCancel = () => {
-        setProfileData(user);
-        setIsEditing(false);
-    };
-
-    const handleInputChange = (
-        field: string,
-        value: string | number | string[]
-    ) => {
-        setProfileData((prev) => ({
-            ...prev,
-            [field]: value,
-        }));
-    };
-
-    const handleAddressChange = (field: string, value: string) => {
-        setProfileData((prev) => ({
-            ...prev,
-            address: {
-                ...prev.address,
-                [field]: value,
-            },
-        }));
-    };
-
-    const handleSubjectsChange = (subjects: string) => {
-        const subjectArray = subjects
-            .split(",")
-            .map((s) => s.trim())
-            .filter((s) => s.length > 0);
-        handleInputChange("subjects", subjectArray);
-    };
-
-    if (!user) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-            </div>
-        );
+      );
     }
+  }, [profile]);
 
-    return (
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
-            <div className="flex items-center justify-between mb-8">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">
-                        Teacher Profile
-                    </h1>
-                    <p className="text-gray-600 mt-2">
-                        Manage your professional information and teaching
-                        details
-                    </p>
-                </div>
-                <div className="flex space-x-2">
-                    {isEditing ? (
-                        <>
-                            <Button onClick={handleSave} disabled={isLoading}>
-                                <Save className="mr-2 h-4 w-4" />
-                                Save Changes
-                            </Button>
-                            <Button variant="outline" onClick={handleCancel}>
-                                <X className="mr-2 h-4 w-4" />
-                                Cancel
-                            </Button>
-                        </>
-                    ) : (
-                        <Button onClick={() => setIsEditing(true)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit Profile
-                        </Button>
-                    )}
-                </div>
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUpdating(true);
+
+    try {
+      await updateProfile({
+        email,
+        password: password || undefined,
+        mobile,
+        bio,
+        profilePicture,
+        address,
+      });
+
+      toast({
+        title: "Profile Updated",
+        description: "Your profile was updated successfully.",
+      });
+
+      setPassword("");
+    } catch (err: any) {
+      toast({
+        variant: "destructive",
+        title: "Update Failed",
+        description: err.message || "Something went wrong while updating your profile.",
+      });
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  if (loading) return <div className="p-6 text-center">Loading profile...</div>;
+  if (error) return <div className="p-6 text-red-500">{error}</div>;
+  if (!profile) return null;
+
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      {/* Profile Summary Card */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <Card className="bg-blue-50 border border-blue-100 shadow-md mb-8">
+          <CardContent className="p-6 flex items-center gap-6">
+            <img
+              src={
+                profilePicture ||
+                "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+              }
+              alt="Profile"
+              className="w-20 h-20 rounded-full border-2 border-blue-300 object-cover"
+            />
+            <div>
+              <h2 className="text-xl font-semibold text-blue-900">
+                {profile.name}
+              </h2>
+              <p className="text-sm text-gray-600">{profile.email}</p>
+              <p className="text-sm text-gray-600">{profile.mobile || "No Mobile Added"}</p>
             </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
-            <Tabs defaultValue="personal" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="personal">Personal Info</TabsTrigger>
-                    <TabsTrigger value="professional">Professional</TabsTrigger>
-                    <TabsTrigger value="teaching">Teaching</TabsTrigger>
-                    <TabsTrigger value="performance">Performance</TabsTrigger>
-                </TabsList>
-
-                {/* Personal Information Tab */}
-                <TabsContent value="personal" className="space-y-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Profile Picture Card */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center">
-                                    <Camera className="mr-2 h-5 w-5" />
-                                    Profile Picture
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="flex flex-col items-center space-y-4">
-                                <Avatar className="h-32 w-32">
-                                    <AvatarImage
-                                        src={profileData.profilePicture}
-                                        alt={profileData.name}
-                                    />
-                                    <AvatarFallback className="text-2xl">
-                                        {profileData.name
-                                            ?.charAt(0)
-                                            .toUpperCase()}
-                                    </AvatarFallback>
-                                </Avatar>
-                                {isEditing && (
-                                    <Button variant="outline" size="sm">
-                                        <Camera className="mr-2 h-4 w-4" />
-                                        Change Photo
-                                    </Button>
-                                )}
-                                <Badge
-                                    variant={
-                                        user.status === "active"
-                                            ? "default"
-                                            : "secondary"
-                                    }
-                                >
-                                    {user.status?.toUpperCase()}
-                                </Badge>
-                            </CardContent>
-                        </Card>
-
-                        {/* Basic Information */}
-                        <Card className="lg:col-span-2">
-                            <CardHeader>
-                                <CardTitle className="flex items-center">
-                                    <User className="mr-2 h-5 w-5" />
-                                    Basic Information
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <Label htmlFor="name">Full Name</Label>
-                                        <Input
-                                            id="name"
-                                            value={profileData.name || ""}
-                                            onChange={(e) =>
-                                                handleInputChange(
-                                                    "name",
-                                                    e.target.value
-                                                )
-                                            }
-                                            disabled={!isEditing}
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="employeeId">
-                                            Employee ID
-                                        </Label>
-                                        <Input
-                                            id="employeeId"
-                                            value={profileData.employeeId || ""}
-                                            onChange={(e) =>
-                                                handleInputChange(
-                                                    "employeeId",
-                                                    e.target.value
-                                                )
-                                            }
-                                            disabled={!isEditing}
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="email">Email</Label>
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            value={profileData.email || ""}
-                                            onChange={(e) =>
-                                                handleInputChange(
-                                                    "email",
-                                                    e.target.value
-                                                )
-                                            }
-                                            disabled={!isEditing}
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="mobile">
-                                            Mobile Number
-                                        </Label>
-                                        <Input
-                                            id="mobile"
-                                            value={profileData.mobile || ""}
-                                            onChange={(e) =>
-                                                handleInputChange(
-                                                    "mobile",
-                                                    e.target.value
-                                                )
-                                            }
-                                            disabled={!isEditing}
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="gender">Gender</Label>
-                                        <select
-                                            id="gender"
-                                            value={profileData.gender || ""}
-                                            onChange={(e) =>
-                                                handleInputChange(
-                                                    "gender",
-                                                    e.target.value
-                                                )
-                                            }
-                                            disabled={!isEditing}
-                                            className="w-full p-2 border border-gray-300 rounded-md"
-                                        >
-                                            <option value="">
-                                                Select Gender
-                                            </option>
-                                            <option value="male">Male</option>
-                                            <option value="female">
-                                                Female
-                                            </option>
-                                            <option value="other">Other</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="dateOfBirth">
-                                            Date of Birth
-                                        </Label>
-                                        <Input
-                                            id="dateOfBirth"
-                                            type="date"
-                                            value={
-                                                profileData.dateOfBirth || ""
-                                            }
-                                            onChange={(e) =>
-                                                handleInputChange(
-                                                    "dateOfBirth",
-                                                    e.target.value
-                                                )
-                                            }
-                                            disabled={!isEditing}
-                                        />
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Address Information */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center">
-                                <MapPin className="mr-2 h-5 w-5" />
-                                Address Information
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="md:col-span-2">
-                                    <Label htmlFor="street">
-                                        Street Address
-                                    </Label>
-                                    <Input
-                                        id="street"
-                                        value={
-                                            profileData.address?.street || ""
-                                        }
-                                        onChange={(e) =>
-                                            handleAddressChange(
-                                                "street",
-                                                e.target.value
-                                            )
-                                        }
-                                        disabled={!isEditing}
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="city">City</Label>
-                                    <Input
-                                        id="city"
-                                        value={profileData.address?.city || ""}
-                                        onChange={(e) =>
-                                            handleAddressChange(
-                                                "city",
-                                                e.target.value
-                                            )
-                                        }
-                                        disabled={!isEditing}
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="state">State</Label>
-                                    <Input
-                                        id="state"
-                                        value={profileData.address?.state || ""}
-                                        onChange={(e) =>
-                                            handleAddressChange(
-                                                "state",
-                                                e.target.value
-                                            )
-                                        }
-                                        disabled={!isEditing}
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="zipCode">ZIP Code</Label>
-                                    <Input
-                                        id="zipCode"
-                                        value={
-                                            profileData.address?.zipCode || ""
-                                        }
-                                        onChange={(e) =>
-                                            handleAddressChange(
-                                                "zipCode",
-                                                e.target.value
-                                            )
-                                        }
-                                        disabled={!isEditing}
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="country">Country</Label>
-                                    <Input
-                                        id="country"
-                                        value={
-                                            profileData.address?.country || ""
-                                        }
-                                        onChange={(e) =>
-                                            handleAddressChange(
-                                                "country",
-                                                e.target.value
-                                            )
-                                        }
-                                        disabled={!isEditing}
-                                    />
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                {/* Professional Information Tab */}
-                <TabsContent value="professional" className="space-y-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Qualifications */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center">
-                                    <GraduationCap className="mr-2 h-5 w-5" />
-                                    Qualifications
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div>
-                                    <Label htmlFor="qualification">
-                                        Education
-                                    </Label>
-                                    <Input
-                                        id="qualification"
-                                        value={profileData.qualification || ""}
-                                        onChange={(e) =>
-                                            handleInputChange(
-                                                "qualification",
-                                                e.target.value
-                                            )
-                                        }
-                                        disabled={!isEditing}
-                                        placeholder="e.g., M.Sc Physics"
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="specialization">
-                                        Specialization
-                                    </Label>
-                                    <Input
-                                        id="specialization"
-                                        value={profileData.specialization || ""}
-                                        onChange={(e) =>
-                                            handleInputChange(
-                                                "specialization",
-                                                e.target.value
-                                            )
-                                        }
-                                        disabled={!isEditing}
-                                        placeholder="e.g., Quantum Physics"
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="experience">
-                                        Experience (Years)
-                                    </Label>
-                                    <Input
-                                        id="experience"
-                                        type="number"
-                                        value={profileData.experience || ""}
-                                        onChange={(e) =>
-                                            handleInputChange(
-                                                "experience",
-                                                parseInt(e.target.value)
-                                            )
-                                        }
-                                        disabled={!isEditing}
-                                        min="0"
-                                    />
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Department & Role */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center">
-                                    <Building className="mr-2 h-5 w-5" />
-                                    Department & Role
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div>
-                                    <Label htmlFor="department">
-                                        Department
-                                    </Label>
-                                    <select
-                                        id="department"
-                                        value={profileData.department || ""}
-                                        onChange={(e) =>
-                                            handleInputChange(
-                                                "department",
-                                                e.target.value
-                                            )
-                                        }
-                                        disabled={!isEditing}
-                                        className="w-full p-2 border border-gray-300 rounded-md"
-                                    >
-                                        <option value="">
-                                            Select Department
-                                        </option>
-                                        <option value="Mathematics">
-                                            Mathematics
-                                        </option>
-                                        <option value="Science">Science</option>
-                                        <option value="English">English</option>
-                                        <option value="Hindi">Hindi</option>
-                                        <option value="Social Science">
-                                            Social Science
-                                        </option>
-                                        <option value="Computer Science">
-                                            Computer Science
-                                        </option>
-                                        <option value="Physics">Physics</option>
-                                        <option value="Chemistry">
-                                            Chemistry
-                                        </option>
-                                        <option value="Biology">Biology</option>
-                                        <option value="Other">Other</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <Label>Join Date</Label>
-                                    <p className="text-sm text-gray-600">
-                                        {user.joinDate
-                                            ? new Date(
-                                                  user.joinDate
-                                              ).toLocaleDateString()
-                                            : "Not available"}
-                                    </p>
-                                </div>
-                                <div>
-                                    <Label>Last Login</Label>
-                                    <p className="text-sm text-gray-600">
-                                        {user.lastLogin
-                                            ? new Date(
-                                                  user.lastLogin
-                                              ).toLocaleDateString()
-                                            : "Never"}
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Biography */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center">
-                                <User className="mr-2 h-5 w-5" />
-                                Biography
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div>
-                                <Label htmlFor="bio">Professional Bio</Label>
-                                <Textarea
-                                    id="bio"
-                                    value={profileData.bio || ""}
-                                    onChange={(e) =>
-                                        handleInputChange("bio", e.target.value)
-                                    }
-                                    disabled={!isEditing}
-                                    placeholder="Tell us about your teaching philosophy, achievements, and interests..."
-                                    className="min-h-[120px]"
-                                />
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                {/* Teaching Information Tab */}
-                <TabsContent value="teaching" className="space-y-6">
-                    {/* Subjects */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center">
-                                <BookOpen className="mr-2 h-5 w-5" />
-                                Teaching Subjects
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div>
-                                <Label htmlFor="subjects">
-                                    Subjects (comma-separated)
-                                </Label>
-                                <Input
-                                    id="subjects"
-                                    value={
-                                        profileData.subjects?.join(", ") || ""
-                                    }
-                                    onChange={(e) =>
-                                        handleSubjectsChange(e.target.value)
-                                    }
-                                    disabled={!isEditing}
-                                    placeholder="e.g., Physics, Mathematics, Chemistry"
-                                />
-                                {profileData.subjects &&
-                                    profileData.subjects.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 mt-2">
-                                            {profileData.subjects.map(
-                                                (subject, index) => (
-                                                    <Badge
-                                                        key={index}
-                                                        variant="secondary"
-                                                    >
-                                                        {subject}
-                                                    </Badge>
-                                                )
-                                            )}
-                                        </div>
-                                    )}
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Assigned Batches */}
-                    {user.batches && user.batches.length > 0 && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center">
-                                    <Users className="mr-2 h-5 w-5" />
-                                    Assigned Batches
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {user.batches.map((batch, index) => (
-                                        <Card key={index} className="border">
-                                            <CardContent className="p-4">
-                                                <h4 className="font-semibold">
-                                                    {batch.name}
-                                                </h4>
-                                                <p className="text-sm text-gray-600">
-                                                    {batch.subject}
-                                                </p>
-                                                <p className="text-sm text-blue-600 mt-1">
-                                                    {batch.studentCount}{" "}
-                                                    students
-                                                </p>
-                                            </CardContent>
-                                        </Card>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-                </TabsContent>
-
-                {/* Performance Tab */}
-                <TabsContent value="performance" className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* Teaching Statistics */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center">
-                                    <Users className="mr-2 h-5 w-5" />
-                                    Students
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="text-center">
-                                <div className="text-3xl font-bold text-blue-600 mb-2">
-                                    {user.performanceMetrics?.studentsCount ||
-                                        0}
-                                </div>
-                                <p className="text-gray-600">Total Students</p>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center">
-                                    <BookOpen className="mr-2 h-5 w-5" />
-                                    Batches
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="text-center">
-                                <div className="text-3xl font-bold text-green-600 mb-2">
-                                    {user.performanceMetrics?.batchesCount ||
-                                        user.batches?.length ||
-                                        0}
-                                </div>
-                                <p className="text-gray-600">Active Batches</p>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center">
-                                    <Award className="mr-2 h-5 w-5" />
-                                    Assignments
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="text-center">
-                                <div className="text-3xl font-bold text-orange-600 mb-2">
-                                    {user.performanceMetrics
-                                        ?.pendingAssignments || 0}
-                                </div>
-                                <p className="text-gray-600">Pending Reviews</p>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Experience Overview */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center">
-                                <Award className="mr-2 h-5 w-5" />
-                                Experience Overview
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <span>Years of Teaching Experience</span>
-                                    <Badge
-                                        variant="default"
-                                        className="text-lg px-4 py-2"
-                                    >
-                                        {user.experience} years
-                                    </Badge>
-                                </div>
-                                <Separator />
-                                <div className="flex items-center justify-between">
-                                    <span>Specialization</span>
-                                    <span className="font-medium">
-                                        {user.specialization}
-                                    </span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span>Department</span>
-                                    <span className="font-medium">
-                                        {user.department}
-                                    </span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span>Employee ID</span>
-                                    <span className="font-medium">
-                                        {user.employeeId}
-                                    </span>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-            </Tabs>
+      {/* Editable Form */}
+      <motion.form
+        onSubmit={handleSubmit}
+        className="space-y-5"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        {/* Email */}
+        <div>
+          <label className="text-sm font-medium text-gray-700">Email</label>
+          <Input
+            type="email"
+            placeholder="yourname@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
         </div>
-    );
+
+        {/* Mobile */}
+        <div>
+          <label className="text-sm font-medium text-gray-700">Mobile</label>
+          <Input
+            type="tel"
+            placeholder="Enter your mobile number"
+            value={mobile}
+            onChange={(e) => setMobile(e.target.value)}
+          />
+        </div>
+
+        {/* Profile Picture URL */}
+        <div>
+          <label className="text-sm font-medium text-gray-700">
+            Profile Picture URL
+          </label>
+          <Input
+            type="url"
+            placeholder="https://example.com/photo.jpg"
+            value={profilePicture}
+            onChange={(e) => setProfilePicture(e.target.value)}
+          />
+        </div>
+
+        {/* Bio */}
+        <div>
+          <label className="text-sm font-medium text-gray-700">Bio</label>
+          <Textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            rows={3}
+            placeholder="Tell us about yourself"
+          />
+        </div>
+
+        {/* Address */}
+        <div>
+          <label className="text-sm font-medium text-gray-700">Address</label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+            <Input
+              placeholder="Street"
+              value={address.street}
+              onChange={(e) => setAddress({ ...address, street: e.target.value })}
+            />
+            <Input
+              placeholder="City"
+              value={address.city}
+              onChange={(e) => setAddress({ ...address, city: e.target.value })}
+            />
+            <Input
+              placeholder="State"
+              value={address.state}
+              onChange={(e) => setAddress({ ...address, state: e.target.value })}
+            />
+            <Input
+              placeholder="ZIP Code"
+              value={address.zipCode}
+              onChange={(e) => setAddress({ ...address, zipCode: e.target.value })}
+            />
+            <Input
+              placeholder="Country"
+              value={address.country}
+              onChange={(e) => setAddress({ ...address, country: e.target.value })}
+            />
+          </div>
+        </div>
+
+        {/* Password */}
+        <div>
+          <label className="text-sm font-medium text-gray-700">
+            New Password
+          </label>
+          <Input
+            type="password"
+            placeholder="Leave blank to keep unchanged"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+
+        {/* Submit Button */}
+        <Button
+          type="submit"
+          disabled={updating}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white transition-all"
+        >
+          {updating ? "Updating..." : "Update Profile"}
+        </Button>
+      </motion.form>
+    </div>
+  );
 };
 
 export default TeacherProfile;
