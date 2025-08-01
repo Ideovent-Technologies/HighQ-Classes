@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "react-router-dom";
@@ -11,6 +11,12 @@ import {
     DollarSign,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 
 const Dashboard = () => {
     const { state } = useAuth();
@@ -19,12 +25,12 @@ const Dashboard = () => {
 
     const renderDashboard = (): React.ReactNode => {
         switch (user?.role) {
-            //   case "student":
-            //     return <StudentDashboard />;
+            case "student":
+                return <StudentDashboard />;
             case "teacher":
                 return <TeacherDashboard />;
-            //   case "admin":
-            //     return <AdminDashboard />;
+            case "admin":
+                return <AdminDashboard />;
             default:
                 return <div>Unknown user role</div>;
         }

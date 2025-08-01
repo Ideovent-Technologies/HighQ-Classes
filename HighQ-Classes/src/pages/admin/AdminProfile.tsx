@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +34,7 @@ import {
     UserCheck,
 } from "lucide-react";
 import { AdminUser } from "@/types/admin.types";
+import { useLocation } from "react-router-dom";
 
 const AdminProfile: React.FC = () => {
     const { state } = useAuth();
@@ -37,29 +43,36 @@ const AdminProfile: React.FC = () => {
     const [profileData, setProfileData] = useState<Partial<AdminUser>>({});
     const [isLoading, setIsLoading] = useState(false);
 
-   useEffect(() => {
-    async function fetchProfile() {
-        setIsLoading(true);
-        try {
-            const response = await AdminService.getAdminProfile();
-            if (response.success && response.admin) {
-                setProfileData(response.admin);
-                console.log(response.admin)
-            } else {
-                console.error("Failed to fetch admin profile:", response.message);
+    useEffect(() => {
+        async function fetchProfile() {
+            setIsLoading(true);
+            try {
+                const response = await AdminService.getAdminProfile();
+                if (response.success && response.admin) {
+                    setProfileData(response.admin);
+                    console.log(response.admin);
+                } else {
+                    console.error("Failed to fetch admin profile:", response.message);
+                }
+            } catch (error) {
+                console.error("Unexpected error while fetching profile:", error);
+            } finally {
+                setIsLoading(false);
             }
-        } catch (error) {
-            console.error("Unexpected error while fetching profile:", error);
-        } finally {
-            setIsLoading(false);
         }
-    }
 
-    fetchProfile();
-}, []);
+        fetchProfile();
+    }, []);
 
+    const handleSave = () => {
+        // You need to implement your save logic here
+        // For example, calling an API to update the profile
+        console.log("Saving changes:", profileData);
+        setIsEditing(false);
+    };
 
     const handleCancel = () => {
+        // Reset profile data to the original user data
         setProfileData(user);
         setIsEditing(false);
     };
@@ -651,21 +664,21 @@ const AdminProfile: React.FC = () => {
                                 />
                                 {profileData.permissions &&
                                     profileData.permissions.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 mt-2">
-                                            {profileData.permissions.map(
-                                                (permission, index) => (
-                                                    <Badge
-                                                        key={index}
-                                                        variant="outline"
-                                                        className="text-blue-600 border-blue-600"
-                                                    >
-                                                        <Shield className="mr-1 h-3 w-3" />
-                                                        {permission}
-                                                    </Badge>
-                                                )
-                                            )}
-                                        </div>
-                                    )}
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                        {profileData.permissions.map(
+                                            (permission, index) => (
+                                                <Badge
+                                                    key={index}
+                                                    variant="outline"
+                                                    className="text-blue-600 border-blue-600"
+                                                >
+                                                    <Shield className="mr-1 h-3 w-3" />
+                                                    {permission}
+                                                </Badge>
+                                            )
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
