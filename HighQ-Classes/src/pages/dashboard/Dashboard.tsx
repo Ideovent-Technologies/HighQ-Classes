@@ -6,33 +6,33 @@ import TeacherDashboard from "../../components/dashboard/teacher/TeacherDashboar
 // import AdminDashboard from "../../components/dashboard/admin/AdminDashboard";
 
 const Dashboard = () => {
-  const { state } = useAuth();
-  const user = state.user;
-  const location = useLocation();
+    const { state } = useAuth();
+    const user = state.user;
+    const location = useLocation();
 
-  const renderDashboard = (): React.ReactNode => {
-    switch (user?.role) {
-    //   case "student":
-    //     return <StudentDashboard />;
-      case "teacher":
-        return <TeacherDashboard />;
-    //   case "admin":
-    //     return <AdminDashboard />;
-      default:
-        return <div>Unknown user role</div>;
-    }
-  };
+    const renderDashboard = (): React.ReactNode => {
+        switch (user?.role) {
+            //   case "student":
+            //     return <StudentDashboard />;
+            case "teacher":
+                return <TeacherDashboard />;
+            //   case "admin":
+            //     return <AdminDashboard />;
+            default:
+                return <div>Unknown user role</div>;
+        }
+    };
 
-  return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-gray-600">Welcome back, {user?.name}!</p>
+    return (
+        <DashboardLayout>
+            <div className="space-y-6">
+                <h1 className="text-2xl font-bold">Dashboard</h1>
+                <p className="text-gray-600">Welcome back, {user?.name}!</p>
 
-        {renderDashboard()}
-      </div>
-    </DashboardLayout>
-  );
+                {renderDashboard()}
+            </div>
+        </DashboardLayout>
+    );
 };
 
 export default Dashboard;
