@@ -1,4 +1,3 @@
-
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "react-router-dom";
@@ -11,12 +10,7 @@ import {
     DollarSign,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Dashboard = () => {
     const { state } = useAuth();
