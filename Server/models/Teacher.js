@@ -8,10 +8,44 @@ import jwt from 'jsonwebtoken';
  */
 const teacherSchema = new mongoose.Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
+    name: {
+      type: String,
+      required: [true, 'Please provide a name'],
+      trim: true,
+      minlength: [3, 'Name must be at least 3 characters'],
+      maxlength: [50, 'Name cannot exceed 50 characters']
+    },
+    email: {
+      type: String,
+      required: [true, 'Please provide an email'],
+      unique: true,
+      trim: true,
+      lowercase: true,
+      match: [
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+        'Please provide a valid email'
+      ]
+    },
+    password: {
+      type: String,
+      required: [true, 'Please provide a password'],
+      minlength: [6, 'Password must be at least 6 characters'],
+      select: false
+    },
+    mobile: {
+      type: String,
+      required: [true, 'Please provide a mobile number'],
+      match: [/^[0-9]{10}$/, 'Please provide a valid 10-digit mobile number'],
+      trim: true,
+      unique: true
+    },
+    profilePicture: {
+      type: String,
+      default: '/placeholder.svg'
+    },
+    employeeId: {
+      type: String,
+      required: [true, 'Employee ID is required'],
       unique: true,
       trim: true
     },
