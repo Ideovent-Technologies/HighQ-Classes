@@ -7,35 +7,43 @@ import {
     getAllTeachers,
     updateUser,
     deleteUser,
-    CreateUser,
-    createAnnouncement
+    createAnnouncement,
+    addStudent,
+    updateStudent,
+    deleteStudent,
+    addTeacher,
+    updateTeacher,
+    deleteTeacher,
+    CreateUser // ⬅️ Make sure this exists in your adminController
 } from "../controllers/adminController.js";
 
 const router = express.Router();
 
-// Protect all routes with admin authorization
+// Protect all routes and ensure admin access
 router.use(protect);
 router.use(authorize('admin'));
 
 // Admin dashboard
 router.get("/dashboard", getAdminDashboard);
 
+// Users
+router.post("/user", validateAdminCreateUser, CreateUser); // ✅ new
+router.put("/user/:id", updateUser);
+router.delete("/user/:id", deleteUser);
+
 // Students
 router.get("/students", getAllStudents);
+router.post("/students", addStudent);
+router.put("/students/:id", updateStudent);
+router.delete("/students/:id", deleteStudent);
 
 // Teachers
 router.get("/teachers", getAllTeachers);
+router.post("/teachers", addTeacher);
+router.put("/teachers/:id", updateTeacher);
+router.delete("/teachers/:id", deleteTeacher);
 
-// Update user
-router.put("/user/:id", updateUser);
-
-// Delete user
-router.delete("/user/:id", deleteUser);
-
-// Create user with validation
-router.post("/user", validateAdminCreateUser, CreateUser);
-
-// Create announcement
+// Announcements
 router.post("/announcement", createAnnouncement);
 
 export default router;

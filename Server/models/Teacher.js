@@ -8,7 +8,6 @@ import jwt from 'jsonwebtoken';
  */
 const teacherSchema = new mongoose.Schema(
   {
-    // Authentication fields
     name: {
       type: String,
       required: [true, 'Please provide a name'],
@@ -44,8 +43,6 @@ const teacherSchema = new mongoose.Schema(
       type: String,
       default: '/placeholder.svg'
     },
-
-    // Teacher-specific fields
     employeeId: {
       type: String,
       required: [true, 'Employee ID is required'],
