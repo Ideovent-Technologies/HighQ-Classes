@@ -1,7 +1,12 @@
 import React from "react";
+import { FeeRecord } from "@/types/fee.types"
 import { studentFees } from "./dummyAdminFeeData";
 
-const StudentFeeTable: React.FC = () => {
+interface Props {
+  records: FeeRecord[];
+}
+
+const StudentFeeTable: React.FC<Props> = ({ records }) => {
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full bg-white border rounded-xl shadow">
