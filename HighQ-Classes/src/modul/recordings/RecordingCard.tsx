@@ -1,5 +1,6 @@
 
 
+
 import React from "react";
 
 interface Recording {
@@ -13,8 +14,10 @@ interface Recording {
 const RecordingCard: React.FC<Recording> = ({ title, subject, date, fileUrl, views }) => {
   return (
     <div
-      className={`rounded-xl shadow-lg p-4 text-white relative overflow-hidden ${
-        subject === "Math" || subject === "Science" ? "bg-gradient-to-r from-blue-500 to-blue-700" : "bg-gradient-to-r from-orange-500 to-red-500"
+      className={`rounded-xl shadow-lg p-4 text-gray-900 relative overflow-hidden bg-gradient-to-r ${
+        subject === "Math" || subject === "Science"
+          ? "from-[#dbeafe] to-[#e0f2fe]"  // Soft blue
+          : "from-[#ffe5d9] to-[#ffe0ec]"  // Peach-pink gradient
       }`}
     >
       {/* NEW badge */}
@@ -34,13 +37,12 @@ const RecordingCard: React.FC<Recording> = ({ title, subject, date, fileUrl, vie
       <p className="text-sm">📅 {date}</p>
       <p className="text-sm">👁️ {views} views</p>
 
-      {/* Price & Download Button */}
+      {/* Download Button */}
       <div className="flex justify-between items-center mt-4">
-       
         <a
           href={fileUrl}
           download
-          className="bg-white text-black text-sm px-3 py-1 rounded hover:bg-gray-100 transition"
+          className="bg-black text-white text-sm px-3 py-1 rounded hover:bg-gray-800 transition"
         >
           ⬇ Download
         </a>
@@ -75,10 +77,8 @@ const RecordingCardPage: React.FC = () => {
   ];
 
   return (
-    <div className="p-6 min-h-screen bg-black text-white">
-      <h1 className="text-center text-xl font-semibold mb-6">
-       
-      </h1>
+    <div className="p-6 min-h-screen bg-gradient-to-br from-[#fffefb] via-[#fdf5f0] to-[#f5f7fd] text-gray-900">
+      <h1 className="text-center text-2xl font-bold mb-6">📼 Class Recordings</h1>
       <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {recordings.map((rec, index) => (
           <RecordingCard key={index} {...rec} />
@@ -90,3 +90,85 @@ const RecordingCardPage: React.FC = () => {
 
 export default RecordingCardPage;
 
+
+
+
+// import React, { useEffect, useState } from "react";
+// import { useParams } from "react-router-dom";
+// import { getRecordings } from "@/utils/storage";
+// import { Recording } from "@/types";
+
+// const RecordingWatchPage = () => {
+//   const { id } = useParams();
+//   const [recording, setRecording] = useState<Recording | null>(null);
+
+//   useEffect(() => {
+//     const recordings = getRecordings();
+//     const found = recordings.find((r) => r.id === id);
+//     if (found) setRecording(found);
+//   }, [id]);
+
+//   if (!recording) return <div className="p-10">Recording not found.</div>;
+
+//   return (
+//     <div className="min-h-screen p-8 bg-white text-gray-900">
+//       <h1 className="text-2xl font-bold mb-4">{recording.title}</h1>
+//       <video controls className="w-full max-w-4xl mx-auto rounded">
+//         <source src={recording.url} type="video/mp4" />
+//         Your browser does not support the video tag.
+//       </video>
+//       <div className="mt-4 text-center text-gray-700">
+//         <p><strong>Subject:</strong> {recording.subject}</p>
+//         <p><strong>Date:</strong> {recording.date}</p>
+//         <p><strong>Views:</strong> {recording.views}</p>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default RecordingWatchPage;
+
+
+
+// import React, { useEffect, useState } from "react";
+// import { useParams } from "react-router-dom";
+// import { getRecordings } from "@/utils/storage";
+// import { Recording } from "@/types";
+
+// const RecordingWatchPage = () => {
+//   const { id } = useParams();
+//   const [recording, setRecording] = useState<Recording | null>(null);
+
+//   useEffect(() => {
+//     const recordings = getRecordings();
+//     const found = recordings.find((r) => r.id === id);
+//     if (found) {
+//       // Increase view count
+//       found.views += 1;
+//       setRecording({ ...found });
+
+//       // Save updated list back to localStorage
+//       const updatedList = recordings.map((r) => (r.id === id ? found : r));
+//       localStorage.setItem("recordings", JSON.stringify(updatedList));
+//     }
+//   }, [id]);
+
+//   if (!recording) return <div className="p-10">Recording not found.</div>;
+
+//   return (
+//     <div className="min-h-screen p-8 bg-white text-gray-900">
+//       <h1 className="text-2xl font-bold mb-4">{recording.title}</h1>
+//       <video controls className="w-full max-w-4xl mx-auto rounded">
+//         <source src={recording.url} type="video/mp4" />
+//         Your browser does not support the video tag.
+//       </video>
+//       <div className="mt-4 text-center text-gray-700">
+//         <p><strong>Subject:</strong> {recording.subject}</p>
+//         <p><strong>Date:</strong> {recording.date}</p>
+//         <p><strong>Views:</strong> {recording.views}</p>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default RecordingWatchPage;

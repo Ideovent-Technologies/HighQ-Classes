@@ -1,197 +1,235 @@
 
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/hooks/useAuth";
+
+// import React, { useState } from "react";
+// import { Link } from "react-router-dom";
+// import { Eye, EyeOff } from "lucide-react";
+// import { Input } from "@/components/ui/input";
+// import { Button } from "@/components/ui/button";
+// import characterImage from "@/assets/compressed_dce3b29973cb19153b0a51351ed37b78.webp";
+
+// export default function RegisterForm() {
+//   const [formData, setFormData] = useState({
+//     name: "",
+//     email: "",
+//     mobile: "",
+//     dob: "",
+//     studentType: "",
+//     gender: "",
+//     parentName: "",
+//     parentContact: "",
+//     grade: "",
+//     school: "",
+//     password: "",
+//     confirmPassword: "",
+//   });
+
+//   const [showPassword, setShowPassword] = useState(false);
+//   const [isSubmitting, setIsSubmitting] = useState(false);
+
+//   const toggleShowPassword = () => setShowPassword((prev) => !prev);
+
+//   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+//     setFormData({ ...formData, [e.target.name]: e.target.value });
+//   };
+
+//   const handleSubmit = async (e: React.FormEvent) => {
+//     e.preventDefault();
+//     setIsSubmitting(true);
+//     setTimeout(() => setIsSubmitting(false), 2000);
+//   };
+
+//   return (
+//     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#00C6FB] to-[#005BEA] p-6">
+//       <div className="w-full max-w-4xl flex items-center bg-white/10 rounded-2xl shadow-2xl p-8 md:p-12 backdrop-blur-md">
+//         {/* Left Section with Image */}
+//         <div className="hidden md:flex w-1/2 flex-col items-center justify-center text-center text-white px-4 space-y-4">
+//           <img
+//             src={characterImage}
+//             alt="3D Character"
+//             className="w-[95%] h-auto object-contain mt-2 transition-transform duration-500 ease-in-out hover:-translate-y-2"
+//           />
+//         </div>
+
+//         {/* Register Form Section */}
+//         <div className="w-full md:w-1/2 text-white">
+//           <form onSubmit={handleSubmit} className="space-y-4">
+//             <div className="mb-4">
+//               <h2 className="text-2xl font-bold text-white">Create your account</h2>
+//               <p className="text-sm text-white/80">
+//                 Or <Link to="/login" className="underline">sign in to your existing account</Link>
+//               </p>
+//             </div>
+
+//             <Input name="name" placeholder="Full Name" value={formData.name} onChange={handleChange} required className="bg-white/20 text-white placeholder:text-white/70 border border-white/30" />
+
+//             <Input name="email" type="email" placeholder="Email Address" value={formData.email} onChange={handleChange} required className="bg-white/20 text-white placeholder:text-white/70 border border-white/30" />
+
+//             <Input name="mobile" placeholder="Mobile Number (10 digits)" value={formData.mobile} onChange={handleChange} required className="bg-white/20 text-white placeholder:text-white/70 border border-white/30" />
+
+//             <select name="studentType" value={formData.studentType} onChange={handleChange} required className="w-full p-2 rounded-md bg-white/30 text-white border border-white/30">
+//               <option value="">Role</option>
+//               <option value="student">Student</option>
+//             </select>
+
+//             <div className="flex gap-4">
+//               <select name="gender" value={formData.gender} onChange={handleChange} required className="w-1/2 p-2 rounded-md bg-white/30 text-white border border-white/30">
+//                 <option value="">Select Gender</option>
+//                 <option value="male">Male</option>
+//                 <option value="female">Female</option>
+//                 <option value="other">Other</option>
+//               </select>
+
+//               <Input name="dob" type="date" value={formData.dob} onChange={handleChange} required className="w-1/2 bg-white/30 text-white border border-white/30" />
+//             </div>
+
+//             <Input name="parentName" placeholder="Parent/Guardian Name" value={formData.parentName} onChange={handleChange} required className="bg-white/20 text-white placeholder:text-white/70 border border-white/30" />
+
+//             <Input name="parentContact" placeholder="Parent Contact Number (10 digits)" value={formData.parentContact} onChange={handleChange} required className="bg-white/20 text-white placeholder:text-white/70 border border-white/30" />
+
+//             <div className="flex gap-4">
+//               <Input name="grade" placeholder="Grade/Class (e.g., 10th, 12th)" value={formData.grade} onChange={handleChange} required className="w-1/2 bg-white/20 text-white placeholder:text-white/70 border border-white/30" />
+
+//               <Input name="school" placeholder="School Name" value={formData.school} onChange={handleChange} required className="w-1/2 bg-white/20 text-white placeholder:text-white/70 border border-white/30" />
+//             </div>
+
+//             <div className="relative">
+//               <Input type={showPassword ? "text" : "password"} name="password" placeholder="Enter your password" value={formData.password} onChange={handleChange} required className="bg-white/20 text-white placeholder:text-white/70 border border-white/30" />
+//               <button type="button" onClick={toggleShowPassword} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70">
+//                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+//               </button>
+//             </div>
+
+//             <Input type="password" name="confirmPassword" placeholder="Confirm your password" value={formData.confirmPassword} onChange={handleChange} required className="bg-white/20 text-white placeholder:text-white/70 border border-white/30" />
+
+//             <Button type="submit" className="w-full bg-white text-[#005BEA] font-semibold hover:bg-gray-200 transition mt-4" disabled={isSubmitting}>
+//               {isSubmitting ? "Creating Account..." : "Create Account"}
+//             </Button>
+
+//             <p className="text-sm mt-4 text-center text-white/80">
+//               <Link to="/forgot-password" className="underline">Forgot your password?</Link>
+//             </p>
+//           </form>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+
+
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import characterImage from "@/assets/compressed_dce3b29973cb19153b0a51351ed37b78.webp";
 
-const Register = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+export default function RegisterForm() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    mobile: "",
+    dob: "",
+    studentType: "",
+    gender: "",
+    parentName: "",
+    parentContact: "",
+    grade: "",
+    school: "",
+    password: "",
+    confirmPassword: "",
+  });
+
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [passwordError, setPasswordError] = useState("");
-  
-  const { register } = useAuth();
-  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const validatePassword = () => {
-    if (password !== confirmPassword) {
-      setPasswordError("Passwords do not match");
-      return false;
-    }
-    if (password.length < 6) {
-      setPasswordError("Password must be at least 6 characters");
-      return false;
-    }
-    setPasswordError("");
-    return true;
+  const toggleShowPassword = () => setShowPassword((prev) => !prev);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validatePassword()) {
-      return;
-    }
-    
     setIsSubmitting(true);
-
-    try {
-      await register(name, email, password);
-      navigate('/dashboard');
-    } catch (error) {
-      console.error("Registration failed:", error);
-      // Toast is handled in the useAuth hook
-    } finally {
-      setIsSubmitting(false);
-    }
+    setTimeout(() => setIsSubmitting(false), 2000);
   };
 
   return (
-    <div className="min-h-[calc(100vh-180px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
-          <CardDescription className="text-center">
-            Enter your details to register for BloomScholar
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1A2540] to-[#0f172a] p-6">
+      <div className="w-full max-w-4xl flex items-center bg-white/10 rounded-2xl shadow-2xl p-8 md:p-12 backdrop-blur-md">
+        {/* Left Section with Image */}
+        <div className="hidden md:flex w-1/2 flex-col items-center justify-center text-center text-white px-4 space-y-4">
+          <img
+            src={characterImage}
+            alt="3D Character"
+            className="w-[95%] h-auto object-contain mt-2 transition-transform duration-500 ease-in-out hover:-translate-y-2"
+          />
+        </div>
+
+        {/* Register Form Section */}
+        <div className="w-full md:w-1/2 text-white">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium leading-none">
-                Full Name
-              </label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="Enter your full name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium leading-none">
-                Email
-              </label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium leading-none">
-                Password
-              </label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Create a password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <button 
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-              <p className="text-xs text-gray-500">Password must be at least 6 characters</p>
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="confirm-password" className="text-sm font-medium leading-none">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <Input
-                  id="confirm-password"
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Confirm your password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                />
-                <button 
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-              {passwordError && (
-                <p className="text-sm text-red-500">{passwordError}</p>
-              )}
+            <div className="mb-4">
+              <h2 className="text-2xl font-bold" style={{ color: "#F97316" }}>
+                Create your account
+              </h2>
+              <p className="text-sm text-white/80">
+                Or <Link to="/login" className="underline">sign in to your existing account</Link>
+              </p>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="terms"
-                className="h-4 w-4 rounded border-gray-300 text-navy-600 focus:ring-navy-500"
-                required
-              />
-              <label htmlFor="terms" className="text-sm text-gray-600">
-                I agree to the{" "}
-                <a href="#" className="text-navy-600 hover:text-navy-500">
-                  Terms of Service
-                </a>{" "}
-                and{" "}
-                <a href="#" className="text-navy-600 hover:text-navy-500">
-                  Privacy Policy
-                </a>
-              </label>
+            <Input name="name" placeholder="Full Name" value={formData.name} onChange={handleChange} required className="bg-white/20 text-white placeholder:text-white/70 border border-white/30" />
+
+            <Input name="email" type="email" placeholder="Email Address" value={formData.email} onChange={handleChange} required className="bg-white/20 text-white placeholder:text-white/70 border border-white/30" />
+
+            <Input name="mobile" placeholder="Mobile Number (10 digits)" value={formData.mobile} onChange={handleChange} required className="bg-white/20 text-white placeholder:text-white/70 border border-white/30" />
+
+            <select name="studentType" value={formData.studentType} onChange={handleChange} required className="w-full p-2 rounded-md bg-white/30 text-white border border-white/30">
+              <option value="">Role</option>
+              <option value="student">Student</option>
+            </select>
+
+            <div className="flex gap-4">
+              <select name="gender" value={formData.gender} onChange={handleChange} required className="w-1/2 p-2 rounded-md bg-white/30 text-white border border-white/30">
+                <option value="">Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+
+              <Input name="dob" type="date" value={formData.dob} onChange={handleChange} required className="w-1/2 bg-white/30 text-white border border-white/30" />
             </div>
 
-            <div className="pt-2">
-              <Button
-                type="submit"
-                className="w-full bg-navy-500 hover:bg-navy-600"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Creating account..." : "Create account"}
-              </Button>
-            </div>
-          </form>
+            <Input name="parentName" placeholder="Parent/Guardian Name" value={formData.parentName} onChange={handleChange} required className="bg-white/20 text-white placeholder:text-white/70 border border-white/30" />
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Already have an account?{" "}
-              <Link to="/login" className="font-medium text-navy-600 hover:text-navy-500">
-                Sign in
-              </Link>
+            <Input name="parentContact" placeholder="Parent Contact Number (10 digits)" value={formData.parentContact} onChange={handleChange} required className="bg-white/20 text-white placeholder:text-white/70 border border-white/30" />
+
+            <div className="flex gap-4">
+              <Input name="grade" placeholder="Grade/Class (e.g., 10th, 12th)" value={formData.grade} onChange={handleChange} required className="w-1/2 bg-white/20 text-white placeholder:text-white/70 border border-white/30" />
+              <Input name="school" placeholder="School Name" value={formData.school} onChange={handleChange} required className="w-1/2 bg-white/20 text-white placeholder:text-white/70 border border-white/30" />
+            </div>
+
+            <div className="relative">
+              <Input type={showPassword ? "text" : "password"} name="password" placeholder="Enter your password" value={formData.password} onChange={handleChange} required className="bg-white/20 text-white placeholder:text-white/70 border border-white/30" />
+              <button type="button" onClick={toggleShowPassword} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70">
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+
+            <Input type="password" name="confirmPassword" placeholder="Confirm your password" value={formData.confirmPassword} onChange={handleChange} required className="bg-white/20 text-white placeholder:text-white/70 border border-white/30" />
+
+            <Button type="submit" className="w-full bg-white text-[#005BEA] font-semibold hover:bg-gray-200 transition mt-4" disabled={isSubmitting}>
+              {isSubmitting ? "Creating Account..." : "Create Account"}
+            </Button>
+
+            <p className="text-sm mt-4 text-center text-white/80">
+              <Link to="/forgot-password" className="underline">Forgot your password?</Link>
             </p>
-          </div>
-        </CardContent>
-      </Card>
+          </form>
+        </div>
+      </div>
     </div>
   );
-};
-
-export default Register;
+}
