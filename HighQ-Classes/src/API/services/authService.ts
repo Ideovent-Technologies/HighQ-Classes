@@ -1,4 +1,5 @@
 import api from '../Axios';
+import { AxiosError } from 'axios';
 
 export interface LoginCredentials {
   email: string;
@@ -111,14 +112,28 @@ class AuthService {
 
   // Register user
   async register(userData: RegisterData): Promise<AuthResponse> {
-    const response = await api.post('/auth/register', userData);
-    
-    // Note: Registration doesn't return token immediately due to approval process
-    return {
-      success: response.data.success,
-      message: response.data.message,
-      user: response.data.data
-    };
+    try {
+      const response = await api.post('/auth/register', userData);
+      
+      // Note: Registration doesn't return token immediately due to approval process
+      return {
+        success: response.data.success,
+        message: response.data.message,
+        user: response.data.data
+      };
+    } catch (error: unknown) {
+      console.error('Registration error:', error);
+      
+      // Type guard for axios error
+      const axiosError = error as AxiosError<{message: string}>;
+      
+      // Return error response from backend or generic error
+      return {
+        success: false,
+        message: axiosError.response?.data?.message || 'Registration failed. Please try again.',
+        user: null
+      };
+    }
   }
 
   // Logout user

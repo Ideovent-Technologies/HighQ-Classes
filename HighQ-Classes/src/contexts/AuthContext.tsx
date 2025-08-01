@@ -28,6 +28,7 @@ type AuthAction =
     | { type: "AUTH_ERROR"; payload: string }
     | { type: "AUTH_LOGOUT" }
     | { type: "CLEAR_ERROR" }
+    | { type: "REGISTER_SUCCESS" }
     | { type: "UPDATE_USER"; payload: User };
 
 // Define the context type
@@ -88,6 +89,14 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
             return {
                 ...state,
                 user: action.payload,
+            };
+        case "REGISTER_SUCCESS":
+            return {
+                ...state,
+                user: null,
+                isAuthenticated: false,
+                isLoading: false,
+                error: null,
             };
         case "CLEAR_ERROR":
             return {
@@ -173,12 +182,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             if (response.success) {
                 // Registration successful but user needs approval (except admin)
                 // Don't set user as authenticated until approved
-                dispatch({
-                    type: "AUTH_ERROR",
-                    payload:
-                        response.message ||
-                        "Registration successful! Please wait for approval.",
-                });
+                // Clear any errors and set loading to false
+                dispatch({ type: "REGISTER_SUCCESS" });
                 return true;
             } else {
                 dispatch({
