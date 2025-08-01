@@ -14,7 +14,8 @@ import {
     addTeacher,
     updateTeacher,
     deleteTeacher,
-    CreateUser // ⬅️ Make sure this exists in your adminController
+    CreateUser ,
+    getAdminProfile
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -25,6 +26,7 @@ router.use(authorize('admin'));
 
 // Admin dashboard
 router.get("/dashboard", getAdminDashboard);
+router.get("/profile", getAdminProfile);
 
 // Users
 router.post("/user", validateAdminCreateUser, CreateUser); // ✅ new
