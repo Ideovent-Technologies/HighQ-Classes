@@ -49,6 +49,7 @@ export interface User {
   profilePicture?: string;
   status?: string;
   lastLogin?: string;
+  accessToken: string;
 }
 
 export interface AuthResponse {
