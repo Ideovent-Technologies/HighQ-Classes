@@ -86,10 +86,61 @@ const Register: React.FC = () => {
             return;
         }
 
+        // Validate password strength
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
+        if (!passwordRegex.test(formData.password)) {
+            setPasswordError(
+                "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+            );
+            return;
+        }
+
+        // Additional validation for role-specific required fields
+        if (formData.role === "student") {
+            if (
+                !formData.parentName ||
+                !formData.parentContact ||
+                !formData.grade ||
+                !formData.schoolName
+            ) {
+                setPasswordError(
+                    "Please fill all required student fields (Parent Name, Parent Contact, Grade, School Name)"
+                );
+                return;
+            }
+        }
+
+        if (formData.role === "teacher") {
+            if (
+                !formData.employeeId ||
+                !formData.qualification ||
+                !formData.department ||
+                !formData.specialization
+            ) {
+                setPasswordError(
+                    "Please fill all required teacher fields (Employee ID, Qualification, Department, Specialization)"
+                );
+                return;
+            }
+        }
+
+        if (formData.role === "admin") {
+            if (
+                !formData.employeeId ||
+                !formData.adminDepartment ||
+                !formData.designation
+            ) {
+                setPasswordError(
+                    "Please fill all required admin fields (Employee ID, Department, Designation)"
+                );
+                return;
+            }
+        }
+
         setIsLoading(true);
 
         try {
-            const { confirmPassword, ...baseData } = formData;
+            const { confirmPassword, adminDepartment, ...baseData } = formData;
 
             // Prepare role-specific data
             let registerData: RegisterData = {
@@ -104,8 +155,8 @@ const Register: React.FC = () => {
             if (baseData.role === "student") {
                 registerData = {
                     ...registerData,
-                    gender: baseData.gender,
-                    dateOfBirth: baseData.dateOfBirth,
+                    gender: baseData.gender || undefined,
+                    dateOfBirth: baseData.dateOfBirth || undefined,
                     parentName: baseData.parentName,
                     parentContact: baseData.parentContact,
                     grade: baseData.grade,
@@ -120,21 +171,24 @@ const Register: React.FC = () => {
                     experience: parseInt(baseData.experience) || 0,
                     specialization: baseData.specialization,
                     department: baseData.department,
-                    bio: baseData.bio,
+                    bio: baseData.bio || undefined,
                 };
             } else if (baseData.role === "admin") {
                 registerData = {
                     ...registerData,
                     employeeId: baseData.employeeId,
-                    department: baseData.adminDepartment,
+                    department: adminDepartment, // Use adminDepartment for admin role
                     designation: baseData.designation,
                     accessLevel: baseData.accessLevel,
                 };
             }
 
-            const success = await register(registerData);
+            console.log("Sending registration data:", registerData); // Debug log
 
-            if (success) {
+            const response = await register(registerData);
+            console.log("Registration response:", response); // Debug log
+
+            if (response) {
                 // Registration successful - redirect to login with success message
                 navigate("/login", {
                     replace: true,
@@ -633,6 +687,10 @@ const Register: React.FC = () => {
                                 value={formData.password}
                                 onChange={handleChange}
                             />
+                            <p className="mt-1 text-xs text-gray-500">
+                                Password must contain at least one uppercase
+                                letter, one lowercase letter, and one number
+                            </p>
                         </div>
 
                         <div>

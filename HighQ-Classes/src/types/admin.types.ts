@@ -34,25 +34,27 @@ export interface UserPreferences {
   language?: string;
 }
 
+// ✅ Admin-specific user profile
 export interface AdminUser extends BaseUser {
   role: 'admin';
+
   // Administrative Information
   employeeId?: string;
   designation: string;
   department: string;
   accessLevel?: number;
-  
+
   // Personal Information
   dateOfBirth?: string;
   gender?: 'male' | 'female' | 'other';
   address?: Address;
-  
+
   // Administrative Data
   permissions?: string[];
   managedDepartments?: string[];
   joinDate?: string;
-  
-  // System metrics (for dashboard)
+
+  // Dashboard-specific data — optional here
   systemStats?: {
     totalStudents: number;
     totalTeachers: number;
@@ -61,4 +63,23 @@ export interface AdminUser extends BaseUser {
     activeUsers: number;
     pendingApprovals: number;
   };
+}
+
+// ✅ New type for dashboard response
+export interface DashboardData {
+  totalStudents: number;
+  feeCollection: number;
+  pendingDues: number;
+  totalTeachers: number;
+  recentPayments: {
+    name: string;
+    amount: number;
+    batch: string;
+    time: string;
+  }[];
+  pendingStudents: {
+    name: string;
+    amount: number;
+    dueDate: string;
+  }[];
 }

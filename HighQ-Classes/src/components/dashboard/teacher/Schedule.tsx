@@ -8,10 +8,16 @@ const Schedule = () => {
 
   if (loading)
     return <div className="p-6 text-lg font-medium">Loading schedule...</div>;
+
   if (error)
     return <div className="p-6 text-red-500">Error: {error}</div>;
 
-  const todaySchedule = data?.todaySchedule || [];
+  // Ensure it's always an array (even if data is undefined or corrupted)
+  const todaySchedule = Array.isArray(data?.todaySchedule)
+    ? data.todaySchedule
+    : [];
+
+  console.log("Rendering schedule, length:", todaySchedule.length);
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">

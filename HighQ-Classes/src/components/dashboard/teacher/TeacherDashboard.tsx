@@ -85,7 +85,7 @@ const TeacherDashboard = () => {
     {
       title: "Total Students",
       value: totalStudents,
-      subtitle: "Across all batches",
+      subtitle: `${Object.keys(assignedStudents).length} batches assigned`,
       to: "/dashboard/my-students",
       icon: <Users className="h-6 w-6 text-navy-500" />,
       gradient: "linear-gradient(135deg, #f0f9ff, #cbebff)",
@@ -93,14 +93,17 @@ const TeacherDashboard = () => {
     {
       title: "Classes Today",
       value: todaySchedule.length,
-      subtitle: todaySchedule[0]?.courseId?.title || "No classes scheduled",
+      subtitle:
+        todaySchedule.length > 0
+          ? todaySchedule[0]?.courseId?.name || "Scheduled class"
+          : "No classes scheduled",
       to: "/dashboard/schedule",
       icon: <Clock className="h-6 w-6 text-navy-500" />,
       gradient: "linear-gradient(135deg, #e5fbea, #c6f6d5)",
     },
     {
       title: "Study Materials",
-      value: materialsSummary.totalUploaded || 0,
+      value: materialsSummary?.totalUploaded ?? 0,
       subtitle: "Uploaded by you",
       to: "/dashboard/upload-materials",
       icon: <FileText className="h-6 w-6 text-navy-500" />,
@@ -108,7 +111,7 @@ const TeacherDashboard = () => {
     },
     {
       title: "Recordings",
-      value: recordingsSummary.totalActive || 0,
+      value: recordingsSummary?.totalActive ?? 0,
       subtitle: "Currently active",
       to: "/dashboard/recordings",
       icon: <Video className="h-6 w-6 text-navy-500" />,
@@ -116,7 +119,7 @@ const TeacherDashboard = () => {
     },
     {
       title: "Notices",
-      value: recentNotices.length,
+      value: recentNotices?.length ?? 0,
       subtitle: "Recent notices posted",
       to: "/dashboard/notices",
       icon: <Bell className="h-6 w-6 text-navy-500" />,
@@ -124,7 +127,7 @@ const TeacherDashboard = () => {
     },
     {
       title: "Batches Assigned",
-      value: assignedBatches.length,
+      value: assignedBatches?.length ?? 0,
       subtitle: "Managed by you",
       to: "/dashboard/batches",
       icon: <BookOpen className="h-6 w-6 text-navy-500" />,
@@ -134,7 +137,9 @@ const TeacherDashboard = () => {
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      <div className="text-3xl font-bold text-navy-700">📊 Teacher Dashboard</div>
+      <div className="text-3xl font-bold text-navy-700">
+        📊 Teacher Dashboard
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {statCards.map((card) => (
           <StatCard key={card.title} {...card} />
