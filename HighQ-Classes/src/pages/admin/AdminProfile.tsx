@@ -1,38 +1,60 @@
-// src/pages/admin/AdminProfile.tsx
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import AdminService from "@/API/services/AdminService";
-import { AdminUser } from "@/types/admin.types";
+import { AdminUser } from "@/types/admin.types"; // Using your defined type
 
 // UI Components from shadcn/ui and lucide-react
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-    User, MapPin, Calendar, Shield, Users, BookOpen, Building, Camera, Edit, Save, X, Settings, BarChart3, UserCheck, Loader2
+    User, Calendar, Shield, Building, Edit, Save, X, Settings, Loader2, Lock, Unlock, CheckCircle, XCircle, Mail, Phone, KeyRound, Briefcase, AtSign, Fingerprint
 } from "lucide-react";
 
-// Helper function to format date strings for input type="date"
-const formatDateForInput = (dateString?: string): string => {
-    if (!dateString) return "";
-    try {
-        return new Date(dateString).toISOString().split('T')[0];
-    } catch (error) {
-        return "";
-    }
-};
+// =================================================================================
+// 1. HELPER COMPONENTS FOR ENHANCED DESIGN
+// =================================================================================
+
+/**
+ * A visually appealing list item with an icon for displaying user details.
+ */
+const InfoListItem: React.FC<{ icon: React.ElementType; label: string; value?: React.ReactNode; }> = ({ icon: Icon, label, value }) => (
+    <div className="flex items-start space-x-4 py-3">
+        <Icon className="h-5 w-5 mt-1 text-muted-foreground" />
+        <div className="flex-grow">
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="text-md font-medium">{value || "Not specified"}</p>
+        </div>
+    </div>
+);
+
+/**
+ * A styled card to clearly indicate boolean access rights (granted/denied).
+ */
+const AccessRightCard: React.FC<{ label: string; granted?: boolean }> = ({ label, granted }) => (
+    <div className={`flex items-center space-x-3 p-4 rounded-lg border ${granted ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'}`}>
+        {granted ? (
+            <CheckCircle className="h-6 w-6 text-green-600" />
+        ) : (
+            <XCircle className="h-6 w-6 text-red-600" />
+        )}
+        <span className={`font-medium ${granted ? 'text-green-800 dark:text-green-300' : 'text-red-800 dark:text-red-300'}`}>{label}</span>
+    </div>
+);
+
+// =================================================================================
+// 2. MAIN ADMIN PROFILE COMPONENT WITH NEW DESIGN
+// =================================================================================
 
 const AdminProfile: React.FC = () => {
     const { state } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
-    const [isLoading, setIsLoading] = useState(true); // Start with loading true
+    const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     
     const [profileData, setProfileData] = useState<Partial<AdminUser>>({});
@@ -45,76 +67,58 @@ const AdminProfile: React.FC = () => {
                     const response = await AdminService.getAdminProfile();
                     if (response.success && response.admin) {
                         setProfileData(response.admin);
+                        setInitialProfileData(response.admin);
                     } else {
-                        console.error("Failed to fetch admin profile:", response.message);
-                        // Fallback to auth context data if API fails
                         setProfileData(state.user as AdminUser);
+                        setInitialProfileData(state.user as AdminUser);
                     }
                 } catch (error) {
-                    console.error("Unexpected error while fetching profile:", error);
+                    console.error("Error fetching profile:", error);
                     setProfileData(state.user as AdminUser);
+                    setInitialProfileData(state.user as AdminUser);
                 } finally {
                     setIsLoading(false);
                 }
             } else {
-                setIsLoading(false); // Not an admin or no user
+                setIsLoading(false);
             }
         }
-        
         fetchProfile();
     }, [state.user]);
 
     const handleEdit = () => {
-        setInitialProfileData(profileData); // Save the current state before editing
         setIsEditing(true);
     };
 
     const handleCancel = () => {
-        setProfileData(initialProfileData); // Restore the original state
+        setProfileData(initialProfileData); // Restore original data
         setIsEditing(false);
     };
 
     const handleSave = async () => {
         setIsSaving(true);
+        console.log("Saving changes:", profileData);
         try {
-            // Uncomment the following line to make a real API call
-            // const response = await AdminService.updateAdminProfile(profileData);
-            
-            // Simulating API call for demonstration
+            // In a real app: await AdminService.updateAdminProfile(profileData);
             await new Promise(resolve => setTimeout(resolve, 1000));
-            const response = { success: true, admin: profileData, message: "Profile updated successfully!" };
-
-            if (response.success) {
-                setProfileData(response.admin ?? profileData);
-                setIsEditing(false);
-                // Here you would typically show a success toast/notification
-                alert(response.message);
-            } else {
-                console.error("Failed to save profile:", response.message);
-                alert(`Error: ${response.message}`);
-            }
+            alert("Profile saved successfully!");
+            setInitialProfileData(profileData); // Update the base data after save
+            setIsEditing(false);
         } catch (error) {
             console.error("Error saving profile:", error);
-            alert("An unexpected error occurred while saving.");
+            alert("An error occurred while saving.");
         } finally {
             setIsSaving(false);
         }
     };
-
+    
     const handleInputChange = (field: keyof AdminUser, value: any) => {
         setProfileData((prev) => ({ ...prev, [field]: value }));
     };
 
-    const handleAddressChange = (field: keyof NonNullable<AdminUser['address']>, value: string) => {
-        setProfileData((prev) => ({
-            ...prev,
-            address: { ...prev.address, [field]: value },
-        }));
-    };
-
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
+            <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-900">
                 <Loader2 className="h-16 w-16 animate-spin text-primary" />
             </div>
         );
@@ -124,148 +128,116 @@ const AdminProfile: React.FC = () => {
         return (
             <div className="container mx-auto px-4 py-8 text-center">
                 <h1 className="text-2xl font-bold">Unauthorized Access</h1>
-                <p className="text-gray-600 mt-2">You do not have permission to view this page.</p>
             </div>
         );
     }
 
     return (
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Admin Profile</h1>
-                    <p className="text-gray-600 mt-1">Manage your administrative information and system access.</p>
-                </div>
-                <div className="flex space-x-2">
-                    {isEditing ? (
-                        <>
-                            <Button onClick={handleSave} disabled={isSaving}>
-                                {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                                Save Changes
-                            </Button>
-                            <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
-                                <X className="mr-2 h-4 w-4" /> Cancel
-                            </Button>
-                        </>
-                    ) : (
-                        <Button onClick={handleEdit}>
-                            <Edit className="mr-2 h-4 w-4" /> Edit Profile
-                        </Button>
-                    )}
-                </div>
-            </div>
-
-            <Tabs defaultValue="personal" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
-                    <TabsTrigger value="personal">Personal Info</TabsTrigger>
-                    <TabsTrigger value="administrative">Administrative</TabsTrigger>
-                    <TabsTrigger value="permissions">Permissions</TabsTrigger>
-                    <TabsTrigger value="system">System Overview</TabsTrigger>
-                </TabsList>
-
-                {/* Personal Info Tab */}
-                <TabsContent value="personal" className="space-y-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <Card className="flex flex-col items-center justify-center p-6">
-                            <Avatar className="h-32 w-32 border-4 border-primary/20">
-                                <AvatarImage src={profileData.profilePicture} alt={profileData.name} />
-                                <AvatarFallback className="text-4xl">
-                                    {profileData.name?.charAt(0).toUpperCase()}
-                                </AvatarFallback>
-                            </Avatar>
-                            {isEditing && (
-                                <Button variant="outline" size="sm" className="mt-4">
-                                    <Camera className="mr-2 h-4 w-4" /> Change Photo
+        <div className="bg-slate-50 dark:bg-slate-900 min-h-screen">
+            <div className="container mx-auto px-4 py-8 max-w-7xl">
+                
+                {/* === Profile Header Card === */}
+                <Card className="w-full mb-8 shadow-sm overflow-hidden border-none bg-card">
+                    <div className="relative h-32 bg-gradient-to-r from-slate-800 to-slate-900">
+                         {/* Action Buttons */}
+                         <div className="absolute top-4 right-4 flex space-x-2">
+                            {isEditing ? (
+                                <>
+                                    <Button onClick={handleSave} disabled={isSaving} size="sm" className="bg-white text-slate-900 hover:bg-slate-200">
+                                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                                        Save
+                                    </Button>
+                                    <Button variant="ghost" onClick={handleCancel} disabled={isSaving} size="sm" className="text-white hover:bg-white/20 hover:text-white">
+                                        <X className="mr-2 h-4 w-4" /> Cancel
+                                    </Button>
+                                </>
+                            ) : (
+                                <Button onClick={handleEdit} size="sm" variant="outline" className="bg-white/10 text-white border-white/20 hover:bg-white/20">
+                                    <Edit className="mr-2 h-4 w-4" /> Edit Profile
                                 </Button>
                             )}
-                            <div className="flex flex-col items-center space-y-2 mt-4">
-                                <Badge variant={profileData.status === "active" ? "default" : "secondary"}>
-                                    {profileData.status?.toUpperCase()}
-                                </Badge>
-                                <Badge variant="outline" className="text-primary border-primary">
-                                    <Shield className="mr-1 h-3 w-3" /> ADMIN
+                        </div>
+                    </div>
+                    <div className="p-6 pt-0 flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6 -mt-16">
+                        <Avatar className="h-32 w-32 border-4 border-white dark:border-slate-800 shadow-lg">
+                            <AvatarImage src={profileData.profilePicture} alt={profileData.name} />
+                            <AvatarFallback className="text-3xl bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+                                {profileData.name?.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-grow text-center sm:text-left pt-16 sm:pt-4">
+                            <h1 className="text-5xl font-bold text-slate-800 dark:text-slate-100">{profileData.name}</h1>
+                            <p className="text-md text-muted-foreground">{profileData.designation}</p>
+                            <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-3">
+                                <Badge variant="default"><Shield className="mr-1.5 h-3 w-3"/>{profileData.role?.toUpperCase()}</Badge>
+                                <Badge variant={profileData.status === "active" ? "secondary" : "destructive"}>{profileData.status?.toUpperCase()}</Badge>
+                                <Badge variant={profileData.isLocked ? "destructive" : "secondary"}>
+                                    {profileData.isLocked ? <Lock className="mr-1.5 h-3 w-3" /> : <Unlock className="mr-1.5 h-3 w-3" />}
+                                    {profileData.isLocked ? "Locked" : "Unlocked"}
                                 </Badge>
                             </div>
-                        </Card>
+                        </div>
+                    </div>
+                </Card>
 
-                        <Card className="lg:col-span-2">
+                <Tabs defaultValue="overview" className="space-y-6">
+                    <TabsList className="bg-background/60 backdrop-blur-sm border rounded-lg p-1.5">
+                        <TabsTrigger value="overview">Overview</TabsTrigger>
+                        <TabsTrigger value="edit">Edit Profile & Access</TabsTrigger>
+                        <TabsTrigger value="settings">Security</TabsTrigger>
+                    </TabsList>
+                    
+                    {/* === Overview Tab === */}
+                    <TabsContent value="overview" className="space-y-6">
+                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center"><User className="mr-2 h-5 w-5" /> Basic Information</CardTitle>
+                                <CardTitle>System Access Rights</CardTitle>
+                                <CardDescription>Key permissions granted to this administrative account.</CardDescription>
                             </CardHeader>
-                            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <AccessRightCard label="Manage Users" granted={profileData.systemSettings?.canManageUsers} />
+                                <AccessRightCard label="Manage Roles" granted={profileData.systemSettings?.canManageRoles} />
+                                <AccessRightCard label="Access Reports" granted={profileData.systemSettings?.canAccessReports} />
+                                <AccessRightCard label="Manage System" granted={profileData.systemSettings?.canManageSystem} />
+                            </CardContent>
+                        </Card>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <Card>
+                                <CardHeader><CardTitle>Profile Details</CardTitle></CardHeader>
+                                <CardContent className="divide-y divide-border">
+                                    <InfoListItem icon={AtSign} label="Email Address" value={profileData.email} />
+                                    <InfoListItem icon={Phone} label="Mobile Number" value={profileData.mobile} />
+                                    <InfoListItem icon={Fingerprint} label="Employee ID" value={profileData.employeeId} />
+                                    <InfoListItem icon={Briefcase} label="Department" value={profileData.department} />
+                                </CardContent>
+                            </Card>
+                             <Card>
+                                <CardHeader><CardTitle>Account Timeline</CardTitle></CardHeader>
+                                <CardContent className="divide-y divide-border">
+                                    <InfoListItem icon={Calendar} label="Account Created" value={profileData.createdAt ? new Date(profileData.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric'}) : "N/A"} />
+                                    <InfoListItem icon={Calendar} label="Last Login" value={profileData.lastLogin ? new Date(profileData.lastLogin).toLocaleString() : "Never"} />
+                                    <InfoListItem icon={Calendar} label="Last Activity" value={profileData.lastActivity ? new Date(profileData.lastActivity).toLocaleString() : "N/A"} />
+                                    <InfoListItem icon={Mail} label="Email Verified" value={profileData.emailVerified ? "Yes" : "No"} />
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </TabsContent>
+
+                    {/* === Edit Profile & Access Tab === */}
+                    <TabsContent value="edit" className="space-y-6">
+                         <Card>
+                            <CardHeader>
+                                <CardTitle>Edit Profile Information</CardTitle>
+                                <CardDescription>Update basic contact and role information. Click "Edit Profile" in the header to enable fields.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 pt-2">
                                 <div>
                                     <Label htmlFor="name">Full Name</Label>
                                     <Input id="name" value={profileData.name || ""} onChange={(e) => handleInputChange("name", e.target.value)} disabled={!isEditing} />
                                 </div>
                                 <div>
-                                    <Label htmlFor="email">Email Address</Label>
-                                    <Input id="email" type="email" value={profileData.email || ""} disabled // Email should not be editable
-                                    />
-                                </div>
-                                <div>
                                     <Label htmlFor="mobile">Mobile Number</Label>
                                     <Input id="mobile" value={profileData.mobile || ""} onChange={(e) => handleInputChange("mobile", e.target.value)} disabled={!isEditing} />
-                                </div>
-                                <div>
-                                    <Label htmlFor="gender">Gender</Label>
-                                    <Select value={profileData.gender || ""} onValueChange={(value) => handleInputChange("gender", value)} disabled={!isEditing}>
-                                        <SelectTrigger><SelectValue placeholder="Select Gender" /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="male">Male</SelectItem>
-                                            <SelectItem value="female">Female</SelectItem>
-                                            <SelectItem value="other">Other</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="md:col-span-2">
-                                    <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                                    <Input id="dateOfBirth" type="date" value={formatDateForInput(profileData.dateOfBirth)} onChange={(e) => handleInputChange("dateOfBirth", e.target.value)} disabled={!isEditing} />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center"><MapPin className="mr-2 h-5 w-5" /> Address Information</CardTitle>
-                        </CardHeader>
-                        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="md:col-span-2">
-                                <Label htmlFor="street">Street Address</Label>
-                                <Input id="street" value={profileData.address?.street || ""} onChange={(e) => handleAddressChange("street", e.target.value)} disabled={!isEditing} />
-                            </div>
-                            <div>
-                                <Label htmlFor="city">City</Label>
-                                <Input id="city" value={profileData.address?.city || ""} onChange={(e) => handleAddressChange("city", e.target.value)} disabled={!isEditing} />
-                            </div>
-                            <div>
-                                <Label htmlFor="state">State / Province</Label>
-                                <Input id="state" value={profileData.address?.state || ""} onChange={(e) => handleAddressChange("state", e.target.value)} disabled={!isEditing} />
-                            </div>
-                            <div>
-                                <Label htmlFor="zipCode">ZIP / Postal Code</Label>
-                                <Input id="zipCode" value={profileData.address?.zipCode || ""} onChange={(e) => handleAddressChange("zipCode", e.target.value)} disabled={!isEditing} />
-                            </div>
-                            <div>
-                                <Label htmlFor="country">Country</Label>
-                                <Input id="country" value={profileData.address?.country || ""} onChange={(e) => handleAddressChange("country", e.target.value)} disabled={!isEditing} />
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                {/* Administrative Tab */}
-                <TabsContent value="administrative" className="space-y-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center"><Building className="mr-2 h-5 w-5" /> Role & Department</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div>
-                                    <Label htmlFor="employeeId">Employee ID</Label>
-                                    <Input id="employeeId" value={profileData.employeeId || ""} disabled />
                                 </div>
                                 <div>
                                     <Label htmlFor="designation">Designation</Label>
@@ -276,120 +248,56 @@ const AdminProfile: React.FC = () => {
                                     <Select value={profileData.department || ""} onValueChange={(value) => handleInputChange("department", value)} disabled={!isEditing}>
                                         <SelectTrigger><SelectValue placeholder="Select Department" /></SelectTrigger>
                                         <SelectContent>
+                                            <SelectItem value="IT">Information Technology</SelectItem>
                                             <SelectItem value="University Administration">University Administration</SelectItem>
                                             <SelectItem value="Admissions">Admissions</SelectItem>
                                             <SelectItem value="Academics">Academics</SelectItem>
                                             <SelectItem value="Finance">Finance</SelectItem>
-                                            <SelectItem value="IT">Information Technology</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
                             </CardContent>
                         </Card>
-
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center"><Calendar className="mr-2 h-5 w-5" /> Account Timeline</CardTitle>
+                                <CardTitle>Edit Custom Access</CardTitle>
+                                <CardDescription>Assign specific permissions or departmental management roles.</CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <InfoField label="Join Date" value={profileData.joinDate ? new Date(profileData.joinDate).toLocaleDateString() : "N/A"} />
-                                <InfoField label="Last Login" value={profileData.lastLogin ? new Date(profileData.lastLogin).toLocaleString() : "Never"} />
-                                <InfoField label="Account Created" value={profileData.createdAt ? new Date(profileData.createdAt).toLocaleDateString() : "N/A"} />
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium text-gray-700">Email Verified</span>
-                                    <Badge variant={profileData.emailVerified ? "default" : "destructive"}>
-                                        {profileData.emailVerified ? "Verified" : "Not Verified"}
-                                    </Badge>
+                            <CardContent className="space-y-6 pt-2">
+                                <div>
+                                    <Label htmlFor="permissions">Custom Permissions (comma-separated)</Label>
+                                    <Input id="permissions" value={(profileData.permissions || []).join(", ")} onChange={(e) => handleInputChange("permissions", e.target.value.split(',').map(p => p.trim()))} disabled={!isEditing} placeholder="e.g., can_edit_invoices" />
+                                </div>
+                                <div>
+                                    <Label htmlFor="managedDepartments">Managed Departments (comma-separated)</Label>
+                                    <Input id="managedDepartments" value={(profileData.managedDepartments || []).join(", ")} onChange={(e) => handleInputChange("managedDepartments", e.target.value.split(',').map(d => d.trim()))} disabled={!isEditing} placeholder="e.g., Admissions, Finance" />
                                 </div>
                             </CardContent>
                         </Card>
-                    </div>
-                </TabsContent>
-
-                {/* Permissions Tab */}
-                <TabsContent value="permissions" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center"><Shield className="mr-2 h-5 w-5" /> System Permissions & Roles</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                             <div>
-                                <Label htmlFor="permissions">Permissions (comma-separated)</Label>
-                                <Input
-                                    id="permissions"
-                                    value={(profileData.permissions || []).join(", ")}
-                                    onChange={(e) => handleInputChange("permissions", e.target.value.split(',').map(p => p.trim()))}
-                                    disabled={!isEditing}
-                                    placeholder="e.g., user_management, course_management"
-                                />
-                                <div className="flex flex-wrap gap-2 mt-2">
-                                    {(profileData.permissions || []).map((permission) => (
-                                        <Badge key={permission} variant="outline" className="text-primary border-primary">
-                                            <Shield className="mr-1 h-3 w-3" /> {permission}
-                                        </Badge>
-                                    ))}
-                                </div>
-                            </div>
-                            <Separator/>
-                            <div>
-                                <Label htmlFor="managedDepartments">Managed Departments (comma-separated)</Label>
-                                <Input
-                                    id="managedDepartments"
-                                    value={(profileData.managedDepartments || []).join(", ")}
-                                    onChange={(e) => handleInputChange("managedDepartments", e.target.value.split(',').map(d => d.trim()))}
-                                    disabled={!isEditing}
-                                    placeholder="e.g., Admissions, Finance"
-                                />
-                                <div className="flex flex-wrap gap-2 mt-2">
-                                    {(profileData.managedDepartments || []).map((dept) => (
-                                        <Badge key={dept} variant="secondary">
-                                            {dept}
-                                        </Badge>
-                                    ))}
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                {/* System Overview Tab */}
-                <TabsContent value="system" className="space-y-6">
-                    {profileData.systemStats ? (
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                            <StatCard icon={Users} value={profileData.systemStats.totalStudents} label="Students" />
-                            <StatCard icon={UserCheck} value={profileData.systemStats.totalTeachers} label="Teachers" color="text-green-600" />
-                            <StatCard icon={BookOpen} value={profileData.systemStats.totalCourses} label="Courses" color="text-purple-600" />
-                            <StatCard icon={Building} value={profileData.systemStats.totalBatches} label="Batches" color="text-orange-600" />
-                            <StatCard icon={BarChart3} value={profileData.systemStats.activeUsers} label="Active Users" color="text-teal-600" />
-                            <StatCard icon={Shield} value={profileData.systemStats.pendingApprovals} label="Pending" color="text-red-600" />
-                        </div>
-                    ) : (
-                        <p>System statistics are not available.</p>
-                    )}
-                </TabsContent>
-
-            </Tabs>
+                    </TabsContent>
+                    
+                    {/* === Settings Tab === */}
+                    <TabsContent value="settings">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Security Settings</CardTitle>
+                                <CardDescription>Manage your account security and authentication.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4 pt-2">
+                               <div className="flex items-center justify-between p-4 border rounded-lg dark:border-slate-700">
+                                    <div>
+                                        <p className="font-medium">Change Password</p>
+                                        <p className="text-sm text-muted-foreground">It's a good practice to use a strong, unique password.</p>
+                                    </div>
+                                    <Button variant="outline"><KeyRound className="mr-2 h-4 w-4"/>Change Password</Button>
+                               </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
+            </div>
         </div>
     );
 };
-
-// Helper component for readable key-value info display
-const InfoField: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
-    <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-700">{label}</span>
-        <span className="text-sm text-gray-900">{value}</span>
-    </div>
-);
-
-// Helper component for statistics cards
-const StatCard: React.FC<{ icon: React.ElementType; value: number; label: string; color?: string }> = ({ icon: Icon, value, label, color = "text-blue-600" }) => (
-    <Card>
-        <CardContent className="p-4 text-center">
-            <Icon className={`mx-auto h-8 w-8 mb-2 ${color}`} />
-            <div className={`text-2xl font-bold ${color}`}>{value}</div>
-            <p className="text-sm text-gray-600">{label}</p>
-        </CardContent>
-    </Card>
-);
 
 export default AdminProfile;
