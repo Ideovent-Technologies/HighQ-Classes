@@ -45,7 +45,7 @@ const Sidebar = () => {
 
   const commonItems = [
     navItem("/dashboard", <Home className={iconClass} />, "Dashboard"),
-    navItem("/dashboard/profile", <User className={iconClass} />, "Profile"),
+    navItem("/profile", <User className={iconClass} />, "Profile"),
     navItem("/dashboard/notices", <Bell className={iconClass} />, "Notices"),
   ];
 
