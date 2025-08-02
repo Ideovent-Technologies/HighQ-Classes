@@ -12,7 +12,8 @@ import {
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TeacherDashboard from "@/components/dashboard/teacher/TeacherDashboard";
-
+import StudentDashboard from "@/components/dashboard/student/StudentDashboard";
+import AdminDashboard from "@/components/dashboard/admin/AdminDashboard";
 const Dashboard = () => {
     const { state } = useAuth();
     const user = state.user;
@@ -20,12 +21,12 @@ const Dashboard = () => {
 
     const renderDashboard = (): React.ReactNode => {
         switch (user?.role) {
-            //   case "student":
-            //     return <StudentDashboard />;
+            case "student":
+                return <StudentDashboard />;
             case "teacher":
                 return <TeacherDashboard />;
-            //   case "admin":
-            //     return <AdminDashboard />;
+            case "admin":
+                return <AdminDashboard />;
             default:
                 return <div>Unknown user role</div>;
         }
