@@ -1,188 +1,161 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState, ChangeEvent } from "react";
+import { motion } from "framer-motion";
+import { UploadCloud, FileText, BookOpen, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { toast } from "@/components/ui/use-toast";
-import { Loader2, Upload, Video } from "lucide-react";
+
+// Dummy materials data for preview
+const dummyMaterials = [
+  {
+    id: "mat1",
+    title: "Calculus Notes - Chapter 1",
+    subject: "Mathematics",
+    date: "2025-08-01",
+    fileName: "calculus-ch1.pdf",
+  },
+  {
+    id: "mat2",
+    title: "Organic Chemistry Reactions",
+    subject: "Chemistry",
+    date: "2025-08-02",
+    fileName: "organic-reactions.pptx",
+  },
+];
 
 const UploadMaterials = () => {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [file, setFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [materials, setMaterials] = useState<any[]>([]); // Last 3 uploaded materials
-  const [search, setSearch] = useState("");
+  const [formData, setFormData] = useState({
+    title: "",
+    subject: "",
+    file: null as File | null,
+    date: new Date().toISOString().split("T")[0],
+  });
 
-  const handleUpload = async () => {
-    if (!title || !file) {
-      toast({
-        title: "Missing required fields",
-        description: "Please provide a title and a file before uploading.",
-        variant: "destructive",
-      });
+  // Handle input changes
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value, files } = e.target;
+    if (name === "file" && files && files.length > 0) {
+      setFormData((prev) => ({ ...prev, file: files[0] }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  // Handle form submission (placeholder logic)
+  const handleUpload = () => {
+    if (!formData.title || !formData.subject || !formData.file) {
+      alert("Please fill all fields.");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("title", title);
-    formData.append("description", description);
-    formData.append("file", file);
+    // Here you'll send `formData` to the backend
+    alert(`✅ "${formData.title}" uploaded successfully!`);
 
-    setIsUploading(true);
-    try {
-      await axios.post("/api/materials/upload", formData, {
-        withCredentials: true,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      toast({
-        title: "Upload Successful",
-        description: "Your study material has been uploaded.",
-      });
-
-      setTitle("");
-      setDescription("");
-      setFile(null);
-      fetchMaterials(); // Refresh list
-    } catch (err) {
-      console.error("Upload Error:", err);
-      toast({
-        title: "Upload Failed",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUploading(false);
-    }
+    // Reset the form
+    setFormData({
+      title: "",
+      subject: "",
+      file: null,
+      date: new Date().toISOString().split("T")[0],
+    });
   };
-
-  const fetchMaterials = async () => {
-    try {
-      const res = await axios.get("/api/materials?limit=3", { withCredentials: true });
-      setMaterials(res.data || []);
-    } catch (err) {
-      console.error("Fetch Error:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchMaterials();
-  }, []);
-
-  const filteredMaterials = materials.filter((mat) =>
-    mat.title.toLowerCase().includes(search.toLowerCase())
-  );
 
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-8">
-      <h2 className="text-2xl font-bold text-navy-600 flex items-center gap-2">
-        <Upload className="w-6 h-6 text-teal-500" />
-        Upload Study Material
-      </h2>
+    <div className="min-h-screen bg-gradient-to-br from-[#d4e0ff] via-[#f9f4ff] to-[#c4ebff] p-6">
+      {/* Upload form container */}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="max-w-4xl mx-auto bg-white/40 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/30 p-10"
+      >
+        <h2 className="text-4xl font-bold text-center text-[#1A2540] mb-10 drop-shadow-sm">
+          📁 Upload Assignment / Study Material
+        </h2>
 
-      <Card className="shadow-md border border-gray-200">
-        <CardContent className="space-y-5 p-6">
-          <div>
-            <label className="block font-medium text-gray-700 mb-1">Title *</label>
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Input fields */}
+          <div className="space-y-4">
             <Input
-              placeholder="Enter material title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
+              placeholder="Material Title"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              className="bg-white/70 shadow-inner"
             />
-          </div>
-
-          <div>
-            <label className="block font-medium text-gray-700 mb-1">Description</label>
-            <Textarea
-              placeholder="Optional description (e.g., topics covered, purpose)"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+            <Input
+              placeholder="Subject"
+              name="subject"
+              value={formData.subject}
+              onChange={handleChange}
+              className="bg-white/70 shadow-inner"
             />
-          </div>
-
-          <div>
-            <label className="block font-medium text-gray-700 mb-1">File *</label>
+            <Input
+              type="date"
+              name="date"
+              value={formData.date}
+              onChange={handleChange}
+              className="bg-white/70 shadow-inner"
+            />
             <Input
               type="file"
-              accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar,.mp4"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              name="file"
+              accept=".pdf,.docx,.pptx"
+              onChange={handleChange}
+              className="bg-white/70 shadow-inner cursor-pointer"
             />
-            <p className="text-xs text-gray-400 mt-1">
-              Supported formats: PDF, Word, PPT, ZIP, MP4
-            </p>
+            <Button
+              onClick={handleUpload}
+              className="bg-[#1A2540] text-white w-full hover:bg-[#0e1a33]"
+            >
+              <UploadCloud className="mr-2 h-5 w-5" />
+              Upload Material
+            </Button>
           </div>
 
-          <Button
-            onClick={handleUpload}
-            disabled={isUploading}
-            className="w-full flex items-center justify-center gap-2"
-          >
-            {isUploading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Uploading...
-              </>
-            ) : (
-              <>
-                <Upload className="w-4 h-4" />
-                Upload Material
-              </>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
-
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-            <Video className="w-5 h-5 text-indigo-500" />
-            Last 3 Uploaded Class Recordings
-          </h3>
-          <Input
-            placeholder="Search by title..."
-            className="w-64"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+          {/* 3D illustration */}
+          <div className="flex justify-center items-center">
+            <motion.img
+              src="https://cdn-icons-png.flaticon.com/512/2910/2910791.png"
+              alt="Upload"
+              className="w-56 h-56 object-contain"
+              animate={{ y: [0, -10, 0] }}
+              transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+            />
+          </div>
         </div>
+      </motion.div>
 
-        {filteredMaterials.length === 0 ? (
-          <p className="text-gray-500 italic">No recent materials found.</p>
-        ) : (
-          <div className="grid gap-4">
-            {filteredMaterials.map((mat) => {
-              const date = new Date(mat.createdAt);
-              const formattedDate = isNaN(date.getTime())
-                ? "Unknown date"
-                : date.toLocaleString();
-
-              return (
-                <Card key={mat._id} className="border border-gray-200 shadow-sm">
-                  <CardContent className="p-4 space-y-2">
-                    <h4 className="text-lg font-bold">{mat.title}</h4>
-                    {mat.description && (
-                      <p className="text-sm text-gray-600">{mat.description}</p>
-                    )}
-                    <p className="text-xs text-gray-400">Uploaded: {formattedDate}</p>
-                    <a
-                      href={mat.fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline text-sm"
-                    >
-                      View / Download
-                    </a>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
+      {/* Preview uploaded materials */}
+      <div className="max-w-6xl mx-auto mt-16">
+        <h3 className="text-2xl font-bold text-[#1A2540] mb-6">📚 Your Uploaded Materials</h3>
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {dummyMaterials.map((mat) => (
+            <motion.div
+              key={mat.id}
+              whileHover={{ scale: 1.03 }}
+              className="bg-white/60 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl p-4 transition-transform"
+            >
+              <div className="flex items-center gap-3">
+                <FileText className="text-blue-600" />
+                <div>
+                  <h4 className="font-semibold text-[#1A2540]">{mat.title}</h4>
+                  <p className="text-sm text-gray-700">{mat.subject}</p>
+                </div>
+              </div>
+              <div className="mt-4 text-sm text-gray-600">
+                <p>Date: {mat.date}</p>
+                <p>File: {mat.fileName}</p>
+              </div>
+              <div className="mt-3 flex justify-end">
+                <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-800">
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Delete
+                </Button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </div>
   );

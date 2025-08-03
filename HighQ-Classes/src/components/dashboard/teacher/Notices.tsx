@@ -1,6 +1,7 @@
 import React from "react";
 import { useTeacherDashboard } from "@/hooks/useTeacherDashboard";
 import { Bell } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Notices = () => {
   const { data, loading, error } = useTeacherDashboard();
@@ -12,60 +13,80 @@ const Notices = () => {
   const { recentNotices, assignedBatches } = data;
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center gap-3">
-        <Bell className="w-6 h-6 text-yellow-500" />
-        <h2 className="text-3xl font-bold text-navy-700">Recent Notices</h2>
-      </div>
+    <div className="min-h-screen p-8 bg-gradient-to-br from-blue-50 via-sky-100 to-blue-200">
+      <div className="max-w-5xl mx-auto space-y-10">
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <Bell className="w-8 h-8 text-yellow-600 drop-shadow-sm" />
+          <h2 className="text-4xl font-extrabold text-blue-800 tracking-tight drop-shadow-md">
+            Recent Notices
+          </h2>
+        </div>
 
-      {recentNotices.length === 0 ? (
-        <div className="text-center text-gray-500 italic">No recent notices posted.</div>
-      ) : (
-        <ul className="space-y-5">
-          {recentNotices.map((notice) => {
-            const targetBatches = assignedBatches
-              .filter((b) => notice.targetBatchIds.includes(b._id))
-              .map((b) => b.name);
+        {/* If no notices */}
+        {recentNotices.length === 0 ? (
+          <div className="text-center text-gray-500 italic">
+            No recent notices posted.
+          </div>
+        ) : (
+          <motion.ul
+            className="grid md:grid-cols-2 gap-6"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              visible: {
+                transition: {
+                  staggerChildren: 0.1,
+                },
+              },
+            }}
+          >
+            {recentNotices.map((notice, index) => {
+              const targetBatches = assignedBatches
+                .filter((b) => notice.targetBatchIds.includes(b._id))
+                .map((b) => b.name);
 
-            return (
-              <li
-                key={notice._id}
-                className="bg-white border border-gray-200 rounded-xl shadow-sm p-5 transition hover:shadow-md"
-              >
-                <h3 className="text-xl font-semibold text-navy-800 mb-1">{notice.title}</h3>
-                <p className="text-gray-700 text-sm mb-3">{notice.description}</p>
+              return (
+                <motion.li
+                  key={notice._id}
+                  className="bg-white/80 backdrop-blur-md border border-blue-200 rounded-2xl shadow-xl p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
+                  variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    visible: { opacity: 1, y: 0 },
+                  }}
+                >
+                  <h3 className="text-xl font-bold text-blue-900 mb-2">{notice.title}</h3>
+                  <p className="text-gray-700 text-sm mb-4">{notice.description}</p>
 
-                <div className="flex flex-wrap gap-2 text-sm text-gray-600">
-                  <span className="text-xs text-gray-500">
-                    Posted on:{" "}
-                    <span className="text-gray-700 font-medium">
+                  <div className="flex flex-col gap-2 text-sm text-gray-600">
+                    <span>
+                      📅 <span className="font-semibold">Posted:</span>{" "}
                       {new Date(notice.createdAt).toLocaleDateString()}
                     </span>
-                  </span>
-
-                  <span className="text-xs text-gray-500">
-                    Target:{" "}
-                    {notice.targetAudience === "batch" && targetBatches.length > 0 ? (
-                      <span className="inline-flex flex-wrap gap-1">
-                        {targetBatches.map((batch) => (
-                          <span
-                            key={batch}
-                            className="bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full text-xs"
-                          >
-                            {batch}
-                          </span>
-                        ))}
-                      </span>
-                    ) : (
-                      <span className="text-gray-700 font-medium">All Students</span>
-                    )}
-                  </span>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+                    <span>
+                      🎯 <span className="font-semibold">Target:</span>{" "}
+                      {notice.targetAudience === "batch" && targetBatches.length > 0 ? (
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          {targetBatches.map((batch) => (
+                            <span
+                              key={batch}
+                              className="bg-sky-200 text-sky-900 px-3 py-0.5 rounded-full text-xs font-semibold"
+                            >
+                              {batch}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="font-medium text-gray-800">All Students</span>
+                      )}
+                    </span>
+                  </div>
+                </motion.li>
+              );
+            })}
+          </motion.ul>
+        )}
+      </div>
     </div>
   );
 };
