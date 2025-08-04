@@ -9,7 +9,7 @@ import {
   Video,
 } from "lucide-react";
 import { useTeacherDashboard } from "@/hooks/useTeacherDashboard";
-import { cn } from "@/lib/utils"; // Optional: class merging helper
+import { cn } from "@/lib/utils";
 
 const StatCard = ({
   icon,
@@ -31,9 +31,9 @@ const StatCard = ({
     <Wrapper
       to={to || ""}
       className={cn(
-        "rounded-2xl shadow-md transition-transform hover:scale-[1.03] duration-300",
-        "bg-white/60 backdrop-blur border border-slate-200 hover:shadow-xl hover:bg-white/80",
-        "flex items-center justify-between p-5 group cursor-pointer"
+        "rounded-3xl shadow-xl transform transition-all hover:scale-[1.05] duration-300",
+        "bg-white/60 backdrop-blur-lg border border-slate-200 hover:shadow-2xl hover:bg-white/80",
+        "flex items-center justify-between p-6 group cursor-pointer overflow-hidden relative"
       )}
       style={{
         backgroundImage: gradient,
@@ -41,12 +41,17 @@ const StatCard = ({
         backgroundBlendMode: "overlay",
       }}
     >
-      <div className="flex flex-col space-y-1">
-        <h3 className="text-lg font-bold text-navy-800">{title}</h3>
-        <p className="text-3xl font-extrabold text-navy-900">{value}</p>
-        <p className="text-sm text-slate-600">{subtitle}</p>
+      <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-tr from-white/30 to-transparent rounded-full blur-xl opacity-30 group-hover:opacity-50 transition-opacity" />
+      <div className="flex flex-col space-y-2 z-10">
+        <h3 className="text-xl font-semibold text-navy-800 tracking-wide">
+          {title}
+        </h3>
+        <p className="text-4xl font-extrabold text-navy-900 drop-shadow-sm">
+          {value}
+        </p>
+        <p className="text-sm text-slate-600 italic font-medium">{subtitle}</p>
       </div>
-      <div className="p-3 bg-white rounded-full shadow-inner group-hover:scale-110 transition-transform">
+      <div className="p-4 bg-white/90 rounded-full shadow-lg group-hover:scale-110 transition-transform z-10">
         {icon}
       </div>
     </Wrapper>
@@ -58,7 +63,7 @@ const TeacherDashboard = () => {
 
   if (loading)
     return (
-      <div className="p-6 text-lg text-center font-medium text-gray-600">
+      <div className="p-6 text-lg text-center font-medium text-gray-600 animate-pulse">
         Loading your dashboard...
       </div>
     );
@@ -136,11 +141,11 @@ const TeacherDashboard = () => {
   ];
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      <div className="text-3xl font-bold text-navy-700">
-        📊 Teacher Dashboard
+    <div className="p-8 space-y-8 max-w-7xl mx-auto">
+      <div className="text-4xl font-bold text-navy-700 flex items-center gap-3">
+        <span role="img" aria-label="bar-chart">📊</span> Welcome, Teacher!
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {statCards.map((card) => (
           <StatCard key={card.title} {...card} />
         ))}
