@@ -3,10 +3,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Eye, EyeOff } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const roles = ["student", "teacher", "admin"];
 
 export default function Register() {
+  const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState("student");
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState<any>({
@@ -14,14 +17,22 @@ export default function Register() {
     email: "",
     password: "",
     role: "student",
+
+    // Student fields
     grade: "",
     school: "",
     parentContact: "",
+
+    // Teacher fields
     subjectExpertise: "",
     experience: "",
     qualification: "",
+    phoneNumber: "",
+
+    // Admin fields
     employeeId: "",
     department: "",
+    contactNumber: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -34,17 +45,30 @@ export default function Register() {
     setFormData((prev: any) => ({ ...prev, role }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Submitted:", formData);
-    // TODO: Send to backend via API
+
+    // Optional: Add client-side role-specific validation
+    if (!formData.fullName || !formData.email || !formData.password) {
+      alert("Please fill in all required fields.");
+      return;
+    }
+
+    try {
+      const response = await axios.post("/api/auth/register", formData);
+      console.log("Registration successful:", response.data);
+      navigate("/login");
+    } catch (error) {
+      console.error("Registration failed:", error);
+      alert("Registration failed. Please try again.");
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-white px-4 py-8">
       <div className="bg-white/90 backdrop-blur-lg shadow-2xl rounded-3xl overflow-hidden max-w-5xl w-full grid grid-cols-1 md:grid-cols-2">
-        
-        {/* Image side */}
+
+        {/* Left Image */}
         <motion.div
           initial={{ opacity: 0, x: -40 }}
           animate={{ opacity: 1, x: 0 }}
@@ -53,9 +77,9 @@ export default function Register() {
             backgroundImage:
               "url('https://cdn.pixabay.com/photo/2017/10/05/14/43/register-2819608_1280.jpg')",
           }}
-        ></motion.div>
+        />
 
-        {/* Form side */}
+        {/* Form */}
         <motion.div
           initial={{ opacity: 0, x: 40 }}
           animate={{ opacity: 1, x: 0 }}
@@ -66,7 +90,7 @@ export default function Register() {
             Join HighQ-Classes today and unlock your academic potential!
           </p>
 
-          {/* Role Toggle */}
+          {/* Role Buttons */}
           <div className="flex space-x-2 mb-5">
             {roles.map((role) => (
               <Button
@@ -96,6 +120,7 @@ export default function Register() {
               onChange={handleChange}
               required
             />
+
             <div className="relative">
               <Input
                 name="password"
@@ -114,67 +139,31 @@ export default function Register() {
               </div>
             </div>
 
-            {/* Conditional Fields */}
+            {/* Student Fields */}
             {selectedRole === "student" && (
               <>
-                <Input
-                  name="grade"
-                  placeholder="Grade/Class"
-                  value={formData.grade}
-                  onChange={handleChange}
-                />
-                <Input
-                  name="school"
-                  placeholder="School Name"
-                  value={formData.school}
-                  onChange={handleChange}
-                />
-                <Input
-                  name="parentContact"
-                  placeholder="Parent Contact"
-                  value={formData.parentContact}
-                  onChange={handleChange}
-                />
+                <Input name="grade" placeholder="Grade/Class" value={formData.grade} onChange={handleChange} />
+                <Input name="school" placeholder="School Name" value={formData.school} onChange={handleChange} />
+                <Input name="parentContact" placeholder="Parent Contact Number" value={formData.parentContact} onChange={handleChange} />
               </>
             )}
 
+            {/* Teacher Fields */}
             {selectedRole === "teacher" && (
               <>
-                <Input
-                  name="subjectExpertise"
-                  placeholder="Subject Expertise"
-                  value={formData.subjectExpertise}
-                  onChange={handleChange}
-                />
-                <Input
-                  name="experience"
-                  placeholder="Experience (years)"
-                  value={formData.experience}
-                  onChange={handleChange}
-                />
-                <Input
-                  name="qualification"
-                  placeholder="Highest Qualification"
-                  value={formData.qualification}
-                  onChange={handleChange}
-                />
+                <Input name="subjectExpertise" placeholder="Subject Expertise" value={formData.subjectExpertise} onChange={handleChange} />
+                <Input name="experience" placeholder="Experience (in years)" value={formData.experience} onChange={handleChange} />
+                <Input name="qualification" placeholder="Highest Qualification" value={formData.qualification} onChange={handleChange} />
+                <Input name="phoneNumber" placeholder="Phone Number" value={formData.phoneNumber} onChange={handleChange} />
               </>
             )}
 
+            {/* Admin Fields */}
             {selectedRole === "admin" && (
               <>
-                <Input
-                  name="employeeId"
-                  placeholder="Employee ID"
-                  value={formData.employeeId}
-                  onChange={handleChange}
-                />
-                <Input
-                  name="department"
-                  placeholder="Department"
-                  value={formData.department}
-                  onChange={handleChange}
-                />
+                <Input name="employeeId" placeholder="Employee ID" value={formData.employeeId} onChange={handleChange} />
+                <Input name="department" placeholder="Department" value={formData.department} onChange={handleChange} />
+                <Input name="contactNumber" placeholder="Contact Number" value={formData.contactNumber} onChange={handleChange} />
               </>
             )}
 
@@ -184,6 +173,16 @@ export default function Register() {
             >
               Register
             </Button>
+
+            <p className="text-sm text-center text-gray-600 mt-4">
+              Already have an account?{" "}
+              <span
+                onClick={() => navigate("/login")}
+                className="text-blue-600 hover:underline cursor-pointer"
+              >
+                Login here
+              </span>
+            </p>
           </form>
         </motion.div>
       </div>
