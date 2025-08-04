@@ -31,6 +31,8 @@ import Schedule from "@/components/dashboard/teacher/Schedule";
 import Recordings from "@/components/dashboard/teacher/Recordings";
 import Batches from "@/components/dashboard/teacher/Batches";
 import Notices from "@/components/dashboard/teacher/Notices";
+import TeacherForm from "@/components/dashboard/teacher/TeacherForm";
+import BatchForm from "@/components/dashboard/batch/BatchForm";
 
 
 
