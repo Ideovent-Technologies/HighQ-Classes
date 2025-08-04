@@ -1,14 +1,14 @@
 import express from "express";
 import {
-    uploadRecording,
-    getRecordings,
-    getRecording,
-    updateRecording,
-    deleteRecording,
-    getStudentRecordings,
-    getRecordingAnalytics,
-    extendRecordingAccess,
-    searchRecordings,
+  uploadRecording,
+  getRecordings,
+  getRecording,
+  updateRecording,
+  deleteRecording,
+  getStudentRecordings,
+  getRecordingAnalytics,
+  extendRecordingAccess,
+  searchRecordings,
 } from "../controllers/recordingController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { checkRole } from "../middleware/roleMiddleware.js";
@@ -16,44 +16,30 @@ import { fileUpload } from "../middleware/fileUpload.js";
 
 const router = express.Router();
 
-// Protect all routes
+// All routes are protected
 router.use(protect);
 
-// Routes accessible to teachers and admins
+// Upload and Get all recordings (Teachers/Admins can upload; All can get)
 router.route("/")
-    .post(checkRole(["teacher", "admin"]), fileUpload, uploadRecording)
-    .get(checkRole(["teacher", "admin", "student"]), getRecordings);
+  .post(checkRole(["teacher", "admin"]), fileUpload, uploadRecording)
+  .get(checkRole(["teacher", "admin", "student"]), getRecordings);
 
-// Get analytics
+// Recording analytics (Only Teachers/Admins)
 router.get("/analytics", checkRole(["teacher", "admin"]), getRecordingAnalytics);
 
-// Student specific route
-router.get("/student", checkRole(["student"]), getStudentRecordings);
-
-// Search recordings
+// Search recordings (All roles)
 router.get("/search", checkRole(["teacher", "admin", "student"]), searchRecordings);
 
-// Routes for specific recordings by ID
-router.route("/:id")
-    .get(checkRole(["teacher", "admin", "student"]), getRecording)
-    .put(checkRole(["teacher", "admin"]), updateRecording)
-    .delete(checkRole(["teacher", "admin"]), deleteRecording);
-
-// Extend recording access for students
-router.put("/:id/extend", checkRole(["teacher", "admin"]), extendRecordingAccess);
+// Student-specific access (Only Students)
 router.get("/student", checkRole(["student"]), getStudentRecordings);
 
-// Individual recording routes
+// Individual recording actions (All can view; Only Teacher/Admin can edit/delete)
 router.route("/:id")
-    .get(getRecording)
-    .put(checkRole(["teacher", "admin"]), updateRecording)
-    .delete(checkRole(["teacher", "admin"]), deleteRecording);
+  .get(checkRole(["teacher", "admin", "student"]), getRecording)
+  .put(checkRole(["teacher", "admin"]), updateRecording)
+  .delete(checkRole(["teacher", "admin"]), deleteRecording);
 
-// Extend recording access
+// Extend access (Only Teacher/Admin)
 router.put("/:id/extend", checkRole(["teacher", "admin"]), extendRecordingAccess);
-
-// Search recordings by title
-router.get("/search", checkRole(["teacher", "admin"]), searchRecordings);
-
 
 export default router;

@@ -6,6 +6,7 @@ import {
   deleteBatch,
   assignStudentToBatch,
   getBatchesByCourse,
+  getBatchById,
 } from '../controllers/batchController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -52,5 +53,8 @@ router.post('/:batchId/students', protect, assignStudentToBatch);
  * @access  Private
  */
 router.get('/course/:courseId', protect, getBatchesByCourse);
+
+router.get('/:batchId', protect, getBatchById); // Useful for testing existence
+
 
 export default router;
