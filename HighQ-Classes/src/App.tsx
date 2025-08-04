@@ -36,6 +36,8 @@ import Batches from "@/components/dashboard/teacher/Batches";
 import Notices from "@/components/dashboard/teacher/Notices";
 import TeacherForm from "@/components/dashboard/teacher/TeacherForm";
 import BatchForm from "@/components/dashboard/batch/BatchForm";
+import TeacherManagementPage from "./pages/teacher/Teacher-Management";
+import CourseManagementPage from "./pages/course/Course-management";
 
 
 
@@ -230,6 +232,20 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute roles={["admin"]}>
                     <BatchForm />
+                  </ProtectedRoute>
+                }/>
+              <Route
+                path="/dashboard/teachers/manage"
+                element={
+                  <ProtectedRoute roles={["admin"]}>
+                  <TeacherManagementPage />
+                  </ProtectedRoute>
+                }/>
+                <Route 
+                path="/dashboard/courses/manage"
+                element={
+                  <ProtectedRoute roles={["admin"]}>
+                    <CourseManagementPage />
                   </ProtectedRoute>
                 }/>
               {/* 404 Page */}
