@@ -123,16 +123,16 @@
 ### 📖 **Materials Management**
 
 **Backend**: ✅ Complete (6 endpoints)
-**Frontend**: 🟡 Partial (50%) - _Prince's work_
+**Frontend**:✅ Complete (100%) - _Prince's work_
 
 | Endpoint                     | Backend | Frontend | Component               | Status         |
 | ---------------------------- | ------- | -------- | ----------------------- | -------------- |
 | POST /api/materials          | ✅      | ✅       | UploadMaterials.tsx     | ✅ Working     |
 | GET /api/materials/student   | ✅      | ✅       | StudyMaterials.tsx      | ✅ Working     |
 | GET /api/materials           | ✅      | ✅       | materialService.ts      | ✅ Working     |
-| GET /api/materials/search    | ✅      | ❌       | Missing search UI       | Not integrated |
-| DELETE /api/materials/:id    | ✅      | ❌       | Missing delete function | Not integrated |
-| POST /api/materials/view/:id | ✅      | ❌       | Missing view tracking   | Not integrated |
+| GET /api/materials/search    | ✅      | ✅       | StudyMaterials.tsx      | ✅ Working     |
+| DELETE /api/materials/:id    | ✅      | ✅       | materialService.ts      | ✅ Working     |
+| POST /api/materials/view/:id | ✅      | ✅       | materialService.ts      | ✅ Working     |
 
 ---
 
