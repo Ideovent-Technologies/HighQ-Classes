@@ -2,7 +2,12 @@ import React from "react";
 import { useRecordings } from "@/hooks/useRecordings";
 import { useTeacherAssignments } from "@/hooks/useTeacherAssignments";
 import { toast } from "@/hooks/use-toast";
-import { FaPlayCircle, FaTrashAlt, FaUpload, FaSpinner, FaFolderOpen } from "react-icons/fa";
+import {
+  FaTrashAlt,
+  FaUpload,
+  FaSpinner,
+  FaFolderOpen,
+} from "react-icons/fa";
 
 type UploadResponse = {
   success: boolean;
@@ -32,7 +37,6 @@ export default function Recordings() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value, files } = e.target as HTMLInputElement;
-
     if (name === "video" && files) {
       setForm((prev) => ({ ...prev, video: files[0] }));
     } else {
@@ -52,9 +56,8 @@ export default function Recordings() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this recording?")) {
-      return;
-    }
+    if (!window.confirm("Are you sure you want to delete this recording?")) return;
+
     const res = await deleteRecording(id);
     if (res.success) {
       toast({ title: res.message });
@@ -66,7 +69,7 @@ export default function Recordings() {
   const combinedLoading = loading || assignmentsLoading;
   const combinedError = error || assignmentsError;
 
-  if (combinedLoading)
+  if (combinedLoading) {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-100">
         <div className="flex flex-col items-center p-8 bg-white rounded-lg shadow-xl">
@@ -77,7 +80,9 @@ export default function Recordings() {
         </div>
       </div>
     );
-  if (combinedError)
+  }
+
+  if (combinedError) {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-100">
         <div className="flex flex-col items-center p-8 bg-white rounded-lg shadow-xl">
@@ -86,9 +91,11 @@ export default function Recordings() {
         </div>
       </div>
     );
+  }
 
   return (
     <div className="p-4 sm:p-8 max-w-6xl mx-auto bg-gray-100 min-h-screen font-sans">
+      {/* Upload Section */}
       <div className="bg-white p-6 rounded-xl shadow-lg mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 flex items-center">
           <FaUpload className="mr-3 text-blue-600" /> Upload New Recording
@@ -105,7 +112,7 @@ export default function Recordings() {
               placeholder="Recording Title"
               value={form.title}
               onChange={handleInputChange}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition-all text-gray-800"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-800"
               required
             />
             <input
@@ -114,7 +121,7 @@ export default function Recordings() {
               placeholder="Subject"
               value={form.subject}
               onChange={handleInputChange}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition-all text-gray-800"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-800"
               required
             />
           </div>
@@ -124,7 +131,7 @@ export default function Recordings() {
             placeholder="Description (Optional)"
             value={form.description}
             onChange={handleInputChange}
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition-all resize-none text-gray-800"
+            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 resize-none text-gray-800"
             rows={2}
           />
 
@@ -133,7 +140,7 @@ export default function Recordings() {
               name="batchId"
               value={form.batchId}
               onChange={handleInputChange}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition-all text-gray-800"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-800"
               required
             >
               <option value="">Select Batch</option>
@@ -148,7 +155,7 @@ export default function Recordings() {
               name="courseId"
               value={form.courseId}
               onChange={handleInputChange}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition-all text-gray-800"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-800"
               required
             >
               <option value="">Select Course</option>
@@ -169,14 +176,14 @@ export default function Recordings() {
               name="video"
               accept="video/*"
               onChange={handleInputChange}
-              className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors cursor-pointer"
+              className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
               required
             />
           </div>
 
           <button
             type="submit"
-            className={`w-full py-3 px-4 rounded-md text-white font-semibold transition-all flex items-center justify-center space-x-2 ${
+            className={`w-full py-3 px-4 rounded-md text-white font-semibold flex items-center justify-center space-x-2 ${
               uploading
                 ? "bg-blue-400 cursor-not-allowed"
                 : "bg-blue-600 hover:bg-blue-700"
@@ -198,8 +205,10 @@ export default function Recordings() {
         </form>
       </div>
 
+      {/* Recordings List */}
       <div className="bg-white p-6 rounded-xl shadow-lg">
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">Uploaded Recordings</h2>
+
         {recordings.length === 0 ? (
           <div className="text-center p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
             <FaFolderOpen className="text-5xl text-gray-400 mx-auto mb-4" />
@@ -210,22 +219,15 @@ export default function Recordings() {
             {recordings.map((rec) => (
               <div
                 key={rec._id}
-                className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
+                className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
               >
-                <div className="relative">
-                  <video
-                    src={rec.fileUrl}
-                    controls
-                    className="w-full h-40 object-cover rounded-t-lg"
-                  />
-                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <FaPlayCircle className="text-white text-5xl cursor-pointer" />
-                  </div>
-                </div>
+                <video
+                  src={rec.fileUrl}
+                  controls
+                  className="w-full h-40 object-cover rounded-t-lg"
+                />
                 <div className="p-4">
-                  <h3 className="font-bold text-base text-gray-900 truncate">
-                    {rec.title}
-                  </h3>
+                  <h3 className="font-bold text-base text-gray-900 truncate">{rec.title}</h3>
                   <p className="text-xs text-gray-600 mt-1">
                     <span className="font-semibold">{rec.subject}</span>
                   </p>
@@ -243,7 +245,7 @@ export default function Recordings() {
                     </span>
                     <button
                       onClick={() => handleDelete(rec._id)}
-                      className="flex items-center text-red-600 hover:text-red-800 transition-colors"
+                      className="flex items-center text-red-600 hover:text-red-800"
                     >
                       <FaTrashAlt className="mr-1" />
                       <span className="text-xs font-medium">Delete</span>
