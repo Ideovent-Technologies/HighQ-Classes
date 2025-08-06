@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/use-toast"; // Assuming this is where toast comes from
 import { useTeacherProfile } from "@/hooks/useTeacherProfile";
 import { Loader2, Trash2, CloudUpload, FileText, Download, Eye } from "lucide-react";
 import { motion } from "framer-motion";
@@ -49,54 +49,77 @@ const NoMaterialsFound = () => (
 );
 
 const UploadMaterials = () => {
+  // Assuming useTeacherProfile provides profile data including batches and courses
   const { profile, loading: profileLoading } = useTeacherProfile();
   const [materials, setMaterials] = useState<Material[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [batchId, setBatchId] = useState("");
+  const [batchId, setBatchId] = useState(""); // Keeping as single string for select input
   const [courseId, setCourseId] = useState("");
   const [filterBatch, setFilterBatch] = useState("");
   const [filterCourse, setFilterCourse] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // For upload/delete operations
 
   // Function to fetch materials from the API
-  const fetchMaterials = async () => {
+  const fetchMaterials = useCallback(async () => {
+    setLoading(true); // Indicate loading for the materials list
     try {
       // API call to get materials, filtered by batch and course
       const res = await axios.get("/api/materials", {
         params: { batchId: filterBatch, courseId: filterCourse },
+        withCredentials: true, // Ensure cookies are sent with this GET request
       });
       setMaterials(res.data);
-    } catch (err) {
-      toast({ title: "Error fetching materials" });
+    } catch (err: any) { // Explicitly type err as 'any' for easier access to response
+      console.error("Error fetching materials:", err);
+      toast({ 
+        title: "Error fetching materials", 
+        description: err.response?.data?.message || "Could not load materials. Please try again.", 
+        variant: "destructive" 
+      });
+    } finally {
+      setLoading(false); // End loading for the materials list
     }
-  };
+  }, [filterBatch, filterCourse]); // Dependencies ensure re-fetch when filters change
 
-  // Effect to re-fetch materials whenever the filters change
+  // Effect to re-fetch materials whenever the filters change or on initial mount
   useEffect(() => {
     fetchMaterials();
-  }, [filterBatch, filterCourse]);
+  }, [fetchMaterials]); // Dependency on fetchMaterials (which is memoized with useCallback)
 
   // Handler for uploading a new material
   const handleUpload = async () => {
     // Input validation
-    if (!selectedFile || !title || !description || !batchId || !courseId) {
-      toast({ title: "Please fill all fields and select a file." });
+    if (!selectedFile || !title.trim() || !description.trim() || !batchId || !courseId) {
+      toast({ title: "Validation Error", description: "Please fill all fields and select a file.", variant: "destructive" });
       return;
     }
-    setLoading(true);
+    setLoading(true); // Indicate loading for the upload operation
     try {
       // Create form data to send the file and other fields
       const formData = new FormData();
       formData.append("file", selectedFile);
       formData.append("title", title);
       formData.append("description", description);
-      formData.append("batchId", batchId);
+      
+      // IMPORTANT FIX: Send batchId as a stringified array named "batchIds"
+      formData.append("batchIds", JSON.stringify([batchId])); 
+      
       formData.append("courseId", courseId);
 
-      await axios.post("/api/materials/upload", formData);
-      toast({ title: "Material uploaded successfully" });
+      // IMPORTANT FIX: Add fileType from the selected file's MIME type
+      formData.append("fileType", selectedFile.type || selectedFile.name.split('.').pop() || 'application/octet-stream');
+
+
+      // IMPORTANT FIX: Change endpoint to /api/materials as per Postman
+      await axios.post("/api/materials", formData, { // Changed /api/materials/upload to /api/materials
+        withCredentials: true, // IMPORTANT: Ensure cookies are sent with this POST request
+        headers: {
+          'Content-Type': 'multipart/form-data' // Important for FormData
+        }
+      });
+      toast({ title: "Success", description: "Material uploaded successfully." }); // Removed variant="success"
       
       // Reset form fields after successful upload
       setTitle("");
@@ -107,23 +130,38 @@ const UploadMaterials = () => {
       
       // Refresh the materials list
       fetchMaterials();
-    } catch (err) {
-      toast({ title: "Upload failed" });
+    } catch (err: any) { // Explicitly type err as 'any' for easier access to response
+      console.error("Upload failed:", err);
+      toast({ 
+        title: "Upload Failed", 
+        description: err.response?.data?.message || "An error occurred during upload.", 
+        variant: "destructive" 
+      });
     } finally {
-      setLoading(false);
+      setLoading(false); // End loading for the upload operation
     }
   };
 
   // Handler for deleting a material
   const handleDelete = async (id: string) => {
+    setLoading(true); // Indicate loading for the delete operation
     try {
-      await axios.delete(`/api/materials/${id}`);
-      toast({ title: "Material deleted" });
+      await axios.delete(`/api/materials/${id}`, {
+        withCredentials: true, // IMPORTANT: Ensure cookies are sent with this DELETE request
+      });
+      toast({ title: "Success", description: "Material deleted." }); // Removed variant="success"
       
       // Refresh the materials list after deletion
       fetchMaterials();
-    } catch (err) {
-      toast({ title: "Delete failed" });
+    } catch (err: any) { // Explicitly type err as 'any' for easier access to response
+      console.error("Delete failed:", err);
+      toast({ 
+        title: "Delete Failed", 
+        description: err.response?.data?.message || "An error occurred during deletion.", 
+        variant: "destructive" 
+      });
+    } finally {
+      setLoading(false); // End loading for the delete operation
     }
   };
 

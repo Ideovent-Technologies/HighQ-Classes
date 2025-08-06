@@ -1,6 +1,4 @@
-// src/hooks/useRecordings.ts
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 
 interface Course {
@@ -16,13 +14,13 @@ interface Batch {
 interface Recording {
   _id: string;
   title: string;
-  description: string;
+  description?: string;
   subject: string;
   fileUrl: string;
   thumbnailUrl?: string;
   duration?: number;
-  course: string;
-  batch: string;
+  course: Course; // changed from string
+  batch: Batch;   // changed from string
   views: number;
   accessExpires?: string;
   createdAt?: string;
@@ -32,75 +30,150 @@ export const useRecordings = () => {
   const [recordings, setRecordings] = useState<Recording[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [batches, setBatches] = useState<Batch[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch courses and batches assigned to the logged-in teacher
-  const fetchAssignments = async () => {
+  // ✅ NEW: Form state
+  const [form, setForm] = useState({
+    title: "",
+    subject: "",
+    description: "",
+    video: null as File | null,
+    batchId: "",
+    courseId: "",
+  });
+
+  const fetchAssignmentsForRecordings = useCallback(async () => {
     try {
-      setLoading(true);
-      const { data } = await axios.get("/api/teacher/profile"); // adjust if route differs
+      const { data } = await axios.get("/api/teacher/profile", {
+        withCredentials: true,
+      });
       setCourses(data?.teacher?.courses || []);
       setBatches(data?.teacher?.batches || []);
     } catch (err: any) {
-      console.error("Error fetching assignments", err);
-      setError("Failed to load assigned data.");
-    } finally {
-      setLoading(false);
+      console.error("❌ Error fetching assignments for recordings hook:", err);
+      setError(
+        err.response?.data?.message ||
+          "Failed to load assigned data for recordings."
+      );
     }
-  };
+  }, []);
 
-  // Fetch all recordings
-  const fetchRecordings = async () => {
+  const fetchRecordings = useCallback(async () => {
     try {
-      setLoading(true);
-      const { data } = await axios.get("/api/recordings");
-      setRecordings(data?.data || []);
-    } catch (err) {
-      console.error("Error fetching recordings", err);
-      setError("Failed to fetch recordings.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Upload a new recording
-  const uploadRecording = async (formData: FormData) => {
-    try {
-      setUploading(true);
-      const { data } = await axios.post("/api/recordings", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const { data } = await axios.get("/api/recordings", {
+        withCredentials: true,
       });
-      setRecordings((prev) => [data?.data, ...prev]);
-      return { success: true, message: data.message };
+      setRecordings(data?.data || []);
     } catch (err: any) {
-      console.error("Upload error", err);
+      console.error("❌ Error fetching recordings:", err);
+      setError(
+        err.response?.data?.message || "Failed to fetch recordings."
+      );
+    }
+  }, []);
+
+  const uploadRecording = useCallback(async (formData: FormData) => {
+    setUploading(true);
+    setError(null);
+    try {
+      const { data } = await axios.post("/api/recordings", formData, {
+        withCredentials: true,
+      });
+      setRecordings((prev) => [data?.data, ...prev].filter(Boolean) as Recording[]);
+      return {
+        success: true,
+        message: data.message || "Recording uploaded successfully!",
+      };
+    } catch (err: any) {
+      console.error("❌ Upload error:", err);
       return {
         success: false,
-        message: err?.response?.data?.message || "Upload failed",
+        message:
+          err?.response?.data?.message || "Upload failed. Please try again.",
       };
     } finally {
       setUploading(false);
     }
-  };
+  }, []);
 
-  // Delete a recording
-  const deleteRecording = async (id: string) => {
+  // ✅ NEW: handleUpload for form submission
+  type UploadResponse = {
+  success: boolean;
+  message: string;
+};
+
+const handleUpload = async (): Promise<UploadResponse> => {
+  if (!form.title || !form.subject || !form.video || !form.batchId || !form.courseId) {
+    const msg = "Please fill all required fields.";
+    setError(msg);
+    return { success: false, message: msg };
+  }
+
+  const formData = new FormData();
+  formData.append("title", form.title);
+  formData.append("subject", form.subject);
+  formData.append("description", form.description);
+  formData.append("video", form.video);
+  formData.append("batchId", form.batchId);
+  formData.append("courseId", form.courseId);
+
+  const res = await uploadRecording(formData);
+
+  if (res.success) {
+    setForm({
+      title: "",
+      subject: "",
+      description: "",
+      video: null,
+      batchId: "",
+      courseId: "",
+    });
+  }
+
+  return res;
+};
+
+
+  const deleteRecording = useCallback(async (id: string) => {
     try {
-      await axios.delete(`/api/recordings/${id}`);
+      await axios.delete(`/api/recordings/${id}`, {
+        withCredentials: true,
+      });
       setRecordings((prev) => prev.filter((r) => r._id !== id));
-      return { success: true };
-    } catch (err) {
-      console.error("Delete error", err);
-      return { success: false, message: "Failed to delete recording" };
+      return { success: true, message: "Recording deleted successfully." };
+    } catch (err: any) {
+      console.error("❌ Delete error:", err);
+      return {
+        success: false,
+        message:
+          err.response?.data?.message ||
+          "Failed to delete recording. Please try again.",
+      };
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchAssignments();
-    fetchRecordings();
-  }, []);
+    const initialLoad = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        await Promise.all([
+          fetchAssignmentsForRecordings(),
+          fetchRecordings(),
+        ]);
+      } catch (err) {
+        console.error("❌ Initial recordings hook load failed:", err);
+        if (!error) {
+          setError("An unexpected error occurred during initial data load.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    initialLoad();
+  }, [fetchAssignmentsForRecordings, fetchRecordings]);
 
   return {
     recordings,
@@ -112,5 +185,8 @@ export const useRecordings = () => {
     fetchRecordings,
     uploadRecording,
     deleteRecording,
+    form,         // ✅ added
+    setForm,      // ✅ added
+    handleUpload, // ✅ added
   };
 };
