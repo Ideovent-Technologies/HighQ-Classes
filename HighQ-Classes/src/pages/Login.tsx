@@ -23,11 +23,12 @@ const Login = () => {
     setIsSubmitting(true);
 
     try {
-      await login(email, password);
+      await login({ email, password }); // ✅ CORRECT
+
       navigate('/dashboard');
     } catch (error) {
       console.error("Login failed:", error);
-      // Toast is handled in the useAuth hook
+      // Toast is handled in the useAuth hook5
     } finally {
       setIsSubmitting(false);
     }

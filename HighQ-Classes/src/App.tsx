@@ -35,9 +35,15 @@ import Recordings from "@/components/dashboard/teacher/Recordings";
 import Batches from "@/components/dashboard/teacher/Batches";
 import Notices from "@/components/dashboard/teacher/Notices";
 
+// Student dashboard nested pages
+import StudentDashboard from "@/components/dashboard/student/StudentDashboard";
+import NoticesPage from "@/components/student/NoticesPage";
+import AttendancePage from "@/components/student/AttendancePage";
+import RecordingsPage from "@/components/student/RecordingsPage";
+import SchedulePage from "@/components/student/SchedulePage";
+import ProfilePage from "@/components/student/ProfilePage";
 
-
-// Import Fee Management pages
+// Fee Management pages
 import StudentFeeStatus from "@/modules/fees/FeeStatus";
 import AdminFeeDashboard from "@/modules/fees/AdminFeeDashboard";
 
@@ -89,6 +95,7 @@ const App: React.FC = () => {
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+
               {/* Protected auth pages */}
               <Route
                 path="/profile"
@@ -98,6 +105,7 @@ const App: React.FC = () => {
                   </ProtectedRoute>
                 }
               />
+
               {/* Protected dashboard pages - accessible to all authenticated users */}
               <Route
                 path="/dashboard"
@@ -114,16 +122,32 @@ const App: React.FC = () => {
                     <Profile />
                   </ProtectedRoute>
                 }
-              />{" "}
-              {/* Student-specific routes */}
+              />
+
+              {/* -------------------- Student Dashboard Routing with nested routes -------------------- */}
               <Route
-                path="/student/dashboard"
+                path="/student/dashboard/*"
                 element={
                   <ProtectedRoute roles={["student"]}>
-                    <Dashboard />
+                    <StudentDashboard />
                   </ProtectedRoute>
                 }
-              />
+              >
+                <Route index element={
+                  // Optionally, you can create and import a DashboardHome component for student dashboard default view
+                  <div>
+                    <h2>Welcome to your Student Dashboard</h2>
+                    <p>Please select a section from the sidebar.</p>
+                  </div>
+                } />
+                <Route path="notices" element={<NoticesPage />} />
+                <Route path="attendance" element={<AttendancePage />} />
+                <Route path="recordings" element={<RecordingsPage />} />
+                <Route path="schedule" element={<SchedulePage />} />
+                <Route path="profile" element={<ProfilePage />} />
+              </Route>
+
+              {/* Other Student Dashboard Dashboard related routes */}
               <Route
                 path="/dashboard/fee-status"
                 element={
@@ -140,6 +164,7 @@ const App: React.FC = () => {
                   </ProtectedRoute>
                 }
               />
+
               {/* -------------------- Teacher-specific routes -------------------- */}
               <Route
                 path="/teacher/dashboard"
@@ -197,6 +222,7 @@ const App: React.FC = () => {
                   </ProtectedRoute>
                 }
               />
+
               {/* Admin-specific routes */}
               <Route
                 path="/admin/dashboard"
@@ -206,8 +232,6 @@ const App: React.FC = () => {
                   </ProtectedRoute>
                 }
               />
-              {/* <Route path="/admin/dashboard" element={<Dashboard />}/>
-               */}
               <Route
                 path="/dashboard/all-students"
                 element={
@@ -216,6 +240,7 @@ const App: React.FC = () => {
                   </ProtectedRoute>
                 }
               />
+
               {/* 404 Page */}
               <Route path="*" element={<NotFound />} />
             </Routes>
