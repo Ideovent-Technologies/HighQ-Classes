@@ -224,3 +224,31 @@ export const studentViewMaterial = async (req, res) => {
     res.status(500).json({ message: 'Error recording view' });
   }
 };
+// ---------------------------
+// 📄 Get Material by ID (Student Access)
+// ---------------------------
+
+/**
+ * @desc    Get a single material by ID
+ * @route   GET /api/materials/:materialId
+ * @access  Private (Student only)
+ */
+export const getMaterialById = async (req, res) => {
+  try {
+    const { materialId } = req.params;
+
+    const material = await Material.findById(materialId)
+      .populate('uploadedBy', 'name role')
+      .populate('courseId', 'name');
+
+    if (!material) {
+      return res.status(404).json({ message: 'Material not found' });
+    }
+
+    res.json(material);
+  } catch (error) {
+    console.error('Error fetching material by ID:', error);
+    res.status(500).json({ message: 'Error fetching material' });
+  }
+};
+

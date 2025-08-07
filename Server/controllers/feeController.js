@@ -22,16 +22,11 @@ export const createFee = async (req, res) => {
             description
         } = req.body;
 
-        // Check if student exists
         const student = await Student.findById(studentId);
         if (!student) {
-            return res.status(404).json({
-                success: false,
-                message: 'Student not found'
-            });
+            return res.status(404).json({ success: false, message: 'Student not found' });
         }
 
-        // Create new fee record
         const fee = new Fee({
             student: studentId,
             course: courseId,
@@ -74,13 +69,9 @@ export const updateFee = async (req, res) => {
 
         const fee = await Fee.findById(id);
         if (!fee) {
-            return res.status(404).json({
-                success: false,
-                message: 'Fee not found'
-            });
+            return res.status(404).json({ success: false, message: 'Fee not found' });
         }
 
-        // Don't allow changing amount if already paid
         if (fee.isPaid && amount !== fee.amount) {
             return res.status(400).json({
                 success: false,
@@ -88,7 +79,6 @@ export const updateFee = async (req, res) => {
             });
         }
 
-        // Update fields
         fee.amount = amount || fee.amount;
         fee.dueDate = dueDate ? new Date(dueDate) : fee.dueDate;
         fee.feeType = feeType || fee.feeType;
@@ -96,7 +86,6 @@ export const updateFee = async (req, res) => {
         fee.year = year || fee.year;
         fee.description = description || fee.description;
 
-        // Apply discount if provided
         if (discount !== undefined) {
             fee.discount = discount;
         }
@@ -127,7 +116,6 @@ export const getFeesByStudent = async (req, res) => {
     try {
         const { studentId } = req.params;
 
-        // Security check - students can only view their own fees
         if (req.user.role === 'student' && req.user._id.toString() !== studentId) {
             return res.status(403).json({
                 success: false,
@@ -135,13 +123,9 @@ export const getFeesByStudent = async (req, res) => {
             });
         }
 
-        // Check if student exists
         const student = await Student.findById(studentId);
         if (!student) {
-            return res.status(404).json({
-                success: false,
-                message: 'Student not found'
-            });
+            return res.status(404).json({ success: false, message: 'Student not found' });
         }
 
         const fees = await Fee.find({ student: studentId })
@@ -149,7 +133,6 @@ export const getFeesByStudent = async (req, res) => {
             .populate('batch', 'name')
             .sort({ dueDate: -1 });
 
-        // Calculate statistics
         const totalAmount = fees.reduce((sum, fee) => sum + fee.amount, 0);
         const paidAmount = fees.reduce((sum, fee) => sum + (fee.paidAmount || 0), 0);
         const pendingAmount = totalAmount - paidAmount;
@@ -191,13 +174,9 @@ export const getFeeById = async (req, res) => {
             .populate('payments');
 
         if (!fee) {
-            return res.status(404).json({
-                success: false,
-                message: 'Fee not found'
-            });
+            return res.status(404).json({ success: false, message: 'Fee not found' });
         }
 
-        // Security check - students can only view their own fees
         if (req.user.role === 'student' && req.user._id.toString() !== fee.student._id.toString()) {
             return res.status(403).json({
                 success: false,
@@ -205,10 +184,7 @@ export const getFeeById = async (req, res) => {
             });
         }
 
-        res.status(200).json({
-            success: true,
-            fee
-        });
+        res.status(200).json({ success: true, fee });
     } catch (error) {
         console.error('Get fee error:', error);
         res.status(500).json({
@@ -229,30 +205,19 @@ export const processPayment = async (req, res) => {
         const { id } = req.params;
         const { amount, paymentMethod, transactionId, notes } = req.body;
 
-        // Input validation
         if (!amount || amount <= 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'Valid payment amount is required'
-            });
+            return res.status(400).json({ success: false, message: 'Valid payment amount is required' });
         }
 
         if (!paymentMethod) {
-            return res.status(400).json({
-                success: false,
-                message: 'Payment method is required'
-            });
+            return res.status(400).json({ success: false, message: 'Payment method is required' });
         }
 
         const fee = await Fee.findById(id);
         if (!fee) {
-            return res.status(404).json({
-                success: false,
-                message: 'Fee not found'
-            });
+            return res.status(404).json({ success: false, message: 'Fee not found' });
         }
 
-        // Calculate remaining amount
         const remainingAmount = fee.amount - fee.discount - fee.paidAmount;
 
         if (amount > remainingAmount) {
@@ -262,7 +227,6 @@ export const processPayment = async (req, res) => {
             });
         }
 
-        // Create payment record
         const payment = new Payment({
             student: fee.student,
             fee: fee._id,
@@ -275,16 +239,13 @@ export const processPayment = async (req, res) => {
 
         await payment.save();
 
-        // Update fee record
         fee.paidAmount = (fee.paidAmount || 0) + amount;
         fee.payments.push(payment._id);
 
-        // Set payment date if this is the first payment
         if (!fee.paymentDate) {
             fee.paymentDate = new Date();
         }
 
-        // Update status
         if (fee.paidAmount >= (fee.amount - fee.discount)) {
             fee.status = 'paid';
             fee.isPaid = true;
@@ -319,9 +280,7 @@ export const getAllFees = async (req, res) => {
     try {
         const { status, month, year, batchId, courseId, feeType } = req.query;
 
-        // Build filter object
         const filter = {};
-
         if (status) filter.status = status;
         if (month) filter.month = month;
         if (year) filter.year = parseInt(year);
@@ -335,7 +294,6 @@ export const getAllFees = async (req, res) => {
             .populate('batch', 'name')
             .sort({ dueDate: -1 });
 
-        // Calculate statistics
         const totalAmount = fees.reduce((sum, fee) => sum + fee.amount, 0);
         const paidAmount = fees.reduce((sum, fee) => sum + (fee.paidAmount || 0), 0);
         const discountAmount = fees.reduce((sum, fee) => sum + (fee.discount || 0), 0);
@@ -373,15 +331,10 @@ export const deleteFee = async (req, res) => {
         const { id } = req.params;
 
         const fee = await Fee.findById(id);
-
         if (!fee) {
-            return res.status(404).json({
-                success: false,
-                message: 'Fee not found'
-            });
+            return res.status(404).json({ success: false, message: 'Fee not found' });
         }
 
-        // Don't allow deletion if payments exist
         if (fee.payments && fee.payments.length > 0) {
             return res.status(400).json({
                 success: false,
@@ -404,6 +357,7 @@ export const deleteFee = async (req, res) => {
         });
     }
 };
+
 export const getFeesByBatch = async (req, res) => {
     try {
         const { batchId } = req.params;
@@ -414,7 +368,6 @@ export const getFeesByBatch = async (req, res) => {
     }
 };
 
-// Get all upcoming due fees (e.g., due date in the future)
 export const getUpcomingDueFees = async (req, res) => {
     try {
         const today = new Date();
@@ -425,7 +378,6 @@ export const getUpcomingDueFees = async (req, res) => {
     }
 };
 
-// Get monthly fee report (grouped by month)
 export const getMonthlyFeeReport = async (req, res) => {
     try {
         const report = await Fee.aggregate([
@@ -441,5 +393,20 @@ export const getMonthlyFeeReport = async (req, res) => {
         res.json(report);
     } catch (error) {
         res.status(400).json({ error: error.message });
+    }
+};
+
+/**
+ * @desc    Get all payment records
+ * @route   GET /api/payments
+ * @access  Private (Admin only)
+ */
+export const getPayments = async (req, res) => {
+    try {
+        const payments = await Payment.find().populate("student", "name email");
+        res.status(200).json(payments);
+    } catch (error) {
+        console.error("Error fetching payments:", error);
+        res.status(500).json({ message: "Server error" });
     }
 };
