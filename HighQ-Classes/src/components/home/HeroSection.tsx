@@ -57,7 +57,7 @@ const HeroSection = () => {
           >
             <Typewriter
               words={[
-                "Join BloomScholar Coaching Center",
+                "Join HighQ Coaching Center",
                 "Get Expert Guidance from Top Mentors",
                 "Achieve Excellence with Personalized Support",
               ]}

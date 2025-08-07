@@ -82,7 +82,7 @@ const Sidebar = () => {
       {/* Brand */}
       <div className="p-5 border-b border-slate-200 flex items-center justify-center">
         <Link to="/" className="text-3xl font-bold text-navy-700 tracking-tight">
-          <span className="text-teal-500">Bloom</span>Scholar
+          <span className="text-teal-500">High</span>Q
         </Link>
       </div>
 

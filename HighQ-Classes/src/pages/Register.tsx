@@ -59,7 +59,7 @@
 //         <CardHeader className="space-y-1">
 //           <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
 //           <CardDescription className="text-center">
-//             Enter your details to register for BloomScholar
+//             Enter your details to register for HighQ
 //           </CardDescription>
 //         </CardHeader>
 //         <CardContent>
