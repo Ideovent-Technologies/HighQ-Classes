@@ -22,6 +22,9 @@ const BatchCard: React.FC<BatchCardProps> = ({ batch }) => {
   const courseName = typeof courseId === "object" && courseId !== null ? courseId.name : String(courseId);
   const teacherName = typeof teacherId === "object" && teacherId !== null ? teacherId.name : "N/A";
 
+  // ✅ Log the batch _id
+  console.log("Rendering BatchCard for ID:", _id);
+
   return (
     <Card>
       <CardHeader>

@@ -239,7 +239,7 @@ const App: React.FC = () => {
                   </ProtectedRoute>
                 }/>
                 <Route 
-                path="/dashboard/batches/:id"
+                path="/dashboard/batches/:batchId"
                 element={
                   <ProtectedRoute roles={["admin"]}>
                     <BatchDetails />

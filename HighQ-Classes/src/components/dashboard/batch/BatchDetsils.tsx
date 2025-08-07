@@ -7,15 +7,28 @@ const BatchDetails = () => {
   const { batchId } = useParams<{ batchId: string }>();
   const [batch, setBatch] = useState<Batch | null>(null);
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchBatch = async () => {
+      // 🔐 Validate batchId format before making API call
+      if (!batchId || batchId.length !== 24 || !/^[a-fA-F0-9]{24}$/.test(batchId)) {
+        setErrorMessage("Invalid batch ID format");
+        setLoading(false);
+        return;
+      }
+
       try {
-        const response = await batchService.getBatchById(batchId!);
-        setBatch(response.batch);
-        console.log("Fetched batch:", response.batch);
-      } catch (error) {
+        const response = await batchService.getBatchById(batchId);
+        if (response && response.batch) {
+          setBatch(response.batch);
+          console.log("Fetched batch:", response.batch);
+        } else {
+          setErrorMessage("Batch not found");
+        }
+      } catch (error: any) {
         console.error('Failed to fetch batch:', error);
+        setErrorMessage(error?.response?.data?.error || "Failed to fetch batch");
       } finally {
         setLoading(false);
       }
@@ -25,13 +38,18 @@ const BatchDetails = () => {
   }, [batchId]);
 
   if (loading) return <div className="text-center mt-10">Loading...</div>;
+  if (errorMessage) return <div className="text-center mt-10 text-red-500">{errorMessage}</div>;
   if (!batch) return <div className="text-center mt-10 text-red-500">Batch not found</div>;
 
   const courseName =
-    typeof batch.courseId === "object" ? batch.courseId.name : batch.courseId;
+    typeof batch.courseId === "object" && batch.courseId !== null
+      ? batch.courseId.name
+      : String(batch.courseId);
 
   const teacherName =
-    typeof batch.teacherId === "object" ? batch.teacherId.name : batch.teacherId;
+    typeof batch.teacherId === "object" && batch.teacherId !== null
+      ? batch.teacherId.name
+      : "N/A";
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow rounded-lg mt-8">
