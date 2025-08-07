@@ -1,177 +1,262 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { useRecordings } from "@/hooks/useRecordings";
+import { useTeacherAssignments } from "@/hooks/useTeacherAssignments";
+import { toast } from "@/hooks/use-toast";
 import {
-  Video,
-  Eye,
-  Clock,
-  CalendarX2,
-  BookOpen,
-  Users,
-  Timer,
-  Tag,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { formatDistanceToNow } from "date-fns";
+  FaTrashAlt,
+  FaUpload,
+  FaSpinner,
+  FaFolderOpen,
+} from "react-icons/fa";
 
-interface Recording {
-  _id: string;
-  title: string;
-  description?: string;
-  fileUrl: string;
-  thumbnailUrl?: string;
-  duration?: number;
-  subject: string;
-  caption?: string;
-  batch: { name: string };
-  course: { name: string };
-  teacher: { name: string };
-  accessExpires: string;
-  views: number;
-  viewedBy: {
-    student: string;
-    viewCount: number;
-    lastViewed: string;
-  }[];
-  createdAt: string;
-}
+type UploadResponse = {
+  success: boolean;
+  message: string;
+};
 
-const dummyRecordings: Recording[] = [
-  {
-    _id: "1",
-    title: "Introduction to Physics",
-    description: "Basic concepts of motion and force",
-    fileUrl: "https://example.com/physics-recording.mp4",
-    thumbnailUrl: "https://cdn.pixabay.com/photo/2021/04/13/02/38/prism-6174502_1280.jpg",
-    duration: 3200,
-    subject: "Physics",
-    caption: "Motion & Force",
-    batch: { name: "Batch A" },
-    course: { name: "Class 9" },
-    teacher: { name: "Mr. Verma" },
-    accessExpires: new Date(Date.now() + 7 * 86400000).toISOString(),
-    views: 150,
-    viewedBy: [{ student: "student1", viewCount: 2, lastViewed: new Date().toISOString() }],
-    createdAt: new Date(Date.now() - 2 * 86400000).toISOString(),
-  },
-  {
-    _id: "2",
-    title: "Algebra: Quadratic Equations",
-    description: "Solving and graphing quadratics",
-    fileUrl: "https://example.com/math-recording.mp4",
-    thumbnailUrl: "https://cdn.pixabay.com/photo/2020/10/22/10/05/formula-5675604_1280.jpg",
-    duration: 2700,
-    subject: "Mathematics",
-    caption: "Quadratics",
-    batch: { name: "Batch B" },
-    course: { name: "Class 10" },
-    teacher: { name: "Ms. Rao" },
-    accessExpires: new Date(Date.now() + 5 * 86400000).toISOString(),
-    views: 90,
-    viewedBy: [{ student: "student2", viewCount: 1, lastViewed: new Date().toISOString() }],
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    _id: "3",
-    title: "English Literature: The Road Not Taken",
-    fileUrl: "https://example.com/english-recording.mp4",
-    thumbnailUrl: "https://cdn.pixabay.com/photo/2022/10/07/10/11/road-7504719_1280.jpg",
-    duration: 1800,
-    subject: "English",
-    caption: "Poetry Analysis",
-    batch: { name: "Batch C" },
-    course: { name: "Class 9" },
-    teacher: { name: "Mrs. Das" },
-    accessExpires: new Date(Date.now() + 10 * 86400000).toISOString(),
-    views: 120,
-    viewedBy: [{ student: "student3", viewCount: 3, lastViewed: new Date().toISOString() }],
-    createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
-  },
-];
+export default function Recordings() {
+  const {
+    recordings,
+    loading,
+    uploading,
+    error,
+    form,
+    setForm,
+    handleUpload,
+    deleteRecording,
+  } = useRecordings();
 
-const Recordings: React.FC = () => {
-  const [recordings, setRecordings] = useState<Recording[]>([]);
+  const {
+    assignedBatches,
+    assignedCourses,
+    loading: assignmentsLoading,
+    error: assignmentsError,
+  } = useTeacherAssignments();
 
-  useEffect(() => {
-    setRecordings(dummyRecordings);
-  }, []);
-
-  const formatDuration = (seconds: number = 0) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}m ${secs}s`;
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value, files } = e.target as HTMLInputElement;
+    if (name === "video" && files) {
+      setForm((prev) => ({ ...prev, video: files[0] }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const res = (await handleUpload()) as UploadResponse;
+
+    if (res?.success) {
+      toast({ title: res.message });
+    } else {
+      toast({ title: res?.message || "Upload failed", variant: "destructive" });
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this recording?")) return;
+
+    const res = await deleteRecording(id);
+    if (res.success) {
+      toast({ title: res.message });
+    } else {
+      toast({ title: res.message, variant: "destructive" });
+    }
+  };
+
+  const combinedLoading = loading || assignmentsLoading;
+  const combinedError = error || assignmentsError;
+
+  if (combinedLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <div className="flex flex-col items-center p-8 bg-white rounded-lg shadow-xl">
+          <FaSpinner className="animate-spin text-4xl text-blue-500" />
+          <p className="mt-4 text-lg text-gray-700 font-semibold">
+            Loading recordings and assignments...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (combinedError) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-100">
+        <div className="flex flex-col items-center p-8 bg-white rounded-lg shadow-xl">
+          <p className="text-red-500 text-lg font-semibold">Error: {combinedError}</p>
+          <p className="mt-2 text-sm text-gray-500">Please try refreshing the page.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen px-6 py-12 bg-gradient-to-br from-[#e0f7fa] via-[#f0f4fd] to-[#ffe0f0]">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-extrabold text-[#1A2540] tracking-tight flex justify-center items-center gap-3">
-          <Video className="w-8 h-8 text-[#00bfa6]" />
-          Recent Class Recordings
+    <div className="p-4 sm:p-8 max-w-6xl mx-auto bg-gray-100 min-h-screen font-sans">
+      {/* Upload Section */}
+      <div className="bg-white p-6 rounded-xl shadow-lg mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 flex items-center">
+          <FaUpload className="mr-3 text-blue-600" /> Upload New Recording
         </h1>
-        <p className="mt-2 text-gray-600">Catch up or revise anytime with your recorded classes</p>
+        <p className="text-sm text-gray-600 mb-6">
+          Fill out the form below to upload a new class recording.
+        </p>
+
+        <form onSubmit={handleFormSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input
+              type="text"
+              name="title"
+              placeholder="Recording Title"
+              value={form.title}
+              onChange={handleInputChange}
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-800"
+              required
+            />
+            <input
+              type="text"
+              name="subject"
+              placeholder="Subject"
+              value={form.subject}
+              onChange={handleInputChange}
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-800"
+              required
+            />
+          </div>
+
+          <textarea
+            name="description"
+            placeholder="Description (Optional)"
+            value={form.description}
+            onChange={handleInputChange}
+            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 resize-none text-gray-800"
+            rows={2}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <select
+              name="batchId"
+              value={form.batchId}
+              onChange={handleInputChange}
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-800"
+              required
+            >
+              <option value="">Select Batch</option>
+              {assignedBatches.map((batch) => (
+                <option key={batch._id} value={batch._id}>
+                  {batch.name}
+                </option>
+              ))}
+            </select>
+
+            <select
+              name="courseId"
+              value={form.courseId}
+              onChange={handleInputChange}
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-800"
+              required
+            >
+              <option value="">Select Course</option>
+              {assignedCourses.map((course) => (
+                <option key={course._id} value={course._id}>
+                  {course.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Video File
+            </label>
+            <input
+              type="file"
+              name="video"
+              accept="video/*"
+              onChange={handleInputChange}
+              className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className={`w-full py-3 px-4 rounded-md text-white font-semibold flex items-center justify-center space-x-2 ${
+              uploading
+                ? "bg-blue-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
+            disabled={uploading}
+          >
+            {uploading ? (
+              <>
+                <FaSpinner className="animate-spin" />
+                <span>Uploading...</span>
+              </>
+            ) : (
+              <>
+                <FaUpload />
+                <span>Upload Recording</span>
+              </>
+            )}
+          </button>
+        </form>
       </div>
 
-      <div className="grid gap-10 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {recordings.map((rec) => (
-          <div
-            key={rec._id}
-            className="rounded-3xl overflow-hidden bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] hover:shadow-[0_25px_65px_-10px_rgba(0,0,0,0.15)] transition duration-300"
-          >
-            <img
-              src={rec.thumbnailUrl}
-              alt={rec.title}
-              className="w-full h-48 object-cover"
-            />
-            <div className="p-5 space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[#1A2540] line-clamp-2">
-                  {rec.title}
-                </h3>
-                <Badge variant="outline" className="bg-blue-100 text-blue-700">
-                  <Eye className="w-4 h-4 mr-1" />
-                  {rec.views}
-                </Badge>
-              </div>
-              {rec.caption && (
-                <div className="text-xs text-purple-700 flex items-center gap-1">
-                  <Tag className="w-3 h-3" /> {rec.caption}
-                </div>
-              )}
-              <div className="text-sm text-gray-700 space-y-1">
-                <div className="flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-blue-600" /> {rec.subject}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-green-600" /> {rec.batch.name} — {rec.course.name}
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-3 text-xs text-gray-500">
-                <div className="flex items-center gap-1">
-                  <Timer className="w-3 h-3" /> {formatDuration(rec.duration)}
-                </div>
-                <div className="flex items-center gap-1">
-                  <CalendarX2 className="w-3 h-3" /> Expires {formatDistanceToNow(new Date(rec.accessExpires), { addSuffix: true })}
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" /> Uploaded {formatDistanceToNow(new Date(rec.createdAt))} ago
-                </div>
-              </div>
-              <a
-                href={rec.fileUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full text-center bg-[#1A2540] hover:bg-[#111a30] text-white font-medium py-2 rounded-lg transition"
-              >
-                ▶ Watch Recording
-              </a>
-              <p className="text-xs text-center text-gray-500">
-                Viewed by {rec.viewedBy.length} student{rec.viewedBy.length !== 1 && "s"}
-              </p>
-            </div>
+      {/* Recordings List */}
+      <div className="bg-white p-6 rounded-xl shadow-lg">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">Uploaded Recordings</h2>
+
+        {recordings.length === 0 ? (
+          <div className="text-center p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+            <FaFolderOpen className="text-5xl text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500 text-lg">No recordings found.</p>
           </div>
-        ))}
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {recordings.map((rec) => (
+              <div
+                key={rec._id}
+                className="bg-white rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
+              >
+                <video
+                  src={rec.fileUrl}
+                  controls
+                  className="w-full h-40 object-cover rounded-t-lg"
+                />
+                <div className="p-4">
+                  <h3 className="font-bold text-base text-gray-900 truncate">{rec.title}</h3>
+                  <p className="text-xs text-gray-600 mt-1">
+                    <span className="font-semibold">{rec.subject}</span>
+                  </p>
+                  <div className="text-xs text-gray-500 mt-2 space-y-1">
+                    <p>
+                      <span className="font-medium">Batch:</span> {rec.batch.name}
+                    </p>
+                    <p>
+                      <span className="font-medium">Course:</span> {rec.course.name}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-200">
+                    <span className="text-xs text-gray-500">
+                      {new Date(rec.createdAt).toLocaleDateString()}
+                    </span>
+                    <button
+                      onClick={() => handleDelete(rec._id)}
+                      className="flex items-center text-red-600 hover:text-red-800"
+                    >
+                      <FaTrashAlt className="mr-1" />
+                      <span className="text-xs font-medium">Delete</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
-};
-
-export default Recordings;
+}
