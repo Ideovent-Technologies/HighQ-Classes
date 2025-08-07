@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import api from "../Axios";
 import { DashboardData } from "../../types/admin.types";
 import { StudentUser } from "../../types/student.types";

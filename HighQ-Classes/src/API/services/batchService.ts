@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import api from '../Axios';
 
 // Types for batch operations (will be moved to types/batch.types.ts by Sumit)
