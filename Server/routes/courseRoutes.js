@@ -6,7 +6,9 @@ import {
   updateCourse,
   addBatchToCourse,
   updateBatch,
-  updateStudentsInBatch
+  updateStudentsInBatch,
+  getCourseById
+  
 } from '../controllers/courseController.js';
 
 import { protect, authorize } from '../middleware/authMiddleware.js';
@@ -26,5 +28,6 @@ router.patch('/:id', updateCourse);
 router.post('/:courseId/batches', addBatchToCourse);
 router.patch('/:courseId/batches/:batchId', updateBatch);
 router.patch('/:courseId/batches/:batchId/students', updateStudentsInBatch);
+router.get('/:courseid', getCourseById);
 
 export default router;

@@ -38,12 +38,16 @@ import TeacherForm from "@/components/dashboard/teacher/TeacherForm";
 import BatchForm from "@/components/dashboard/batch/BatchForm";
 import TeacherManagementPage from "./pages/teacher/Teacher-Management";
 import CourseManagementPage from "./pages/course/Course-management";
+import CourseDetail from "@/components/dashboard/courses/CourseDetails";
+import BatchManagementPage from "./pages/batch/Batch-management";
 
 
 
 // Import Fee Management pages
 import StudentFeeStatus from "@/modules/fees/FeeStatus";
 import AdminFeeDashboard from "@/modules/fees/AdminFeeDashboard";
+import BatchDetails from "./components/dashboard/batch/BatchDetsils";
+
 
 const queryClient = new QueryClient();
 
@@ -234,6 +238,21 @@ const App: React.FC = () => {
                     <BatchForm />
                   </ProtectedRoute>
                 }/>
+                <Route 
+                path="/dashboard/batches/:id"
+                element={
+                  <ProtectedRoute roles={["admin"]}>
+                    <BatchDetails />
+                  </ProtectedRoute>
+                }/>
+                <Route 
+                path="/dashboard/batches/manage"
+                element={
+                  <ProtectedRoute roles={["admin"]}>
+                    <BatchManagementPage />
+                  </ProtectedRoute>
+                }/>
+
               <Route
                 path="/dashboard/teachers/manage"
                 element={
@@ -246,6 +265,13 @@ const App: React.FC = () => {
                 element={
                   <ProtectedRoute roles={["admin"]}>
                     <CourseManagementPage />
+                  </ProtectedRoute>
+                }/>
+                <Route
+                path="/dashboard/courses/:id"
+                element={
+                  <ProtectedRoute roles={["admin"]}>
+                    <CourseDetail/>
                   </ProtectedRoute>
                 }/>
               {/* 404 Page */}
