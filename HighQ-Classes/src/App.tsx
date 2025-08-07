@@ -50,6 +50,14 @@ import BatchDetails from "./components/dashboard/batch/BatchDetsils";
 import AttendanceManagementPage from "@/pages/AttendanceManagementPage";
 import AssignmentManagementPage from "@/pages/AssignmentManagementPage";
 
+// Import Enhanced Management pages
+import EnhancedMaterialsManagementPage from "@/pages/EnhancedMaterialsManagementPage";
+import TeacherRecordingManagementPage from "@/pages/TeacherRecordingManagementPage";
+import StudentRecordingsPage from "@/pages/StudentRecordingsPage";
+
+// Import Student-specific pages
+import StudentProfile from "@/pages/student/StudentProfile";
+
 const queryClient = new QueryClient();
 
 const App: React.FC = () => {
@@ -152,6 +160,22 @@ const App: React.FC = () => {
                                 element={
                                     <ProtectedRoute roles={["student"]}>
                                         <StudyMaterials />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/student/profile"
+                                element={
+                                    <ProtectedRoute roles={["student"]}>
+                                        <StudentProfile />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/student/recordings"
+                                element={
+                                    <ProtectedRoute roles={["student"]}>
+                                        <StudentRecordingsPage userRole="student" />
                                     </ProtectedRoute>
                                 }
                             />
@@ -332,6 +356,52 @@ const App: React.FC = () => {
                                 element={
                                     <ProtectedRoute roles={["student"]}>
                                         <AssignmentManagementPage userRole="student" />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            {/* Enhanced Materials Management Routes */}
+                            <Route
+                                path="/dashboard/materials"
+                                element={
+                                    <ProtectedRoute
+                                        roles={["teacher", "admin"]}
+                                    >
+                                        <EnhancedMaterialsManagementPage userRole="teacher" />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/admin/materials"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <EnhancedMaterialsManagementPage userRole="admin" />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/student/materials"
+                                element={
+                                    <ProtectedRoute roles={["student"]}>
+                                        <EnhancedMaterialsManagementPage userRole="student" />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            {/* Recording Management Routes */}
+                            <Route
+                                path="/dashboard/recordings"
+                                element={
+                                    <ProtectedRoute
+                                        roles={["teacher", "admin"]}
+                                    >
+                                        <TeacherRecordingManagementPage teacherId="current-teacher-id" />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/student/recordings"
+                                element={
+                                    <ProtectedRoute roles={["student"]}>
+                                        <StudentRecordingsPage userRole="student" />
                                     </ProtectedRoute>
                                 }
                             />

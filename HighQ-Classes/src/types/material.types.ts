@@ -31,6 +31,8 @@ export interface Material {
   batchIds: PopulatedBatch[];
   courseId: PopulatedCourse;
   viewedBy: MaterialView[];
+  category?: 'lecture' | 'assignment' | 'reference' | 'exam';
+  views?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -40,6 +42,7 @@ export interface MaterialUploadData {
   courseId: string;
   batchIds: string[];
   file: File;
+  category: 'lecture' | 'assignment' | 'reference' | 'exam';
 }
 
 
