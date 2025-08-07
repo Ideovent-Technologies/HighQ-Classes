@@ -61,4 +61,7 @@ router.put('/:batchId', protect, UpdateBatch);
  */
 router.delete('/:batchId', protect, deleteBatch);
 
+router.get('/:batchId', protect, getBatchById); // Useful for testing existence
+
+
 export default router;

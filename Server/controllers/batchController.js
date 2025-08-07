@@ -1,5 +1,6 @@
 import Batch from "../models/Batch.js";
-import Student from "../models/Student.js";  // Import Student model to update batch field
+import Student from "../models/Student.js";
+  // Import Student model to update batch field
 
 // ✅ Admin: Create a new batch
 export const CreateBatch = async (req, res) => {
@@ -217,5 +218,17 @@ export const getBatchDetailsByIdForTeacher = async (req, res) => {
     res.status(200).json(batch);
   } catch (error) {
     res.status(500).json({ message: "Error fetching batch details", error: error.message });
+  }
+};
+
+export const getBatchById = async (req, res) => {
+  try {
+    const batch = await Batch.findById(req.params.batchId);
+    if (!batch) {
+      return res.status(404).json({ message: "Batch not found." });
+    }
+    res.status(200).json(batch);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching batch", error: error.message });
   }
 };
