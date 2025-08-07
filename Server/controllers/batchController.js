@@ -1,6 +1,6 @@
 import Batch from "../models/Batch.js";
 import Student from "../models/Student.js";
-  // Import Student model to update batch field
+// Import Student model to update batch field
 
 // ✅ Admin: Create a new batch
 export const CreateBatch = async (req, res) => {
@@ -76,7 +76,7 @@ export const UpdateBatch = async (req, res) => {
 };
 
 // get batch by ID
-  export const getBatchById = async (req, res) => {
+export const getBatchById = async (req, res) => {
   try {
     const batchId = req.params.id;
     console.log("Batch ID received:", batchId);
@@ -221,14 +221,14 @@ export const getBatchDetailsByIdForTeacher = async (req, res) => {
   }
 };
 
-export const getBatchById = async (req, res) => {
-  try {
-    const batch = await Batch.findById(req.params.batchId);
-    if (!batch) {
-      return res.status(404).json({ message: "Batch not found." });
-    }
-    res.status(200).json(batch);
-  } catch (error) {
-    res.status(500).json({ message: "Error fetching batch", error: error.message });
-  }
-};
+// export const getBatchById = async (req, res) => {
+//   try {
+//     const batch = await Batch.findById(req.params.batchId);
+//     if (!batch) {
+//       return res.status(404).json({ message: "Batch not found." });
+//     }
+//     res.status(200).json(batch);
+//   } catch (error) {
+//     res.status(500).json({ message: "Error fetching batch", error: error.message });
+//   }
+// };
