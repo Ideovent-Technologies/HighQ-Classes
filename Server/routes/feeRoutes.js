@@ -14,6 +14,7 @@ const router = express.Router();
 
 // Protect all routes
 router.use(protect);
+router.get('/student/:studentId', getFeesByStudent);
 
 // Admin only routes
 router.use(authorize('admin'));
@@ -33,6 +34,6 @@ router.route('/:id')
 router.post('/:id/pay', processPayment);
 
 // Get student fees (accessible by student and admin)
-router.get('/student/:studentId', getFeesByStudent);
+//router.get('/student/:studentId', getFeesByStudent);
 
 export default router;

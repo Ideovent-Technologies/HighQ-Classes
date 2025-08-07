@@ -1,9 +1,9 @@
 import Attendance from "../models/Attendance.js";
 import Student from "../models/Student.js";
 
-// @desc    Mark attendance for students
-// @route   POST /api/teacher/attendance
-// @access  Private (Teacher)
+// @desc    Mark attendance for students
+// @route   POST /api/teacher/attendance
+// @access  Private (Teacher)
 export const markAttendance = async (req, res) => {
   try {
     const { batchId, date, attendance } = req.body;
@@ -19,8 +19,6 @@ export const markAttendance = async (req, res) => {
     }
 
     const formattedDate = new Date(date);
-
-    // Create attendance records
     const attendanceRecords = attendance.map((entry) => ({
       studentId: entry.studentId,
       batchId,
@@ -46,9 +44,10 @@ export const markAttendance = async (req, res) => {
   }
 };
 
-// @desc    Get attendance for a batch on a specific date
-// @route   GET /api/teacher/attendance?batchId=...&date=...
-// @access  Private (Teacher)
+
+// @desc    Get attendance for a batch on a specific date
+// @route   GET /api/teacher/attendance?batchId=...&date=...
+// @access  Private (Teacher)
 export const getAttendanceByBatchAndDate = async (req, res) => {
   try {
     const { batchId, date } = req.query;
@@ -77,8 +76,10 @@ export const getAttendanceByBatchAndDate = async (req, res) => {
   }
 };
 
-// Example: Return summary counts for today across teacher's batches
 
+// @desc    Return summary counts for today across teacher's batches
+// @route   GET /api/teacher/attendance/summary?date=...
+// @access  Private (Teacher)
 export const getAttendanceSummary = async (req, res) => {
   try {
     const teacherId = req.user._id;
@@ -104,5 +105,31 @@ export const getAttendanceSummary = async (req, res) => {
   } catch (error) {
     console.error("❌ Error fetching summary:", error.message);
     res.status(500).json({ message: "Failed to get attendance summary." });
+  }
+};
+
+
+// @desc    Get all attendance for a student
+// @route   GET /api/student/:id/attendance
+// @access  Private (Student)
+export const getStudentAttendance = async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    // Optionally filter by batchId, date, etc from req.query
+
+    const records = await Attendance.find({ studentId })
+      .populate("batchId", "name")
+      .populate("markedBy", "name")
+      .sort({ date: -1 });
+
+    res.json({
+      success: true,
+      data: records,
+    });
+  } catch (error) {
+    console.error("❌ Error fetching student attendance:", error);
+    res.status(500).json({
+      message: "Error fetching attendance for student.",
+    });
   }
 };

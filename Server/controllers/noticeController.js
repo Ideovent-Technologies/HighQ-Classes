@@ -1,5 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import Notice from '../models/Notice.js';
+import Student from '../models/Student.js';
 
 /**
  * @desc    Create a new notice
@@ -91,11 +92,10 @@ export const getAllNotices = asyncHandler(async (req, res) => {
   if (targetAudience) filter.targetAudience = targetAudience;
   if (targetBatchId) filter.targetBatchIds = { $in: [targetBatchId] };
   if (keyword) {
-    filter.$or.push({
-      title: { $regex: keyword, $options: 'i' },
-    }, {
-      description: { $regex: keyword, $options: 'i' },
-    });
+    filter.$or.push(
+      { title: { $regex: keyword, $options: 'i' } },
+      { description: { $regex: keyword, $options: 'i' } }
+    );
   }
 
   if (date) {
@@ -157,5 +157,48 @@ export const getNoticesByBatch = asyncHandler(async (req, res) => {
     success: true,
     count: notices.length,
     data: notices,
+  });
+});
+
+/**
+ * @desc    Get all notices relevant to a student (active and scheduled & already published)
+ * @route   GET /api/student/:id/notices
+ * @access  Private (Student only)
+ */
+export const getNoticesForStudent = asyncHandler(async (req, res) => {
+  const studentId = req.params.id;
+
+  const student = await Student.findById(studentId);
+  if (!student) {
+    return res.status(404).json({ message: "Student not found" });
+  }
+
+  const now = new Date();
+
+  // Notices for: all, students, or student’s batch
+  const notices = await Notice.find({
+    $and: [
+      {
+        $or: [
+          { targetAudience: "all" },
+          { targetAudience: "students" },
+          { targetAudience: "batch", targetBatchIds: student.batch }
+        ]
+      },
+      {
+        $or: [
+          { isScheduled: false },
+          { isScheduled: true, scheduledAt: { $lte: now } },
+        ]
+      }
+    ],
+    isActive: true, // Only active notices
+  })
+    .populate("postedBy", "name role")
+    .sort({ createdAt: -1 });
+
+  res.json({
+    count: notices.length,
+    notices,
   });
 });

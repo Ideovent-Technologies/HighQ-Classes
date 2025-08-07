@@ -1,26 +1,35 @@
-// routes/scheduleRoutes.js
-
-import express from "express";
+import express from 'express';
 import {
   createSchedule,
   getSchedulesByTeacher,
-} from "../controllers/scheduleController.js";
+  getScheduleByStudent,
+} from '../controllers/scheduleController.js';
 
-import { protect, authorize } from "../middleware/authMiddleware.js";
+import { protect, authorize } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Combine middleware to protect teacher routes
-const protectTeacher = [protect, authorize("teacher")];
+// Middleware for teacher-only routes
+const protectTeacher = [protect, authorize('teacher')];
 
-// @route   POST /api/teacher/schedule
-// @desc    Create a schedule
-// @access  Private (Teacher only)
-router.post("/", protectTeacher, createSchedule);
+// Middleware for student-only routes
+const protectStudent = [protect, authorize('student')];
 
-// @route   GET /api/teacher/schedule
-// @desc    Get all schedules for the logged-in teacher
-// @access  Private (Teacher only)
-router.get("/", protectTeacher, getSchedulesByTeacher);
+// ---------------------------
+// Teacher Routes
+// ---------------------------
+
+// Create a new schedule (teacher only)
+router.post('/', protectTeacher, createSchedule);
+
+// Get all schedules for the logged-in teacher
+router.get('/', protectTeacher, getSchedulesByTeacher);
+
+// ---------------------------
+// Student Routes
+// ---------------------------
+
+// Get schedule for a specific student (student only)
+router.get('/:id/schedule', protectStudent, getScheduleByStudent);
 
 export default router;
