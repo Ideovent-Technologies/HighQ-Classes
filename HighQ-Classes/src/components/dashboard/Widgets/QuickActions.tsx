@@ -33,7 +33,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ className }) => { // Destru
                             Manage Course
                         </Button>
                     </Link>
-                    <Link to="/dashboard/batches/add">
+                    <Link to="/dashboard/batches/manage">
                         <Button variant="outline" className="h-20 w-full flex flex-col items-center justify-center">
                             <Building className="h-6 w-6 mb-2" />
                          Manage Batch

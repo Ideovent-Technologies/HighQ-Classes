@@ -75,6 +75,34 @@ export const UpdateBatch = async (req, res) => {
   }
 };
 
+// get batch by ID
+  export const getBatchById = async (req, res) => {
+  try {
+    const batchId = req.params.id;
+    console.log("Batch ID received:", batchId);
+
+    if (!batchId || batchId.length !== 24) {
+      return res.status(400).json({ error: "Invalid batch ID format" });
+    }
+
+    const batch = await Batch.findById(batchId)
+      .populate("courseId", "name")
+      .populate("teacherId", "name email")
+      .populate("students", "name email");
+
+    if (!batch) {
+      console.log("No batch found for this ID");
+      return res.status(404).json({ error: "Batch not found" });
+    }
+
+    res.json(batch);
+  } catch (err) {
+    console.error("Error fetching batch:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
 // ✅ Admin: Delete batch
 export const deleteBatch = async (req, res) => {
   try {

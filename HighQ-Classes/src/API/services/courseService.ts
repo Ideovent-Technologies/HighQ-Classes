@@ -9,7 +9,7 @@ class CourseService {
     }> {
         try {
             const response = await api.get('/courses/');
-            return { success: true, courses: response.data.courses };
+            return { success: true, courses: response.data };
         } catch (error: any) {
             console.error('Get all courses error:', error);
             return {
@@ -36,14 +36,33 @@ class CourseService {
         }
     }
 
+    async getCourseById(courseId: string): Promise<{
+        success: boolean;
+        course?: Course;
+        message?: string;
+    }> {
+        try {
+            const response = await api.get(`/courses/${courseId}`);
+            return { success: true, course: response.data};
+        } catch (error: any) {
+            console.error('Get course by ID error:', error);
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Failed to fetch course',
+            };
+        }
+    }
+
+    
+
     async UpdateCourse(courseId: string, updateData: Partial<Course>): Promise<{
         success: boolean;
         course?: Course;
         message?: string;
     }> {
         try {
-            const response = await api.put(`/courses/${courseId}`, updateData);
-            return { success: true, course: response.data.course };
+            const response = await api.patch(`/courses/${courseId}`, updateData);
+            return { success: true, course: response.data };
         } catch (error: any) {
             console.error('Update course error:', error);
             return {
@@ -100,3 +119,4 @@ async updatebatch(courseId: string, batchId: string, updateData: Partial<Course>
         }
     }
 }
+export default new CourseService();
