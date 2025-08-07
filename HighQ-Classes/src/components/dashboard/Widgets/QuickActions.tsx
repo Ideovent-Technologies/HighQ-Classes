@@ -21,22 +21,22 @@ const QuickActions: React.FC<QuickActionsProps> = ({ className }) => { // Destru
             <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {/* The rest of your component remains the same... */}
-                    <Link to="/dashboard/teachers/add">
+                    <Link to="/dashboard/teachers/manage">
                         <Button variant="outline" className="h-20 w-full flex flex-col items-center justify-center">
                             <Plus className="h-6 w-6 mb-2" />
-                            Add Teacher
+                            Manage Teacher
                         </Button>
                     </Link>
-                    <Link to="/dashboard/courses/add">
+                    <Link to="/dashboard/courses/manage">
                         <Button variant="outline" className="h-20 w-full flex flex-col items-center justify-center">
                             <BookOpen className="h-6 w-6 mb-2" />
-                            Add Course
+                            Manage Course
                         </Button>
                     </Link>
-                    <Link to="/dashboard/batches/add">
+                    <Link to="/dashboard/batches/manage">
                         <Button variant="outline" className="h-20 w-full flex flex-col items-center justify-center">
                             <Building className="h-6 w-6 mb-2" />
-                            Add Batch
+                         Manage Batch
                         </Button>
                     </Link>
                     <Link to="/dashboard/fee-management">
@@ -45,10 +45,10 @@ const QuickActions: React.FC<QuickActionsProps> = ({ className }) => { // Destru
                             Manage Fees
                         </Button>
                     </Link>
-                    <Link to="/dashboard/users">
+                    <Link to="/dashboard/Student/add">
                         <Button variant="outline" className="h-20 w-full flex flex-col items-center justify-center">
                             <Users className="h-6 w-6 mb-2" />
-                            Manage Users
+                        Manage students
                         </Button>
                     </Link>
                     <Link to="/dashboard/settings">

@@ -1,192 +1,144 @@
+import { Eye, EyeOff } from "lucide-react";
 import React, { useState } from "react";
+import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
-import { Eye, EyeOff } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
+import axios from "axios";
 
-const roles = ["student", "teacher", "admin"];
-
-export default function Register() {
-  const [selectedRole, setSelectedRole] = useState("student");
-  const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState<any>({
-    fullName: "",
+const Register = () => {
+  const [formData, setFormData] = useState({
+    name: "",
     email: "",
     password: "",
-    role: "student",
-    grade: "",
-    school: "",
+    mobile: "",
+    gender: "",
+    dateOfBirth: "",
+    parentName: "",
     parentContact: "",
-    subjectExpertise: "",
-    experience: "",
-    qualification: "",
-    employeeId: "",
-    department: "",
+    grade: "",
+    schoolName: "",
+    address: "",
+    role: "student"
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev: any) => ({ ...prev, [name]: value }));
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleChange = (e: any) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleRoleChange = (role: string) => {
-    setSelectedRole(role);
-    setFormData((prev: any) => ({ ...prev, role }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
-    console.log("Submitted:", formData);
-    // TODO: Send to backend via API
+    setLoading(true);
+    try {
+      const res = await axios.post("/api/auth/register", formData);
+      toast({ title: "Registered Successfully ✅" });
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        mobile: "",
+        gender: "",
+        dateOfBirth: "",
+        parentName: "",
+        parentContact: "",
+        grade: "",
+        schoolName: "",
+        address: "",
+        role: "student"
+      });
+    } catch (err: any) {
+      toast({
+        title: "Registration Failed ❌",
+        description: err?.response?.data?.message || "Server error.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-white px-4 py-8">
-      <div className="bg-white/90 backdrop-blur-lg shadow-2xl rounded-3xl overflow-hidden max-w-5xl w-full grid grid-cols-1 md:grid-cols-2">
-        
-        {/* Image side */}
-        <motion.div
-          initial={{ opacity: 0, x: -40 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="hidden md:block bg-cover bg-center"
-          style={{
-            backgroundImage:
-              "url('https://cdn.pixabay.com/photo/2017/10/05/14/43/register-2819608_1280.jpg')",
-          }}
-        ></motion.div>
+    <div className="relative min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 flex items-center justify-center p-6">
+      {/* Floating background shapes */}
+      <div className="absolute top-10 right-10 w-40 h-40 bg-purple-300 rounded-full filter blur-3xl opacity-30 animate-pulse" />
+      <div className="absolute bottom-10 left-10 w-60 h-60 bg-pink-300 rounded-full filter blur-3xl opacity-30 animate-pulse" />
 
-        {/* Form side */}
-        <motion.div
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="p-8 sm:p-10 md:p-12"
-        >
-          <h2 className="text-3xl font-bold text-blue-800 mb-1">Create Account</h2>
-          <p className="text-sm text-gray-600 mb-6">
-            Join HighQ-Classes today and unlock your academic potential!
+      <motion.div
+        className="grid md:grid-cols-2 bg-white/40 backdrop-blur-lg shadow-xl rounded-3xl overflow-hidden w-full max-w-5xl border border-white/30"
+        initial={{ opacity: 0, y: 80 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+      >
+        {/* Left: Image */}
+        <div className="hidden md:flex bg-gradient-to-b from-indigo-200 to-indigo-400 items-center justify-center p-10">
+          <img
+            src="https://cdn.pixabay.com/photo/2018/07/12/21/32/subscribe-3534409_1280.jpg"
+            alt="Register"
+            className="w-4/5 rounded-2xl shadow-xl object-contain"
+          />
+        </div>
+
+        {/* Right: Form */}
+        <div className="p-8 bg-white bg-opacity-90 rounded-xl backdrop-blur-sm">
+          <h2 className="text-3xl font-extrabold text-indigo-700 mb-1 text-center">
+            Student Registration
+          </h2>
+          <p className="text-sm text-center text-gray-500 mb-6">
+            Fill the form carefully to create your account
           </p>
 
-          {/* Role Toggle */}
-          <div className="flex space-x-2 mb-5">
-            {roles.map((role) => (
-              <Button
-                key={role}
-                variant={selectedRole === role ? "default" : "outline"}
-                onClick={() => handleRoleChange(role)}
-                className="capitalize rounded-full px-5 text-sm"
-              >
-                {role}
-              </Button>
-            ))}
-          </div>
-
           <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              name="fullName"
-              placeholder="Full Name"
-              value={formData.fullName}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              name="email"
-              type="email"
-              placeholder="Email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
+            <Input name="name" placeholder="Full Name *" value={formData.name} onChange={handleChange} required />
+            <Input name="email" placeholder="Email Address *" type="email" value={formData.email} onChange={handleChange} required />
+
+            {/* Password with eye icon */}
             <div className="relative">
               <Input
-                name="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Password"
+                name="password"
+                placeholder="Password (Min 6 chars, 1 capital letter) *"
+                className="pr-10"
                 value={formData.password}
                 onChange={handleChange}
-                className="pr-10"
                 required
               />
-              <div
-                className="absolute inset-y-0 right-3 flex items-center text-blue-600 cursor-pointer"
-                onClick={() => setShowPassword(!showPassword)}
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-black"
               >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </div>
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
 
-            {/* Conditional Fields */}
-            {selectedRole === "student" && (
-              <>
-                <Input
-                  name="grade"
-                  placeholder="Grade/Class"
-                  value={formData.grade}
-                  onChange={handleChange}
-                />
-                <Input
-                  name="school"
-                  placeholder="School Name"
-                  value={formData.school}
-                  onChange={handleChange}
-                />
-                <Input
-                  name="parentContact"
-                  placeholder="Parent Contact"
-                  value={formData.parentContact}
-                  onChange={handleChange}
-                />
-              </>
-            )}
+            <Input name="mobile" placeholder="Mobile Number (10 digits) *" value={formData.mobile} onChange={handleChange} required />
 
-            {selectedRole === "teacher" && (
-              <>
-                <Input
-                  name="subjectExpertise"
-                  placeholder="Subject Expertise"
-                  value={formData.subjectExpertise}
-                  onChange={handleChange}
-                />
-                <Input
-                  name="experience"
-                  placeholder="Experience (years)"
-                  value={formData.experience}
-                  onChange={handleChange}
-                />
-                <Input
-                  name="qualification"
-                  placeholder="Highest Qualification"
-                  value={formData.qualification}
-                  onChange={handleChange}
-                />
-              </>
-            )}
+            <div className="flex gap-2">
+              <Input name="gender" placeholder="Gender (optional)" value={formData.gender} onChange={handleChange} />
+              <Input name="dateOfBirth" type="date" value={formData.dateOfBirth} onChange={handleChange} />
+            </div>
 
-            {selectedRole === "admin" && (
-              <>
-                <Input
-                  name="employeeId"
-                  placeholder="Employee ID"
-                  value={formData.employeeId}
-                  onChange={handleChange}
-                />
-                <Input
-                  name="department"
-                  placeholder="Department"
-                  value={formData.department}
-                  onChange={handleChange}
-                />
-              </>
-            )}
+            <Input name="parentName" placeholder="Parent's Name *" value={formData.parentName} onChange={handleChange} required />
+            <Input name="parentContact" placeholder="Parent Contact Number *" value={formData.parentContact} onChange={handleChange} required />
+            <Input name="grade" placeholder="Grade (e.g., 9, 10, 11) *" value={formData.grade} onChange={handleChange} required />
+            <Input name="schoolName" placeholder="School Name *" value={formData.schoolName} onChange={handleChange} required />
+            <Input name="address" placeholder="Address (optional)" value={formData.address} onChange={handleChange} />
 
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:scale-105 transition-all shadow-xl rounded-full text-white font-semibold text-lg py-2"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-purple-600 hover:to-indigo-600 text-white font-semibold py-2 rounded-xl shadow-lg transition-all"
             >
-              Register
+              {loading ? "Registering..." : "Register"}
             </Button>
           </form>
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
     </div>
   );
-}
+};
+
+export default Register;

@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 const { Schema } = mongoose;
 
 const materialSchema = new Schema(
@@ -20,20 +20,25 @@ const materialSchema = new Schema(
       type: String,
       required: true,
     },
+    originalFileName: {
+      type: String,
+      required: true,
+    },
+
     uploadedBy: {
       type: Schema.Types.ObjectId,
-      ref: 'Teacher',
+      ref: "Teacher",
       required: true,
     },
     batchIds: [
       {
         type: Schema.Types.ObjectId,
-        ref: 'Batch',
+        ref: "Batch",
       },
     ],
     courseId: {
       type: Schema.Types.ObjectId,
-      ref: 'Course',
+      ref: "Course",
       required: true,
     },
 
@@ -42,7 +47,7 @@ const materialSchema = new Schema(
       {
         user: {
           type: Schema.Types.ObjectId,
-          ref: 'Student', // or 'User' if mixed roles
+          ref: "Student", // or 'User' if mixed roles
         },
         viewedAt: {
           type: Date,
@@ -56,5 +61,5 @@ const materialSchema = new Schema(
   }
 );
 
-const Material = mongoose.model('Material', materialSchema);
+const Material = mongoose.model("Material", materialSchema);
 export default Material;
