@@ -8,20 +8,22 @@ import {
   updateBatch,
   updateStudentsInBatch,
   getCourseById
-  
+
 } from '../controllers/courseController.js';
 
 import { protect, authorize } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Protect all routes - admin only
+// Public routes (no authentication required)
+router.get('/', getAllCourses); // Allow public access to view courses
+router.get('/:id', getCourseById); // Allow public access to view individual course
+
+// Protected routes - admin only
 router.use(protect);
 router.use(authorize('admin'));
 
-// Courses
 router.post('/', createCourse);
-router.get('/', getAllCourses);
 router.patch('/:id', updateCourse);
 
 // Batches inside courses

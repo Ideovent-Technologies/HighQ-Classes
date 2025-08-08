@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,51 +7,43 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, FileText, Trash, Clock } from "lucide-react";
+import { Upload, FileText, Trash, Clock, Loader2 } from "lucide-react";
+import materialService from "@/API/services/materialService";
+import { MaterialUploadData } from "@/types/material.types";
 
 const UploadMaterials = () => {
+  const { toast } = useToast();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [subject, setSubject] = useState("");
+  const [courseId, setCourseId] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [batch, setBatch] = useState("");
+  const [batchIds, setBatchIds] = useState<string[]>([]);
+  const [category, setCategory] = useState<'lecture' | 'assignment' | 'reference' | 'exam'>('lecture');
   const [isUploading, setIsUploading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [uploadProgress, setUploadProgress] = useState(0);
   
-  // Sample uploaded materials
-  const [uploadedMaterials, setUploadedMaterials] = useState([
-    {
-      id: 1,
-      title: "Mechanics - Newton's Laws",
-      subject: "Physics",
-      description: "Comprehensive notes on Newton's Laws of Motion",
-      batch: "Physics Batch A",
-      uploadDate: "2023-04-05",
-      fileSize: "2.3 MB",
-      downloads: 24,
-    },
-    {
-      id: 2,
-      title: "Organic Chemistry - Reaction Mechanisms",
-      subject: "Chemistry",
-      description: "Key reaction mechanisms in organic chemistry",
-      batch: "Chemistry Batch B",
-      uploadDate: "2023-04-02",
-      fileSize: "3.5 MB",
-      downloads: 18,
-    },
-    {
-      id: 3,
-      title: "Integration Techniques",
-      subject: "Mathematics",
-      description: "Advanced integration methods with examples",
-      batch: "Mathematics Batch A",
-      uploadDate: "2023-03-28",
-      fileSize: "2.8 MB",
-      downloads: 31,
-    },
-  ]);
+  // Real uploaded materials from API
+  const [uploadedMaterials, setUploadedMaterials] = useState([]);
   
-  const { toast } = useToast();
+  // Fetch materials from API
+  useEffect(() => {
+    fetchMaterials();
+  }, []);
+
+  const fetchMaterials = async () => {
+    try {
+      setLoading(true);
+      const response = await materialService.getAdminTeacherMaterials();
+      if (response.success) {
+        setUploadedMaterials(response.materials || []);
+      }
+    } catch (error) {
+      console.error("Error fetching materials:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -62,7 +54,7 @@ const UploadMaterials = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedFile || !subject || !title || !batch) {
+    if (!selectedFile || !courseId || !title || !batchIds.length) {
       toast({
         title: "Validation Error",
         description: "Please fill all required fields and select a file.",
@@ -71,43 +63,79 @@ const UploadMaterials = () => {
       return;
     }
     
-    setIsUploading(true);
-    
-    // Simulate upload delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    // Add new material to the list
-    const newMaterial = {
-      id: uploadedMaterials.length + 1,
-      title,
-      subject,
-      description,
-      batch,
-      uploadDate: new Date().toISOString().split('T')[0],
-      fileSize: `${(selectedFile.size / (1024 * 1024)).toFixed(1)} MB`,
-      downloads: 0,
-    };
-    
-    setUploadedMaterials([newMaterial, ...uploadedMaterials]);
-    
-    // Reset form
-    setSelectedFile(null);
-    setSubject("");
-    setTitle("");
-    setDescription("");
-    setBatch("");
-    
-    toast({
-      title: "Upload Successful",
-      description: "Study material has been uploaded successfully.",
-    });
-    
-    setIsUploading(false);
+    try {
+      setIsUploading(true);
+      setUploadProgress(0);
+      
+      const uploadData: MaterialUploadData = {
+        file: selectedFile,
+        title,
+        description,
+        courseId,
+        batchIds,
+        category
+      };
+      
+      const onProgress = (progressEvent: any) => {
+        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        setUploadProgress(progress);
+      };
+      
+      const response = await materialService.uploadMaterial(uploadData, onProgress);
+      
+      if (response.success) {
+        toast({
+          title: "Upload Successful",
+          description: "Study material has been uploaded successfully.",
+        });
+        
+        // Reset form
+        setSelectedFile(null);
+        setCourseId("");
+        setTitle("");
+        setDescription("");
+        setBatchIds([]);
+        setCategory('lecture');
+        setUploadProgress(0);
+        
+        // Refresh materials list
+        fetchMaterials();
+      } else {
+        throw new Error(response.message || "Upload failed");
+      }
+    } catch (error) {
+      toast({
+        title: "Upload Error",
+        description: "Failed to upload material. Please try again.",
+        variant: "destructive",
+      });
+      console.error("Upload error:", error);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
-  const handleDelete = (id: number) => {
-    setUploadedMaterials(uploadedMaterials.filter((material) => material.id !== id));
-    
+  const handleDelete = async (materialId: string) => {
+    try {
+      const response = await materialService.deleteMaterial(materialId);
+      if (response.success) {
+        setUploadedMaterials(uploadedMaterials.filter((material) => material._id !== materialId));
+        toast({
+          title: "Success",
+          description: "Material deleted successfully!",
+        });
+      } else {
+        throw new Error(response.message || "Delete failed");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete material. Please try again.",
+        variant: "destructive",
+      });
+      console.error("Delete error:", error);
+    }
+  };
     toast({
       title: "Material Deleted",
       description: "The study material has been removed.",
@@ -144,40 +172,62 @@ const UploadMaterials = () => {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium mb-1" htmlFor="subject">
-                    Subject*
+                  <label className="block text-sm font-medium mb-1" htmlFor="course">
+                    Course*
                   </label>
-                  <Select value={subject} onValueChange={setSubject}>
+                  <Select value={courseId} onValueChange={setCourseId}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select subject" />
+                      <SelectValue placeholder="Select course" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Physics">Physics</SelectItem>
-                      <SelectItem value="Chemistry">Chemistry</SelectItem>
-                      <SelectItem value="Mathematics">Mathematics</SelectItem>
-                      <SelectItem value="Biology">Biology</SelectItem>
+                      <SelectItem value="physics101">Physics 101</SelectItem>
+                      <SelectItem value="chemistry101">Chemistry 101</SelectItem>
+                      <SelectItem value="mathematics101">Mathematics 101</SelectItem>
+                      <SelectItem value="biology101">Biology 101</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium mb-1" htmlFor="batch">
-                    Target Batch*
+                  <label className="block text-sm font-medium mb-1" htmlFor="category">
+                    Category*
                   </label>
-                  <Select value={batch} onValueChange={setBatch}>
+                  <Select value={category} onValueChange={(value: 'lecture' | 'assignment' | 'reference' | 'exam') => setCategory(value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select batch" />
+                      <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Physics Batch A">Physics Batch A</SelectItem>
-                      <SelectItem value="Physics Batch B">Physics Batch B</SelectItem>
-                      <SelectItem value="Chemistry Batch A">Chemistry Batch A</SelectItem>
-                      <SelectItem value="Chemistry Batch B">Chemistry Batch B</SelectItem>
-                      <SelectItem value="Mathematics Batch A">Mathematics Batch A</SelectItem>
-                      <SelectItem value="Mathematics Batch B">Mathematics Batch B</SelectItem>
-                      <SelectItem value="All Batches">All Batches</SelectItem>
+                      <SelectItem value="lecture">Lecture</SelectItem>
+                      <SelectItem value="assignment">Assignment</SelectItem>
+                      <SelectItem value="reference">Reference</SelectItem>
+                      <SelectItem value="exam">Exam</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1" htmlFor="batches">
+                    Target Batches* (Select one or more)
+                  </label>
+                  <div className="space-y-2">
+                    {['batch1', 'batch2', 'batch3', 'batch4'].map((batchId) => (
+                      <label key={batchId} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={batchIds.includes(batchId)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setBatchIds([...batchIds, batchId]);
+                            } else {
+                              setBatchIds(batchIds.filter(id => id !== batchId));
+                            }
+                          }}
+                          className="rounded border-gray-300"
+                        />
+                        <span className="text-sm">Batch {batchId.slice(-1)}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
                 
                 <div>
@@ -220,6 +270,21 @@ const UploadMaterials = () => {
                   </div>
                 </div>
                 
+                {isUploading && (
+                  <div className="mb-4">
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Uploading...</span>
+                      <span>{uploadProgress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${uploadProgress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+                
                 <Button
                   type="submit"
                   className="w-full"
@@ -250,7 +315,7 @@ const UploadMaterials = () => {
                 <div className="space-y-4">
                   {uploadedMaterials.map((material) => (
                     <div
-                      key={material.id}
+                      key={material._id}
                       className="flex justify-between items-start p-4 border rounded-lg hover:bg-gray-50"
                     >
                       <div className="flex items-start">
@@ -261,15 +326,15 @@ const UploadMaterials = () => {
                           <div className="flex flex-wrap items-center text-xs text-gray-500 mt-2 gap-x-4 gap-y-1">
                             <span className="flex items-center">
                               <span className="w-2 h-2 rounded-full bg-navy-500 mr-1"></span>
-                              {material.subject}
+                              {material.courseId?.name || 'Unknown Course'}
                             </span>
-                            <span>Batch: {material.batch}</span>
+                            <span>Batches: {material.batchIds?.map(batch => batch.name).join(', ') || 'No Batch'}</span>
                             <span className="flex items-center">
                               <Clock className="h-3 w-3 mr-1" />
-                              {material.uploadDate}
+                              {new Date(material.createdAt).toLocaleDateString()}
                             </span>
-                            <span>Size: {material.fileSize}</span>
-                            <span>Downloads: {material.downloads}</span>
+                            <span>Type: {material.fileType}</span>
+                            <span>Views: {material.views || 0}</span>
                           </div>
                         </div>
                       </div>
@@ -277,7 +342,7 @@ const UploadMaterials = () => {
                         variant="ghost"
                         size="sm"
                         className="text-red-500"
-                        onClick={() => handleDelete(material.id)}
+                        onClick={() => handleDelete(material._id)}
                       >
                         <Trash className="h-4 w-4" />
                       </Button>

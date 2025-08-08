@@ -1,6 +1,14 @@
 import React from "react";
 import { Batch } from "@/types/Batch.Types";
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+    Table,
+    TableBody,
+    TableCaption,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
@@ -23,15 +31,27 @@ const BatchList: React.FC<BatchListProps> = ({ batches }) => {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {batches.map(batch => (
+                    {batches.map((batch) => (
                         <TableRow key={batch._id}>
-                            <TableCell className="font-medium">{batch.name}</TableCell>
-                            <TableCell>{batch.courseId}</TableCell>
-                            <TableCell>{batch.teacherId}</TableCell>
+                            <TableCell className="font-medium">
+                                {batch.name}
+                            </TableCell>
+                            <TableCell>
+                                {typeof batch.courseId === "object"
+                                    ? batch.courseId.name
+                                    : batch.courseId}
+                            </TableCell>
+                            <TableCell>
+                                {typeof batch.teacherId === "object"
+                                    ? batch.teacherId.name
+                                    : batch.teacherId}
+                            </TableCell>
                             <TableCell>{batch.students.length}</TableCell>
                             <TableCell className="text-right">
                                 <Link to={`/dashboard/batches/${batch._id}`}>
-                                    <Button size="sm" variant="outline">View</Button>
+                                    <Button size="sm" variant="outline">
+                                        View
+                                    </Button>
                                 </Link>
                             </TableCell>
                         </TableRow>

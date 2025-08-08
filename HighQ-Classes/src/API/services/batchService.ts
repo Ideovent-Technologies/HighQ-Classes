@@ -60,12 +60,12 @@ const batchService = {
     getBatchById: async (batchId: string): Promise<{ success: boolean; batch?: Batch; message?: string }> => {
         try {
             const response = await api.get(`/batches/${batchId}`);
-            return { success: true, batch: response.data.batch };
+            return { success: true, batch: response.data };
         } catch (error: any) {
             console.error('Get batch by ID error:', error);
             return { 
                 success: false, 
-                message: error.response?.data?.message || 'Failed to fetch batch' 
+                message: error.response?.data?.message || error.response?.data?.error || 'Failed to fetch batch' 
             };
         }
     },
@@ -88,7 +88,7 @@ const batchService = {
     updateBatch: async (batchId: string, updateData: UpdateBatchData): Promise<{ success: boolean; batch?: Batch; message?: string }> => {
         try {
             const response = await api.put(`/batches/${batchId}`, updateData);
-            return { success: true, batch: response.data.batch };
+            return { success: true, batch: response.data };
         } catch (error: any) {
             console.error('Update batch error:', error);
             return { 

@@ -54,11 +54,28 @@ const StudentDashboard: React.FC = () => {
             try {
                 setIsLoading(true);
                 const data = await studentService.getDashboard();
+
+                // Merge auth user data with dashboard data
+                if (user && data) {
+                    data.student = {
+                        ...data.student,
+                        _id: user._id || "",
+                        name: user.name || data.student.name,
+                        email: user.email || "",
+                        batch: user.batch || data.student.batch,
+                        grade: user.grade || "",
+                        parentName: user.parentName || "",
+                        parentContact: user.parentContact || "",
+                        schoolName: user.schoolName || "",
+                        mobile: user.mobile || "",
+                    };
+                }
+
                 setDashboardData(data);
                 setError(null);
             } catch (err: any) {
-                setError(err.message || "Failed to load dashboard");
                 console.error("Dashboard fetch error:", err);
+                setError(err.message || "Failed to load dashboard");
             } finally {
                 setIsLoading(false);
             }
@@ -66,8 +83,10 @@ const StudentDashboard: React.FC = () => {
 
         if (user) {
             fetchDashboardData();
+        } else {
+            setIsLoading(false);
         }
-    }, [user]);
+    }, [user, state]);
 
     const calculateStats = (): DashboardStats => {
         if (!dashboardData) {
@@ -462,21 +481,29 @@ const StudentDashboard: React.FC = () => {
                                 <div className="flex justify-between text-sm mb-2">
                                     <span>Assignment Completion</span>
                                     <span>
-                                        {(
-                                            (stats.completedAssignments /
-                                                (stats.completedAssignments +
-                                                    stats.pendingAssignments)) *
-                                            100
-                                        ).toFixed(1)}
+                                        {stats.completedAssignments +
+                                            stats.pendingAssignments >
+                                        0
+                                            ? (
+                                                  (stats.completedAssignments /
+                                                      (stats.completedAssignments +
+                                                          stats.pendingAssignments)) *
+                                                  100
+                                              ).toFixed(1)
+                                            : "0.0"}
                                         %
                                     </span>
                                 </div>
                                 <Progress
                                     value={
-                                        (stats.completedAssignments /
-                                            (stats.completedAssignments +
-                                                stats.pendingAssignments)) *
-                                        100
+                                        stats.completedAssignments +
+                                            stats.pendingAssignments >
+                                        0
+                                            ? (stats.completedAssignments /
+                                                  (stats.completedAssignments +
+                                                      stats.pendingAssignments)) *
+                                              100
+                                            : 0
                                     }
                                     className="h-2"
                                 />

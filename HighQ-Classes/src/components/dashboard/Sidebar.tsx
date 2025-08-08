@@ -2,8 +2,20 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  Home, BookOpen, Users, FileText, Bell, Settings, LogOut,
-  User, Upload, DollarSign, X
+    Home,
+    BookOpen,
+    Users,
+    FileText,
+    Bell,
+    Settings,
+    LogOut,
+    User,
+    Upload,
+    DollarSign,
+    Megaphone,
+    GraduationCap,
+    UserCheck,
+    Building,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
@@ -37,31 +49,31 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
   const isActive = (path: string) => location.pathname === path;
   const iconClass = "h-5 w-5 shrink-0";
 
-  const createNavItem = (path: string, Icon: any, label: string) => (
-    <motion.li key={path} whileHover={{ x: 4 }}>
-      <Link
-        to={path}
-        onClick={() => isMobile && onClose()}
-        className={clsx(
-          "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ease-in-out relative",
-          isActive(path)
-            ? "bg-gradient-to-r from-teal-200/80 via-white to-navy-100/70 text-navy-800 font-semibold shadow-inner"
-            : "text-gray-600 hover:bg-white/60 hover:shadow-md"
-        )}
-      >
-        <span className={clsx(isActive(path) ? "text-teal-600" : "text-gray-500")}>
-          <Icon className={iconClass} />
-        </span>
-        <span className="tracking-wide truncate">{label}</span>
-        {isActive(path) && (
-          <motion.div
-            layoutId="activeIndicator"
-            className="absolute left-0 top-0 h-full w-1 bg-teal-500 rounded-r"
-          />
-        )}
-      </Link>
-    </motion.li>
-  );
+    const commonItems = [
+        user?.role === "admin"
+            ? navItem(
+                  "/admin/dashboard",
+                  <Home className={iconClass} />,
+                  "Dashboard"
+              )
+            : navItem(
+                  "/dashboard",
+                  <Home className={iconClass} />,
+                  "Dashboard"
+              ),
+        user?.role === "admin"
+            ? navItem(
+                  "/admin/profile",
+                  <User className={iconClass} />,
+                  "Profile"
+              )
+            : navItem("/profile", <User className={iconClass} />, "Profile"),
+        navItem(
+            "/dashboard/notices",
+            <Bell className={iconClass} />,
+            "Notices"
+        ),
+    ];
 
   const commonItems = [
     createNavItem("/dashboard", Home, "Dashboard"),
@@ -78,13 +90,68 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
     createNavItem("/dashboard/assignments", FileText, "Assignments"),
   ];
 
-  const studentItems = [
-    createNavItem("/dashboard/fee-status", DollarSign, "Fee Status"),
-    createNavItem("/student/materials", FileText, "Study Materials"),
-    createNavItem("/student/recordings", FileText, "Recordings"),
-    createNavItem("/student/assignments", FileText, "Assignments"),
-    createNavItem("/dashboard/schedule", BookOpen, "Schedule"),
-  ];
+    const adminItems = [
+        navItem(
+            "/dashboard/all-students",
+            <Users className={iconClass} />,
+            "All Students"
+        ),
+        navItem(
+            "/dashboard/teacher-management",
+            <UserCheck className={iconClass} />,
+            "Manage Teachers"
+        ),
+        navItem(
+            "/dashboard/course-management",
+            <GraduationCap className={iconClass} />,
+            "Manage Courses"
+        ),
+        navItem(
+            "/dashboard/batches/manage",
+            <Building className={iconClass} />,
+            "Manage Batches"
+        ),
+        navItem(
+            "/dashboard/batches/add",
+            <Building className={iconClass} />,
+            "Create Batch"
+        ),
+        navItem(
+            "/dashboard/manage-notices",
+            <Bell className={iconClass} />,
+            "Manage Notices"
+        ),
+        navItem(
+            "/admin/announcements",
+            <Megaphone className={iconClass} />,
+            "Announcements"
+        ),
+        navItem(
+            "/dashboard/fee-management",
+            <DollarSign className={iconClass} />,
+            "Fee Management"
+        ),
+        navItem(
+            "/dashboard/schedule-management",
+            <BookOpen className={iconClass} />,
+            "Schedule Management"
+        ),
+        navItem(
+            "/admin/materials",
+            <FileText className={iconClass} />,
+            "Materials Management"
+        ),
+        navItem(
+            "/admin/attendance",
+            <FileText className={iconClass} />,
+            "Attendance Management"
+        ),
+        navItem(
+            "/admin/assignments",
+            <FileText className={iconClass} />,
+            "Assignment Management"
+        ),
+    ];
 
   const adminItems = [
     createNavItem("/dashboard/all-students", Users, "All Students"),

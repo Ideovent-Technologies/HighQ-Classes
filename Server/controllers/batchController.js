@@ -78,7 +78,7 @@ export const UpdateBatch = async (req, res) => {
 // get batch by ID
 export const getBatchById = async (req, res) => {
   try {
-    const batchId = req.params.id;
+    const batchId = req.params.batchId;
     console.log("Batch ID received:", batchId);
 
     if (!batchId || batchId.length !== 24) {

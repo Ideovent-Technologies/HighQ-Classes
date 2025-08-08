@@ -10,79 +10,69 @@ import {
     Plus,
     DollarSign,
 } from "lucide-react";
-import { motion } from "framer-motion";
 
 interface QuickActionsProps {
     className?: string;
 }
 
-const actions = [
-    { label: "Manage Teachers", icon: Plus, to: "/dashboard/teachers/manage" },
-    { label: "Manage Courses", icon: BookOpen, to: "/dashboard/courses/manage" },
-    { label: "Manage Batches", icon: Building, to: "/dashboard/batches/manage" },
-    { label: "Manage Fees", icon: DollarSign, to: "/dashboard/fee-management" },
-    { label: "Manage Students", icon: Users, to: "/dashboard/student/add" },
-    { label: "Settings", icon: Settings, to: "/dashboard/settings" },
-];
-
-const ActionButton: React.FC<{
-    to: string;
-    label: string;
-    icon: React.ElementType;
-}> = ({ to, label, icon: Icon }) => (
-    <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.96 }}>
-        <Link to={to} aria-label={label} className="block">
-            <Button
-                variant="outline"
-                className={`
-                    min-h-[110px] sm:min-h-[130px]
-                    w-full
-                    flex flex-col items-center justify-center gap-3
-                    rounded-2xl
-                    border border-gray-300
-                    bg-gradient-to-tr from-blue-50 via-white to-green-50
-                    hover:bg-gradient-to-tr hover:from-blue-100 hover:via-white hover:to-green-100
-                    text-indigo-600
-                    transition-all shadow-md
-                    min-w-0
-                `}
-            >
-                <Icon className="h-8 w-8 sm:h-9 sm:w-9" />
-                <span className="text-sm font-semibold text-center text-indigo-700 whitespace-normal inline-block">
-                    {label}
-                </span>
-            </Button>
-        </Link>
-    </motion.div>
-);
-
 const QuickActions: React.FC<QuickActionsProps> = ({ className }) => {
+    // Destructure className here
     return (
-        <Card
-            className={`
-                bg-gradient-to-br from-blue-50 to-green-50
-                border border-blue-200
-                shadow-lg shadow-blue-100/60
-                rounded-3xl
-                p-6 sm:p-8
-                ${className}
-            `}
-        >
+        // Apply the className to the root Card element
+        <Card className={className}>
             <CardHeader>
                 <CardTitle className="text-xl font-bold text-indigo-900">
                     Quick Actions
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
-                    {actions.map((action) => (
-                        <ActionButton
-                            key={action.to}
-                            to={action.to}
-                            label={action.label}
-                            icon={action.icon}
-                        />
-                    ))}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {/* The rest of your component remains the same... */}
+                    <Link to="/dashboard/teacher-management">
+                        <Button
+                            variant="outline"
+                            className="h-20 w-full flex flex-col items-center justify-center"
+                        >
+                            <Plus className="h-6 w-6 mb-2" />
+                            Manage Teacher
+                        </Button>
+                    </Link>
+                    <Link to="/dashboard/course-management">
+                        <Button
+                            variant="outline"
+                            className="h-20 w-full flex flex-col items-center justify-center"
+                        >
+                            <BookOpen className="h-6 w-6 mb-2" />
+                            Manage Course
+                        </Button>
+                    </Link>
+                    <Link to="/dashboard/batches/manage">
+                        <Button
+                            variant="outline"
+                            className="h-20 w-full flex flex-col items-center justify-center"
+                        >
+                            <Building className="h-6 w-6 mb-2" />
+                            Manage Batch
+                        </Button>
+                    </Link>
+                    <Link to="/dashboard/fee-management">
+                        <Button
+                            variant="outline"
+                            className="h-20 w-full flex flex-col items-center justify-center"
+                        >
+                            <DollarSign className="h-6 w-6 mb-2" />
+                            Manage Fees
+                        </Button>
+                    </Link>
+                    <Link to="/dashboard/all-students">
+                        <Button
+                            variant="outline"
+                            className="h-20 w-full flex flex-col items-center justify-center"
+                        >
+                            <Users className="h-6 w-6 mb-2" />
+                            Manage students
+                        </Button>
+                    </Link>
                 </div>
             </CardContent>
         </Card>

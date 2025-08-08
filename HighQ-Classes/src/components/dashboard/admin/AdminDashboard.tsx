@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { motion, Variants } from "framer-motion";
+import { motion } from "framer-motion";
 import {
     Users,
     UserCheck,
@@ -20,6 +20,9 @@ import {
     CardTitle,
     CardDescription,
 } from "@/components/ui/card";
+import StatCard from "@/components/dashboard/StatCard";
+// 1. IMPORT your separate QuickActions component
+// (Adjust the path if it's different in your project structure)
 import QuickActions from "@/components/dashboard/Widgets/QuickActions";
 
 // Helper function to format currency for readability
@@ -121,9 +124,12 @@ const AdminDashboard = () => {
             try {
                 const response = await AdminService.getAdminData();
                 if (response.success) {
+                    console.log("Admin dashboard data:", response.data); // Debug log
                     setData(response.data);
                 } else {
-                    setError(response.message || "Failed to fetch dashboard data.");
+                    setError(
+                        response.message || "Failed to fetch dashboard data."
+                    );
                 }
             } catch (err) {
                 setError("An unexpected error occurred.");
@@ -182,76 +188,63 @@ const AdminDashboard = () => {
         recentNotices = [],
     } = data || {};
 
+    // Debug log for notices
+    console.log("Recent notices data:", recentNotices);
+
     const statCards = [
         {
             title: "Total Students",
             value: totalStudents,
             subtitle: "Across all batches",
             to: "/admin/students",
-            icon: <Users className="h-6 w-6" />,
-            gradientFrom: "#6366F1",
-            gradientTo: "#8B5CF6",
+            icon: <Users className="h-6 w-6 text-blue-500" />,
         },
         {
             title: "Total Teachers",
             value: totalTeachers,
             subtitle: "Active faculty",
             to: "/admin/teachers",
-            icon: <UserCheck className="h-6 w-6" />,
-            gradientFrom: "#4ADE80",
-            gradientTo: "#14B8A6",
+            icon: <UserCheck className="h-6 w-6 text-green-500" />,
         },
         {
             title: "Courses Offered",
             value: totalCourses,
             subtitle: "In the curriculum",
             to: "/admin/courses",
-            icon: <BookOpen className="h-6 w-6" />,
-            gradientFrom: "#F472B6",
-            gradientTo: "#EC4899",
+            icon: <BookOpen className="h-6 w-6 text-purple-500" />,
         },
         {
             title: "Total Revenue",
             value: formatToIndianCurrency(totalRevenue),
             subtitle: "This fiscal year",
             to: "/admin/finance",
-            icon: <CreditCard className="h-6 w-6" />,
-            gradientFrom: "#38BDF8",
-            gradientTo: "#3B82F6",
+            icon: <BarChart3 className="h-6 w-6 text-emerald-500" />,
         },
         {
             title: "Pending Approvals",
             value: pendingApprovals,
-            subtitle: "Require attention",
+            subtitle: "Require your attention",
             to: "/admin/approvals",
-            icon: <ClipboardList className="h-6 w-6" />,
-            gradientFrom: "#FBBF24",
-            gradientTo: "#F59E0B",
+            icon: <ClipboardList className="h-6 w-6 text-amber-500" />,
         },
         {
             title: "Active Users",
             value: activeUsers,
             subtitle: "Online in last 24h",
             to: "/admin/analytics",
-            icon: <BarChart3 className="h-6 w-6" />,
-            gradientFrom: "#6366F1",
-            gradientTo: "#A855F7",
+            icon: <BarChart3 className="h-6 w-6 text-sky-500" />,
         },
     ];
 
     return (
-        <motion.div
-            initial="initial"
-            animate="animate"
-            variants={pageVariants}
-            className="p-4 sm:p-6 lg:p-8 space-y-12 max-w-7xl mx-auto bg-indigo-50 text-indigo-900 min-h-screen font-inter"
-        >
-            <header className="text-center sm:text-left">
-                <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tighter text-indigo-900">
+        <div className="p-6 space-y-8 max-w-7xl mx-auto bg-slate-50 dark:bg-slate-900 rounded-lg">
+            <header>
+                <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
                     Admin Dashboard
                 </h1>
-                <p className="text-lg text-indigo-600 mt-2">
-                    Welcome back, Admin. Your institution’s progress at a glance.
+                <p className="text-slate-500 dark:text-slate-400 mt-1">
+                    Welcome back, Admin. Here's a summary of your institution's
+                    status.
                 </p>
             </header>
 
@@ -272,51 +265,73 @@ const AdminDashboard = () => {
                     </motion.div>
                 </section>
 
-                {/* Recent Notices */}
-                <section>
-                    <h2 className="text-2xl font-bold text-indigo-800 mb-6">
-                        Recent Notices
-                    </h2>
-                    <Card className="bg-white/90 text-indigo-900 border border-indigo-100 shadow-lg">
-                        <CardHeader className="border-b border-indigo-100 pb-4">
-                            <CardTitle className="text-xl font-bold">
-                                Latest Announcements
-                            </CardTitle>
-                            <CardDescription>
-                                Important updates from the administration.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {recentNotices.length > 0 ? (
-                                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {recentNotices.slice(0, 4).map((notice) => (
-                                        <NoticeCard
-                                            key={notice._id}
-                                            title={notice.title}
-                                            content={notice.content}
-                                            date={notice.createdAt}
-                                        />
-                                    ))}
-                                </ul>
-                            ) : (
-                                <div className="flex flex-col items-center justify-center py-12 text-indigo-500">
-                                    <MessageSquare className="h-10 w-10 mb-4 text-indigo-400" />
-                                    <p className="text-lg">No recent notices to display.</p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </section>
+            {/* === Actions and Notices Grid === */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* 2. USE your imported component here */}
+                <QuickActions className="lg:col-span-1" />
 
-                {/* Quick Actions */}
-                <section>
-                    <h2 className="text-2xl font-bold text-indigo-800 mb-6">
-                        Quick Actions
-                    </h2>
-                    <div className="bg-white/90 rounded-xl p-4 shadow-lg border border-indigo-100">
-                        <QuickActions />
-                    </div>
-                </section>
+                {/* Recent Notices Section */}
+                <Card className="lg:col-span-2">
+                    <CardHeader>
+                        <CardTitle>Recent Notices</CardTitle>
+                        <CardDescription>
+                            Latest announcements and updates.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {recentNotices && recentNotices.length > 0 ? (
+                            <ul className="space-y-4">
+                                {recentNotices
+                                    .slice(0, 4)
+                                    .map((notice: any, index: number) => (
+                                        <motion.li
+                                            key={notice._id}
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{
+                                                duration: 0.3,
+                                                delay: index * 0.1,
+                                            }}
+                                            className="flex items-start space-x-3"
+                                        >
+                                            <div className="flex-shrink-0 pt-1">
+                                                <Bell className="h-5 w-5 text-amber-500" />
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-slate-800 dark:text-slate-100">
+                                                    {notice.title ||
+                                                        "Untitled Notice"}
+                                                </p>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                                    {notice.content
+                                                        ? notice.content.substring(
+                                                              0,
+                                                              100
+                                                          ) +
+                                                          (notice.content
+                                                              .length > 100
+                                                              ? "..."
+                                                              : "")
+                                                        : "No content available"}
+                                                </p>
+                                                <span className="text-xs text-slate-400">
+                                                    {notice.createdAt
+                                                        ? new Date(
+                                                              notice.createdAt
+                                                          ).toLocaleDateString()
+                                                        : "No date available"}
+                                                </span>
+                                            </div>
+                                        </motion.li>
+                                    ))}
+                            </ul>
+                        ) : (
+                            <p className="text-center text-slate-500 py-8">
+                                No recent notices found.
+                            </p>
+                        )}
+                    </CardContent>
+                </Card>
             </div>
         </motion.div>
     );
