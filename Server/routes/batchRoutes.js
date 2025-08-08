@@ -6,7 +6,7 @@ import {
   deleteBatch,
   assignStudentToBatch,
   getBatchesByCourse,
-  getBatchById,
+  getBatchById
 } from '../controllers/batchController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -27,6 +27,27 @@ router.post('/', protect, CreateBatch);
 router.get('/', protect, GetAllBatch);
 
 /**
+ * @route   GET /api/batches/course/:courseId
+ * @desc    Get batches by course ID
+ * @access  Private
+ */
+router.get('/course/:courseId', protect, getBatchesByCourse);
+
+/**
+ * @route   POST /api/batches/:batchId/students
+ * @desc    Assign a student to a batch
+ * @access  Private
+ */
+router.post('/:batchId/students', protect, assignStudentToBatch);
+
+/**
+ * @route   GET /api/batches/:batchId
+ * @desc    Get batch by ID
+ * @access  Private
+ */
+router.get('/:batchId', protect, getBatchById);
+
+/**
  * @route   PUT /api/batches/:batchId
  * @desc    Update an existing batch
  * @access  Private
@@ -39,20 +60,6 @@ router.put('/:batchId', protect, UpdateBatch);
  * @access  Private
  */
 router.delete('/:batchId', protect, deleteBatch);
-
-/**
- * @route   POST /api/batches/:batchId/students
- * @desc    Assign a student to a batch
- * @access  Private
- */
-router.post('/:batchId/students', protect, assignStudentToBatch);
-
-/**
- * @route   GET /api/batches/course/:courseId
- * @desc    Get batches by course ID
- * @access  Private
- */
-router.get('/course/:courseId', protect, getBatchesByCourse);
 
 router.get('/:batchId', protect, getBatchById); // Useful for testing existence
 

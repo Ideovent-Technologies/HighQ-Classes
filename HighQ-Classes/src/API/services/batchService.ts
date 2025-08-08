@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import api from '../Axios';
 
 // Types for batch operations (will be moved to types/batch.types.ts by Sumit)
@@ -44,8 +45,8 @@ const batchService = {
     // GET /api/batch - Get all batches
     getAllBatches: async (): Promise<{ success: boolean; batches?: Batch[]; message?: string }> => {
         try {
-            const response = await api.get('/batch');
-            return { success: true, batches: response.data.batches };
+            const response = await api.get('/batches');
+            return { success: true, batches: response.data };
         } catch (error: any) {
             console.error('Get all batches error:', error);
             return { 
@@ -58,7 +59,7 @@ const batchService = {
     // GET /api/batch/:id - Get batch by ID  
     getBatchById: async (batchId: string): Promise<{ success: boolean; batch?: Batch; message?: string }> => {
         try {
-            const response = await api.get(`/batch/${batchId}`);
+            const response = await api.get(`/batches/${batchId}`);
             return { success: true, batch: response.data.batch };
         } catch (error: any) {
             console.error('Get batch by ID error:', error);
@@ -72,7 +73,7 @@ const batchService = {
     // POST /api/batch - Create new batch
     createBatch: async (batchData: CreateBatchData): Promise<{ success: boolean; batch?: Batch; message?: string }> => {
         try {
-            const response = await api.post('/batch', batchData);
+            const response = await api.post('/batches', batchData);
             return { success: true, batch: response.data.batch };
         } catch (error: any) {
             console.error('Create batch error:', error);
@@ -86,7 +87,7 @@ const batchService = {
     // PUT /api/batch/:id - Update batch
     updateBatch: async (batchId: string, updateData: UpdateBatchData): Promise<{ success: boolean; batch?: Batch; message?: string }> => {
         try {
-            const response = await api.put(`/batch/${batchId}`, updateData);
+            const response = await api.put(`/batches/${batchId}`, updateData);
             return { success: true, batch: response.data.batch };
         } catch (error: any) {
             console.error('Update batch error:', error);
@@ -100,7 +101,7 @@ const batchService = {
     // DELETE /api/batch/:id - Delete batch
     deleteBatch: async (batchId: string): Promise<{ success: boolean; message?: string }> => {
         try {
-            await api.delete(`/batch/${batchId}`);
+            await api.delete(`/batches/${batchId}`);
             return { success: true };
         } catch (error: any) {
             console.error('Delete batch error:', error);
@@ -114,7 +115,7 @@ const batchService = {
     // POST /api/batch/:id/students - Add students to batch
     addStudentsToBatch: async (batchId: string, studentIds: string[]): Promise<{ success: boolean; message?: string }> => {
         try {
-            await api.post(`/batch/${batchId}/students`, { studentIds });
+            await api.post(`/batches/${batchId}/students`, { studentIds });
             return { success: true };
         } catch (error: any) {
             console.error('Add students to batch error:', error);
@@ -128,7 +129,7 @@ const batchService = {
     // DELETE /api/batch/:id/students/:studentId - Remove student from batch
     removeStudentFromBatch: async (batchId: string, studentId: string): Promise<{ success: boolean; message?: string }> => {
         try {
-            await api.delete(`/batch/${batchId}/students/${studentId}`);
+            await api.delete(`/batches/${batchId}/students/${studentId}`);
             return { success: true };
         } catch (error: any) {
             console.error('Remove student from batch error:', error);

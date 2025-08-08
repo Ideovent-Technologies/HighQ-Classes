@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import api from"../Axios";
 import { TeacherUser } from "../../types/teacher.types";
 

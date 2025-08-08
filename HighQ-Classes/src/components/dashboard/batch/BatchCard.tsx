@@ -6,33 +6,53 @@ import { Button } from "@/components/ui/button";
 import { Batch } from "@/types/Batch.Types";
 
 interface BatchCardProps {
-    batch: Batch;
+  batch: Batch;
 }
 
 const BatchCard: React.FC<BatchCardProps> = ({ batch }) => {
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex justify-between items-center">
-                    {batch.name}
-                    {/* Assuming a 'status' field will be added to the batch model for badges */}
-                    <Badge variant="secondary">
-                        Active
-                    </Badge>
-                </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-                <p className="text-sm text-gray-600">Course ID: {batch.courseId}</p>
-                <p className="text-sm text-gray-600">Teacher ID: {batch.teacherId}</p>
-                <p className="text-sm text-gray-600">Students: {batch.students.length}</p>
-                <div className="flex space-x-2 mt-4">
-                    <Link to={`/dashboard/batches/${batch._id}`}>
-                        <Button size="sm">View Details</Button>
-                    </Link>
-                </div>
-            </CardContent>
-        </Card>
-    );
+  const {
+    _id,
+    name,
+    courseId,
+    teacherId,
+    students,
+    status = "active", // fallback default
+  } = batch;
+
+  const courseName = typeof courseId === "object" && courseId !== null ? courseId.name : String(courseId);
+  const teacherName = typeof teacherId === "object" && teacherId !== null ? teacherId.name : "N/A";
+
+  // ✅ Log the batch _id
+  console.log("Rendering BatchCard for ID:", _id);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex justify-between items-center">
+          <span>{name}</span>
+          <Badge variant="secondary">{status}</Badge>
+        </CardTitle>
+      </CardHeader>
+
+      <CardContent className="space-y-2 text-sm text-gray-700">
+        <p>
+          <strong>Course:</strong> {courseName || "N/A"}
+        </p>
+        <p>
+          <strong>Teacher:</strong> {teacherName}
+        </p>
+        <p>
+          <strong>Students:</strong> {students?.length ?? 0}
+        </p>
+
+        <div className="mt-4">
+          <Link to={`/dashboard/batches/${_id}`}>
+            <Button size="sm">View Details</Button>
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
+  );
 };
 
 export default BatchCard;

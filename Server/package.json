@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "seed": "node scripts/seedDatabase.js",
+    "seed:clear": "node scripts/clearDatabase.js"
   },
   "keywords": [],
   "author": "",
