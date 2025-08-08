@@ -35,7 +35,7 @@ export const uploadMaterial = async (req, res) => {
       return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
           {
-            resource_type: "auto", // ⬅️ The key fix: Changed from "raw" to "auto"
+            resource_type: "raw", // ⬅️ The key fix: Changed from "raw" to "auto"
             folder: "materials",
             public_id: `${Date.now()}_${path.parse(file.name).name}`,
           },
