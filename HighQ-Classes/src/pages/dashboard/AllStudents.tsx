@@ -75,10 +75,10 @@ const AllStudents = () => {
                         joiningDate: student.createdAt,
                         isActive: student.isActive !== false, // Default to true if not specified
                         createdAt: student.createdAt,
-                        feeStatus: {
-                            totalFee: 12000, // Default values - these should come from API
+                        feeStatus: student.feeStatus || {
+                            totalFee: 0,
                             paidAmount: 0,
-                            pendingAmount: 12000,
+                            pendingAmount: 0,
                         },
                     })
                 );

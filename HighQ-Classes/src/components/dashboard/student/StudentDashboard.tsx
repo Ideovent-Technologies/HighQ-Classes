@@ -53,27 +53,10 @@ const StudentDashboard: React.FC = () => {
         const fetchDashboardData = async () => {
             try {
                 setIsLoading(true);
-                console.log("🔍 Fetching dashboard data for user:", user);
-                console.log(
-                    "🔍 User authentication status:",
-                    state.isAuthenticated
-                );
-                console.log("🔍 User role:", state.user?.role);
-
                 const data = await studentService.getDashboard();
-                console.log("✅ Dashboard data received:", data);
-                console.log("📊 Dashboard data structure:");
-                console.log("- Student:", data.student);
-                console.log("- Upcoming Classes:", data.upcomingClasses);
-                console.log("- Assignments:", data.assignments);
-                console.log("- Notifications:", data.notifications);
-                console.log("- Attendance Summary:", data.attendanceSummary);
 
                 // Merge auth user data with dashboard data
                 if (user && data) {
-                    console.log(
-                        "🔄 Merging auth user data with dashboard data"
-                    );
                     data.student = {
                         ...data.student,
                         _id: user._id || "",
@@ -86,18 +69,12 @@ const StudentDashboard: React.FC = () => {
                         schoolName: user.schoolName || "",
                         mobile: user.mobile || "",
                     };
-                    console.log("✅ Merged student data:", data.student);
                 }
 
                 setDashboardData(data);
                 setError(null);
             } catch (err: any) {
-                console.error("❌ Dashboard fetch error:", err);
-                console.error("❌ Error details:", {
-                    message: err.message,
-                    response: err.response?.data,
-                    status: err.response?.status,
-                });
+                console.error("Dashboard fetch error:", err);
                 setError(err.message || "Failed to load dashboard");
             } finally {
                 setIsLoading(false);
@@ -105,11 +82,8 @@ const StudentDashboard: React.FC = () => {
         };
 
         if (user) {
-            console.log("👤 User found, fetching dashboard data");
             fetchDashboardData();
         } else {
-            console.log("⚠️ No user found, skipping dashboard fetch");
-            console.log("🔍 Auth state:", state);
             setIsLoading(false);
         }
     }, [user, state]);
@@ -209,48 +183,6 @@ const StudentDashboard: React.FC = () => {
 
     return (
         <div className="p-6 space-y-6 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
-            {/* Debug Panel - Remove this in production */}
-            <Card className="border-red-200 bg-red-50">
-                <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h3 className="font-semibold text-red-800">
-                                Debug Panel
-                            </h3>
-                            <p className="text-sm text-red-600">
-                                Dashboard Data:{" "}
-                                {dashboardData ? "Loaded" : "Not Loaded"} |
-                                User: {user?.name || "None"} | Loading:{" "}
-                                {isLoading ? "Yes" : "No"}
-                            </p>
-                        </div>
-                        <Button
-                            onClick={async () => {
-                                console.log("🔄 Manual API test triggered");
-                                try {
-                                    const data =
-                                        await studentService.getDashboard();
-                                    console.log(
-                                        "✅ Manual test successful:",
-                                        data
-                                    );
-                                    setDashboardData(data);
-                                } catch (err) {
-                                    console.error(
-                                        "❌ Manual test failed:",
-                                        err
-                                    );
-                                }
-                            }}
-                            variant="outline"
-                            size="sm"
-                        >
-                            Test API
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
-
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                 <div className="flex items-center space-x-4">

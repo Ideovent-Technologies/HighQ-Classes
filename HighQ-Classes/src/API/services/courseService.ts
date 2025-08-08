@@ -44,17 +44,15 @@ class CourseService {
     }> {
         try {
             const response = await api.get(`/courses/${courseId}`);
-            return { success: true, course: response.data};
+            return { success: true, course: response.data };
         } catch (error: any) {
             console.error('Get course by ID error:', error);
             return {
                 success: false,
-                message: error.response?.data?.message || 'Failed to fetch course',
+                message: error.response?.data?.message || error.response?.data?.error || 'Failed to fetch course',
             };
         }
     }
-
-    
 
     async UpdateCourse(courseId: string, updateData: Partial<Course>): Promise<{
         success: boolean;

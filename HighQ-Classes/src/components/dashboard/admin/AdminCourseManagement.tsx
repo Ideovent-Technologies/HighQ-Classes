@@ -19,6 +19,7 @@ import {
     Loader2,
 } from "lucide-react";
 import AdminService from "@/API/services/AdminService";
+import CourseService from "@/API/services/courseService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -114,9 +115,31 @@ const AdminCourseManagement: React.FC = () => {
     const fetchAllData = async () => {
         setLoading(true);
         try {
-            // TODO: Implement course API endpoint
-            // For now, show empty state instead of mock data
-            setCourses([]);
+            // Fetch courses from API
+            const coursesResponse = await CourseService.getAllCourses();
+            if (coursesResponse.success && coursesResponse.courses) {
+                // Map API response to expected format
+                const mappedCourses = coursesResponse.courses.map(
+                    (course: any) => ({
+                        _id: course._id,
+                        title: course.name || course.title,
+                        description: course.description || "",
+                        subject: course.subject || "",
+                        category: course.category || "General",
+                        level: course.level || "Beginner",
+                        duration: course.duration || 0,
+                        fee: course.fee || 0,
+                        maxStudents: course.maxStudents || 50,
+                        currentStudents: course.currentStudents || 0,
+                        teacher: course.teacher || { _id: "", name: "TBA" },
+                        startDate: new Date(course.startDate || Date.now()),
+                        endDate: new Date(course.endDate || Date.now()),
+                        isActive: course.isActive !== false,
+                        createdAt: new Date(course.createdAt || Date.now()),
+                    })
+                );
+                setCourses(mappedCourses);
+            }
 
             const teachersResponse = await AdminService.getAllTeachers();
             if (teachersResponse.success && teachersResponse.teachers) {

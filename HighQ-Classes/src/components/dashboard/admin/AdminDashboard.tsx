@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion"; 
+import { motion } from "framer-motion";
 import {
     Users,
     UserCheck,
@@ -11,11 +11,17 @@ import {
 } from "lucide-react";
 
 import AdminService from "@/API/services/AdminService";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+    CardDescription,
+} from "@/components/ui/card";
 import StatCard from "@/components/dashboard/StatCard";
 // 1. IMPORT your separate QuickActions component
 // (Adjust the path if it's different in your project structure)
-import QuickActions from "@/components/dashboard/Widgets/QuickActions"; 
+import QuickActions from "@/components/dashboard/Widgets/QuickActions";
 
 // =================================================================================
 // HELPER FUNCTIONS
@@ -48,9 +54,12 @@ const AdminDashboard = () => {
             try {
                 const response = await AdminService.getAdminData();
                 if (response.success) {
+                    console.log("Admin dashboard data:", response.data); // Debug log
                     setData(response.data);
                 } else {
-                    setError(response.message || "Failed to fetch dashboard data.");
+                    setError(
+                        response.message || "Failed to fetch dashboard data."
+                    );
                 }
             } catch (err) {
                 setError("An unexpected error occurred while fetching data.");
@@ -84,20 +93,64 @@ const AdminDashboard = () => {
         recentNotices = [],
     } = data || {};
 
+    // Debug log for notices
+    console.log("Recent notices data:", recentNotices);
+
     const statCards = [
-        { title: "Total Students", value: totalStudents, subtitle: "Across all batches", to: "/admin/students", icon: <Users className="h-6 w-6 text-blue-500" /> },
-        { title: "Total Teachers", value: totalTeachers, subtitle: "Active faculty", to: "/admin/teachers", icon: <UserCheck className="h-6 w-6 text-green-500" /> },
-        { title: "Courses Offered", value: totalCourses, subtitle: "In the curriculum", to: "/admin/courses", icon: <BookOpen className="h-6 w-6 text-purple-500" /> },
-        { title: "Total Revenue", value: formatToIndianCurrency(totalRevenue), subtitle: "This fiscal year", to: "/admin/finance" },
-        { title: "Pending Approvals", value: pendingApprovals, subtitle: "Require your attention", to: "/admin/approvals", icon: <ClipboardList className="h-6 w-6 text-amber-500" /> },
-        { title: "Active Users", value: activeUsers, subtitle: "Online in last 24h", to: "/admin/analytics", icon: <BarChart3 className="h-6 w-6 text-sky-500" /> },
+        {
+            title: "Total Students",
+            value: totalStudents,
+            subtitle: "Across all batches",
+            to: "/admin/students",
+            icon: <Users className="h-6 w-6 text-blue-500" />,
+        },
+        {
+            title: "Total Teachers",
+            value: totalTeachers,
+            subtitle: "Active faculty",
+            to: "/admin/teachers",
+            icon: <UserCheck className="h-6 w-6 text-green-500" />,
+        },
+        {
+            title: "Courses Offered",
+            value: totalCourses,
+            subtitle: "In the curriculum",
+            to: "/admin/courses",
+            icon: <BookOpen className="h-6 w-6 text-purple-500" />,
+        },
+        {
+            title: "Total Revenue",
+            value: formatToIndianCurrency(totalRevenue),
+            subtitle: "This fiscal year",
+            to: "/admin/finance",
+            icon: <BarChart3 className="h-6 w-6 text-emerald-500" />,
+        },
+        {
+            title: "Pending Approvals",
+            value: pendingApprovals,
+            subtitle: "Require your attention",
+            to: "/admin/approvals",
+            icon: <ClipboardList className="h-6 w-6 text-amber-500" />,
+        },
+        {
+            title: "Active Users",
+            value: activeUsers,
+            subtitle: "Online in last 24h",
+            to: "/admin/analytics",
+            icon: <BarChart3 className="h-6 w-6 text-sky-500" />,
+        },
     ];
 
     return (
         <div className="p-6 space-y-8 max-w-7xl mx-auto bg-slate-50 dark:bg-slate-900 rounded-lg">
             <header>
-                <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">Admin Dashboard</h1>
-                <p className="text-slate-500 dark:text-slate-400 mt-1">Welcome back, Admin. Here's a summary of your institution's status.</p>
+                <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+                    Admin Dashboard
+                </h1>
+                <p className="text-slate-500 dark:text-slate-400 mt-1">
+                    Welcome back, Admin. Here's a summary of your institution's
+                    status.
+                </p>
             </header>
 
             {/* === Key Statistics Grid === */}
@@ -109,7 +162,6 @@ const AdminDashboard = () => {
 
             {/* === Actions and Notices Grid === */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
                 {/* 2. USE your imported component here */}
                 <QuickActions className="lg:col-span-1" />
 
@@ -117,32 +169,61 @@ const AdminDashboard = () => {
                 <Card className="lg:col-span-2">
                     <CardHeader>
                         <CardTitle>Recent Notices</CardTitle>
-                        <CardDescription>Latest announcements and updates.</CardDescription>
+                        <CardDescription>
+                            Latest announcements and updates.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {recentNotices.length > 0 ? (
+                        {recentNotices && recentNotices.length > 0 ? (
                             <ul className="space-y-4">
-                                {recentNotices.slice(0, 4).map((notice: any, index: number) => (
-                                    <motion.li
-                                        key={notice._id}
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ duration: 0.3, delay: index * 0.1 }}
-                                        className="flex items-start space-x-3"
-                                    >
-                                        <div className="flex-shrink-0 pt-1">
-                                            <Bell className="h-5 w-5 text-amber-500" />
-                                        </div>
-                                        <div>
-                                            <p className="font-semibold text-slate-800 dark:text-slate-100">{notice.title}</p>
-                                            <p className="text-sm text-slate-500 dark:text-slate-400">{notice.content.substring(0, 100)}...</p>
-                                            <span className="text-xs text-slate-400">{new Date(notice.createdAt).toLocaleDateString()}</span>
-                                        </div>
-                                    </motion.li>
-                                ))}
+                                {recentNotices
+                                    .slice(0, 4)
+                                    .map((notice: any, index: number) => (
+                                        <motion.li
+                                            key={notice._id}
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{
+                                                duration: 0.3,
+                                                delay: index * 0.1,
+                                            }}
+                                            className="flex items-start space-x-3"
+                                        >
+                                            <div className="flex-shrink-0 pt-1">
+                                                <Bell className="h-5 w-5 text-amber-500" />
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-slate-800 dark:text-slate-100">
+                                                    {notice.title ||
+                                                        "Untitled Notice"}
+                                                </p>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                                    {notice.content
+                                                        ? notice.content.substring(
+                                                              0,
+                                                              100
+                                                          ) +
+                                                          (notice.content
+                                                              .length > 100
+                                                              ? "..."
+                                                              : "")
+                                                        : "No content available"}
+                                                </p>
+                                                <span className="text-xs text-slate-400">
+                                                    {notice.createdAt
+                                                        ? new Date(
+                                                              notice.createdAt
+                                                          ).toLocaleDateString()
+                                                        : "No date available"}
+                                                </span>
+                                            </div>
+                                        </motion.li>
+                                    ))}
                             </ul>
                         ) : (
-                            <p className="text-center text-slate-500 py-8">No recent notices found.</p>
+                            <p className="text-center text-slate-500 py-8">
+                                No recent notices found.
+                            </p>
                         )}
                     </CardContent>
                 </Card>

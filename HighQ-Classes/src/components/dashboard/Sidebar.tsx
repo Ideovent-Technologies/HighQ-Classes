@@ -12,6 +12,9 @@ import {
     Upload,
     DollarSign,
     Megaphone,
+    GraduationCap,
+    UserCheck,
+    Building,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
@@ -47,8 +50,24 @@ const Sidebar = () => {
     const iconClass = "h-5 w-5";
 
     const commonItems = [
-        navItem("/dashboard", <Home className={iconClass} />, "Dashboard"),
-        navItem("/profile", <User className={iconClass} />, "Profile"),
+        user?.role === "admin"
+            ? navItem(
+                  "/admin/dashboard",
+                  <Home className={iconClass} />,
+                  "Dashboard"
+              )
+            : navItem(
+                  "/dashboard",
+                  <Home className={iconClass} />,
+                  "Dashboard"
+              ),
+        user?.role === "admin"
+            ? navItem(
+                  "/admin/profile",
+                  <User className={iconClass} />,
+                  "Profile"
+              )
+            : navItem("/profile", <User className={iconClass} />, "Profile"),
         navItem(
             "/dashboard/notices",
             <Bell className={iconClass} />,
@@ -127,6 +146,26 @@ const Sidebar = () => {
             "/dashboard/all-students",
             <Users className={iconClass} />,
             "All Students"
+        ),
+        navItem(
+            "/dashboard/teacher-management",
+            <UserCheck className={iconClass} />,
+            "Manage Teachers"
+        ),
+        navItem(
+            "/dashboard/course-management",
+            <GraduationCap className={iconClass} />,
+            "Manage Courses"
+        ),
+        navItem(
+            "/dashboard/batches/manage",
+            <Building className={iconClass} />,
+            "Manage Batches"
+        ),
+        navItem(
+            "/dashboard/batches/add",
+            <Building className={iconClass} />,
+            "Create Batch"
         ),
         navItem(
             "/dashboard/manage-notices",

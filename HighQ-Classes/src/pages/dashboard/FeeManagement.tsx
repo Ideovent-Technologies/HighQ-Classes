@@ -69,9 +69,9 @@ const FeeManagement: React.FC = () => {
                         name: student.name,
                         email: student.email,
                         batch: student.batch,
-                        feeStatus: {
-                            totalFee: 12000, // Default fee - should come from API
-                            paidAmount: Math.floor(Math.random() * 12000), // Mock data
+                        feeStatus: student.feeStatus || {
+                            totalFee: 0,
+                            paidAmount: 0,
                             pendingAmount: 0,
                             status: "pending" as const,
                             lastPaymentDate: new Date().toISOString(),

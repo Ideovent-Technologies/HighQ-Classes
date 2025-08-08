@@ -40,6 +40,7 @@ import TeacherManagementPage from "./pages/teacher/Teacher-Management";
 import CourseManagementPage from "./pages/course/Course-management";
 import CourseDetail from "@/components/dashboard/courses/CourseDetails";
 import BatchManagementPage from "./pages/batch/Batch-management";
+import EditBatchPage from "./pages/batch/EditBatchPage";
 
 // Import Fee Management pages
 import StudentFeeStatus from "@/modules/fees/FeeStatus";
@@ -61,6 +62,8 @@ import StudentRecordingsPage from "@/pages/StudentRecordingsPage";
 import StudentProfile from "@/pages/student/StudentProfile";
 
 // Import Admin-specific pages
+import AdminDashboard from "@/components/dashboard/admin/AdminDashboard";
+import AdminProfile from "@/pages/admin/AdminProfile";
 import AdminAnnouncementPage from "@/components/dashboard/admin/AdminAnnouncementPage";
 import ManageNotices from "@/pages/dashboard/ManageNotices";
 import FeeManagement from "@/pages/dashboard/FeeManagement";
@@ -259,7 +262,15 @@ const App: React.FC = () => {
                                 path="/admin/dashboard"
                                 element={
                                     <ProtectedRoute roles={["admin"]}>
-                                        <Dashboard />
+                                        <AdminDashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/admin/profile"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <AdminProfile />
                                     </ProtectedRoute>
                                 }
                             />
@@ -322,6 +333,14 @@ const App: React.FC = () => {
                                 }
                             />
                             <Route
+                                path="/dashboard/batches/edit/:batchId"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <EditBatchPage />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
                                 path="/dashboard/batches/:batchId"
                                 element={
                                     <ProtectedRoute roles={["admin"]}>
@@ -338,10 +357,26 @@ const App: React.FC = () => {
                                 }
                             />
                             <Route
+                                path="/dashboard/teacher-management"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <TeacherManagementPage />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
                                 path="/dashboard/teachers/manage"
                                 element={
                                     <ProtectedRoute roles={["admin"]}>
                                         <TeacherManagementPage />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/dashboard/course-management"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <CourseManagementPage />
                                     </ProtectedRoute>
                                 }
                             />

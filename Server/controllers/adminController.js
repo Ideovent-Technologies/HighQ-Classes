@@ -30,14 +30,37 @@ export const getAdminDashboard = async (req, res) => {
       { $group: { _id: null, total: { $sum: "$amount" } } }
     ]);
 
+    // Get recent notices for dashboard
+    const recentNotices = await Notice.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select('title content createdAt');
+
+    // Calculate active users (students and teachers who logged in within last 24 hours)
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const [activeStudents, activeTeachers] = await Promise.all([
+      Student.countDocuments({ lastLogin: { $gte: oneDayAgo } }),
+      Teacher.countDocuments({ lastLogin: { $gte: oneDayAgo } })
+    ]);
+
+    // Count pending approvals (students or teachers with pending status)
+    const [pendingStudents, pendingTeachers] = await Promise.all([
+      Student.countDocuments({ status: 'pending' }),
+      Teacher.countDocuments({ status: 'pending' })
+    ]);
+
     res.status(200).json({
       success: true,
       totalStudents,
       totalTeachers,
       totalCourses,
       totalBatches,
+      totalRevenue: paidFees[0]?.total || 0,
       totalFeeCollected: paidFees[0]?.total || 0,
-      totalFeePending: pendingFees[0]?.total || 0
+      totalFeePending: pendingFees[0]?.total || 0,
+      activeUsers: activeStudents + activeTeachers,
+      pendingApprovals: pendingStudents + pendingTeachers,
+      recentNotices
     });
   } catch (error) {
     res.status(500).json({

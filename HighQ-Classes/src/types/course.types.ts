@@ -12,7 +12,8 @@ export interface Course {
   description?: string;
   duration: string;
   fee: number;
-  topics: CourseTopic[];
+  topics?: CourseTopic[];
+  batches?: any[];
   createdAt?: string;
   updatedAt?: string;
 }
