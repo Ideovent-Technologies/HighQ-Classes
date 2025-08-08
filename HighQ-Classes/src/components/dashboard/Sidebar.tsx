@@ -2,20 +2,21 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import {
-    Home,
-    BookOpen,
-    Users,
-    FileText,
-    Bell,
-    Settings,
-    LogOut,
-    User,
-    Upload,
-    DollarSign,
-    Megaphone,
-    GraduationCap,
-    UserCheck,
-    Building,
+  Home,
+  BookOpen,
+  Users,
+  FileText,
+  Bell,
+  Settings,
+  LogOut,
+  User,
+  Upload,
+  DollarSign,
+  Megaphone,
+  GraduationCap,
+  UserCheck,
+  Building,
+  X, // <-- Added 'X' icon here
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
@@ -49,35 +50,38 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
   const isActive = (path: string) => location.pathname === path;
   const iconClass = "h-5 w-5 shrink-0";
 
-    const commonItems = [
-        user?.role === "admin"
-            ? navItem(
-                  "/admin/dashboard",
-                  <Home className={iconClass} />,
-                  "Dashboard"
-              )
-            : navItem(
-                  "/dashboard",
-                  <Home className={iconClass} />,
-                  "Dashboard"
-              ),
-        user?.role === "admin"
-            ? navItem(
-                  "/admin/profile",
-                  <User className={iconClass} />,
-                  "Profile"
-              )
-            : navItem("/profile", <User className={iconClass} />, "Profile"),
-        navItem(
-            "/dashboard/notices",
-            <Bell className={iconClass} />,
-            "Notices"
-        ),
-    ];
+  // Helper function to create a navigation item
+  const createNavItem = (path: string, Icon: any, label: string) => (
+    <li key={path}>
+      <motion.div whileHover={{ x: 4 }}>
+        <Link
+          to={path}
+          className={clsx(
+            "flex items-center w-full px-4 py-3 rounded-xl transition-colors duration-200",
+            isActive(path)
+              ? "bg-teal-500 text-white shadow-md font-semibold"
+              : "text-slate-600 hover:bg-slate-100"
+          )}
+          onClick={isMobile ? onClose : undefined}
+        >
+          <Icon className={iconClass + (isActive(path) ? "" : " text-slate-400 group-hover:text-slate-600 mr-3")} />
+          <span className={clsx("ml-3", isActive(path) && "text-white")}>{label}</span>
+        </Link>
+      </motion.div>
+    </li>
+  );
 
   const commonItems = [
-    createNavItem("/dashboard", Home, "Dashboard"),
-    createNavItem("/profile", User, "Profile"),
+    createNavItem(
+      user?.role === "admin" ? "/admin/dashboard" : "/dashboard",
+      Home,
+      "Dashboard"
+    ),
+    createNavItem(
+      user?.role === "admin" ? "/admin/profile" : "/profile",
+      User,
+      "Profile"
+    ),
     createNavItem("/dashboard/notices", Bell, "Notices"),
   ];
 
@@ -90,72 +94,23 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
     createNavItem("/dashboard/assignments", FileText, "Assignments"),
   ];
 
-    const adminItems = [
-        navItem(
-            "/dashboard/all-students",
-            <Users className={iconClass} />,
-            "All Students"
-        ),
-        navItem(
-            "/dashboard/teacher-management",
-            <UserCheck className={iconClass} />,
-            "Manage Teachers"
-        ),
-        navItem(
-            "/dashboard/course-management",
-            <GraduationCap className={iconClass} />,
-            "Manage Courses"
-        ),
-        navItem(
-            "/dashboard/batches/manage",
-            <Building className={iconClass} />,
-            "Manage Batches"
-        ),
-        navItem(
-            "/dashboard/batches/add",
-            <Building className={iconClass} />,
-            "Create Batch"
-        ),
-        navItem(
-            "/dashboard/manage-notices",
-            <Bell className={iconClass} />,
-            "Manage Notices"
-        ),
-        navItem(
-            "/admin/announcements",
-            <Megaphone className={iconClass} />,
-            "Announcements"
-        ),
-        navItem(
-            "/dashboard/fee-management",
-            <DollarSign className={iconClass} />,
-            "Fee Management"
-        ),
-        navItem(
-            "/dashboard/schedule-management",
-            <BookOpen className={iconClass} />,
-            "Schedule Management"
-        ),
-        navItem(
-            "/admin/materials",
-            <FileText className={iconClass} />,
-            "Materials Management"
-        ),
-        navItem(
-            "/admin/attendance",
-            <FileText className={iconClass} />,
-            "Attendance Management"
-        ),
-        navItem(
-            "/admin/assignments",
-            <FileText className={iconClass} />,
-            "Assignment Management"
-        ),
-    ];
+  const studentItems = [
+    // Add your student-specific navigation items here
+    // Example: createNavItem("/dashboard/my-courses", GraduationCap, "My Courses"),
+    createNavItem("/dashboard/materials", FileText, "Study Materials"),
+    createNavItem("/dashboard/my-schedule", BookOpen, "My Schedule"),
+    createNavItem("/dashboard/my-attendance", UserCheck, "My Attendance"),
+    createNavItem("/dashboard/my-assignments", FileText, "My Assignments"),
+  ];
 
   const adminItems = [
     createNavItem("/dashboard/all-students", Users, "All Students"),
+    createNavItem("/dashboard/teacher-management", UserCheck, "Manage Teachers"),
+    createNavItem("/dashboard/course-management", GraduationCap, "Manage Courses"),
+    createNavItem("/dashboard/batches/manage", Building, "Manage Batches"),
+    createNavItem("/dashboard/batches/add", Building, "Create Batch"),
     createNavItem("/dashboard/manage-notices", Bell, "Manage Notices"),
+    createNavItem("/admin/announcements", Megaphone, "Announcements"),
     createNavItem("/dashboard/fee-management", DollarSign, "Fee Management"),
     createNavItem("/dashboard/schedule-management", BookOpen, "Schedule Management"),
     createNavItem("/admin/materials", FileText, "Materials Management"),
