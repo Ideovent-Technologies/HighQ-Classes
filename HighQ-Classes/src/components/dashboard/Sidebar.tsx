@@ -1,227 +1,183 @@
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import {
-    Home,
-    BookOpen,
-    Users,
-    FileText,
-    Bell,
-    Settings,
-    LogOut,
-    User,
-    Upload,
-    DollarSign,
+  Home, BookOpen, Users, FileText, Bell, Settings, LogOut,
+  User, Upload, DollarSign, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
+import { motion, AnimatePresence } from "framer-motion";
 
-const Sidebar = () => {
-    const location = useLocation();
-    const { user, logout } = useAuth();
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+  isMobile: boolean;
+}
 
-    const isActive = (path: string) => location.pathname === path;
+const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
+  const location = useLocation();
+  const { user, logout } = useAuth();
+  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 640);
 
-    const baseNavItemStyle =
-        "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ease-in-out group";
+  // Track window resize
+  useEffect(() => {
+    const handleResize = () => setIsSmallScreen(window.innerWidth < 640);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
-    const navItem = (path: string, icon: JSX.Element, label: string) => (
-        <li key={path}>
-            <Link
-                to={path}
-                className={clsx(
-                    baseNavItemStyle,
-                    isActive(path)
-                        ? "bg-gradient-to-r from-teal-200 via-white to-navy-100 text-navy-800 font-semibold shadow-inner border-l-4 border-teal-500"
-                        : "text-gray-600 hover:bg-white hover:border-l-4 hover:border-teal-400 hover:pl-5"
-                )}
-            >
-                {icon}
-                <span className="tracking-wide group-hover:scale-105 transition-transform duration-300">
-                    {label}
-                </span>
-            </Link>
-        </li>
-    );
+  // Lock body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (isMobile) {
+      document.body.style.overflow = isOpen ? "hidden" : "";
+    }
+  }, [isOpen, isMobile]);
 
-    const iconClass = "h-5 w-5";
+  const isActive = (path: string) => location.pathname === path;
+  const iconClass = "h-5 w-5 shrink-0";
 
-    const commonItems = [
-        navItem("/dashboard", <Home className={iconClass} />, "Dashboard"),
-        navItem("/profile", <User className={iconClass} />, "Profile"),
-        navItem(
-            "/dashboard/notices",
-            <Bell className={iconClass} />,
-            "Notices"
-        ),
-    ];
+  const createNavItem = (path: string, Icon: any, label: string) => (
+    <motion.li key={path} whileHover={{ x: 4 }}>
+      <Link
+        to={path}
+        onClick={() => isMobile && onClose()}
+        className={clsx(
+          "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ease-in-out relative",
+          isActive(path)
+            ? "bg-gradient-to-r from-teal-200/80 via-white to-navy-100/70 text-navy-800 font-semibold shadow-inner"
+            : "text-gray-600 hover:bg-white/60 hover:shadow-md"
+        )}
+      >
+        <span className={clsx(isActive(path) ? "text-teal-600" : "text-gray-500")}>
+          <Icon className={iconClass} />
+        </span>
+        <span className="tracking-wide truncate">{label}</span>
+        {isActive(path) && (
+          <motion.div
+            layoutId="activeIndicator"
+            className="absolute left-0 top-0 h-full w-1 bg-teal-500 rounded-r"
+          />
+        )}
+      </Link>
+    </motion.li>
+  );
 
-    const teacherItems = [
-        navItem(
-            "/dashboard/materials",
-            <Upload className={iconClass} />,
-            "Study Materials"
-        ),
-        navItem(
-            "/dashboard/my-students",
-            <Users className={iconClass} />,
-            "My Students"
-        ),
-        navItem(
-            "/dashboard/recordings",
-            <FileText className={iconClass} />,
-            "Recordings"
-        ),
-        navItem(
-            "/dashboard/schedule",
-            <BookOpen className={iconClass} />,
-            "My Schedule"
-        ),
-        navItem(
-            "/dashboard/attendance",
-            <FileText className={iconClass} />,
-            "Attendance"
-        ),
-        navItem(
-            "/dashboard/assignments",
-            <FileText className={iconClass} />,
-            "Assignments"
-        ),
-    ];
+  const commonItems = [
+    createNavItem("/dashboard", Home, "Dashboard"),
+    createNavItem("/profile", User, "Profile"),
+    createNavItem("/dashboard/notices", Bell, "Notices"),
+  ];
 
-    const studentItems = [
-        navItem(
-            "/dashboard/fee-status",
-            <DollarSign className={iconClass} />,
-            "Fee Status"
-        ),
-        navItem(
-            "/student/materials",
-            <FileText className={iconClass} />,
-            "Study Materials"
-        ),
-        navItem(
-            "/student/recordings",
-            <FileText className={iconClass} />,
-            "Recordings"
-        ),
-        navItem(
-            "/student/assignments",
-            <FileText className={iconClass} />,
-            "Assignments"
-        ),
-        // navItem(
-        //     "/student/profile",
-        //     <User className={iconClass} />,
-        //     "My Profile"
-        // ),
-        navItem(
-            "/dashboard/schedule",
-            <BookOpen className={iconClass} />,
-            "Schedule"
-        ),
-    ];
+  const teacherItems = [
+    createNavItem("/dashboard/materials", Upload, "Study Materials"),
+    createNavItem("/dashboard/my-students", Users, "My Students"),
+    createNavItem("/dashboard/recordings", FileText, "Recordings"),
+    createNavItem("/dashboard/schedule", BookOpen, "My Schedule"),
+    createNavItem("/dashboard/attendance", FileText, "Attendance"),
+    createNavItem("/dashboard/assignments", FileText, "Assignments"),
+  ];
 
-    const adminItems = [
-        navItem(
-            "/dashboard/all-students",
-            <Users className={iconClass} />,
-            "All Students"
-        ),
-        navItem(
-            "/dashboard/manage-notices",
-            <Bell className={iconClass} />,
-            "Manage Notices"
-        ),
-        navItem(
-            "/dashboard/fee-management",
-            <DollarSign className={iconClass} />,
-            "Fee Management"
-        ),
-        navItem(
-            "/dashboard/schedule-management",
-            <BookOpen className={iconClass} />,
-            "Schedule Management"
-        ),
-        navItem(
-            "/admin/materials",
-            <FileText className={iconClass} />,
-            "Materials Management"
-        ),
-        navItem(
-            "/admin/attendance",
-            <FileText className={iconClass} />,
-            "Attendance Management"
-        ),
-        navItem(
-            "/admin/assignments",
-            <FileText className={iconClass} />,
-            "Assignment Management"
-        ),
-    ];
+  const studentItems = [
+    createNavItem("/dashboard/fee-status", DollarSign, "Fee Status"),
+    createNavItem("/student/materials", FileText, "Study Materials"),
+    createNavItem("/student/recordings", FileText, "Recordings"),
+    createNavItem("/student/assignments", FileText, "Assignments"),
+    createNavItem("/dashboard/schedule", BookOpen, "Schedule"),
+  ];
 
-    let roleBasedItems: JSX.Element[] = [];
-    if (user?.role === "teacher") roleBasedItems = teacherItems;
-    else if (user?.role === "student") roleBasedItems = studentItems;
-    else if (user?.role === "admin") roleBasedItems = adminItems;
+  const adminItems = [
+    createNavItem("/dashboard/all-students", Users, "All Students"),
+    createNavItem("/dashboard/manage-notices", Bell, "Manage Notices"),
+    createNavItem("/dashboard/fee-management", DollarSign, "Fee Management"),
+    createNavItem("/dashboard/schedule-management", BookOpen, "Schedule Management"),
+    createNavItem("/admin/materials", FileText, "Materials Management"),
+    createNavItem("/admin/attendance", FileText, "Attendance Management"),
+    createNavItem("/admin/assignments", FileText, "Assignment Management"),
+  ];
+
+  let roleBasedItems: JSX.Element[] = [];
+  if (user?.role === "teacher") roleBasedItems = teacherItems;
+  else if (user?.role === "student") roleBasedItems = studentItems;
+  else if (user?.role === "admin") roleBasedItems = adminItems;
 
   return (
-    <div className="h-screen bg-white/60 backdrop-blur-xl border-r border-slate-200 w-[270px] flex flex-col shadow-xl">
-      {/* Brand */}
-      <div className="p-5 border-b border-slate-200 flex items-center justify-center">
-        <Link to="/" className="text-3xl font-bold text-navy-700 tracking-tight">
-          <span className="text-teal-500">High</span>Q
-        </Link>
-      </div>
+    <>
+      {/* Backdrop */}
+      <AnimatePresence>
+        {isMobile && isOpen && (
+          <motion.div
+            className="fixed inset-0 bg-black/40 z-40"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+          />
+        )}
+      </AnimatePresence>
 
-            {/* User Info */}
-            <div className="p-5 border-b border-slate-200 flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-teal-500 to-navy-600 flex items-center justify-center text-white font-bold text-lg shadow">
-                    {user?.name?.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                    <p className="font-semibold text-navy-800">{user?.name}</p>
-                    <p className="text-xs capitalize text-gray-500">
-                        {user?.role}
-                    </p>
-                </div>
+      {/* Sidebar */}
+      <AnimatePresence>
+        {(isOpen || !isMobile) && (
+          <motion.aside
+            initial={{ x: isMobile ? "-100%" : 0 }}
+            animate={{ x: 0 }}
+            exit={{ x: isMobile ? "-100%" : 0 }}
+            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+            className={clsx(
+              "top-0 left-0 bg-white/95 backdrop-blur-lg border-r border-slate-200 flex flex-col shadow-2xl z-50",
+              isMobile ? "fixed h-full w-64" : "static h-screen w-64"
+            )}
+          >
+            {/* Brand & Close */}
+            <div className="p-5 border-b border-slate-200 flex items-center justify-between">
+              <Link to="/" className="text-2xl font-extrabold text-navy-700">
+                <span className="text-teal-500">High</span>Q
+              </Link>
+              {isMobile && (
+                <Button variant="ghost" size="icon" onClick={onClose}>
+                  <X className="h-5 w-5" />
+                </Button>
+              )}
             </div>
 
-            {/* Navigation */}
-            <nav className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-                <ul className="space-y-1">
-                    {[...commonItems, ...roleBasedItems]}
-                </ul>
+            {/* User Info */}
+            <div className="p-5 border-b border-slate-200 flex items-center gap-3 hover:bg-white/60 rounded-lg">
+              <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-teal-500 to-navy-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                {user?.name?.charAt(0).toUpperCase()}
+              </div>
+              <div className="truncate">
+                <p className="font-semibold text-navy-800 truncate">{user?.name}</p>
+                <p className="text-xs capitalize text-gray-500 truncate">{user?.role}</p>
+              </div>
+            </div>
 
-                {/* Settings & Logout */}
-                <div className="pt-8 border-t mt-8 space-y-1 list-none">
-                    <div>
-                        <Link
-                            to="/dashboard/settings"
-                            className={clsx(
-                                baseNavItemStyle,
-                                isActive("/dashboard/settings")
-                                    ? "bg-gradient-to-r from-teal-200 via-white to-navy-100 text-navy-800 font-semibold border-l-4 border-teal-500"
-                                    : "text-gray-600 hover:bg-white hover:border-l-4 hover:border-teal-400 hover:pl-5"
-                            )}
-                        >
-                            <Settings className={iconClass} />
-                            <span>Settings</span>
-                        </Link>
-                    </div>
-                    <div>
-                        <Button
-                            variant="ghost"
-                            className="w-full justify-start px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors"
-                            onClick={logout}
-                        >
-                            <LogOut className={iconClass + " mr-3"} />
-                            <span>Logout</span>
-                        </Button>
-                    </div>
-                </div>
+            {/* Nav Links */}
+            <nav className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+              <ul className="space-y-1">
+                {[...commonItems, ...roleBasedItems]}
+              </ul>
+
+              {/* Settings & Logout */}
+              <div className="pt-8 border-t mt-8 space-y-1 list-none">
+                {createNavItem("/dashboard/settings", Settings, "Settings")}
+                <motion.div whileHover={{ x: 4 }}>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start px-4 py-3 rounded-xl text-red-500 hover:bg-red-50"
+                    onClick={logout}
+                  >
+                    <LogOut className={iconClass + " mr-3"} />
+                    <span>Logout</span>
+                  </Button>
+                </motion.div>
+              </div>
             </nav>
-        </div>
-    );
+          </motion.aside>
+        )}
+      </AnimatePresence>
+    </>
+  );
 };
 
 export default Sidebar;
