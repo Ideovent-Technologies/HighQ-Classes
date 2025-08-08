@@ -94,11 +94,64 @@ class StudentService {
    */
   async getDashboard(): Promise<StudentDashboardData> {
     try {
-      const response = await api.get<ApiResponse<StudentDashboardData>>(
-        '/student/dashboard'
-      );
-      return response.data.data;
+      const response = await api.get('/student/dashboard');
+      
+      // Backend returns: { greeting, dashboardData }
+      // We need to transform it to match our StudentDashboardData interface
+      const backendData = response.data;
+      
+      if (!backendData || !backendData.dashboardData) {
+        throw new Error('Invalid dashboard response format');
+      }
+      
+      // Extract student name from greeting
+      const studentName = backendData.greeting?.replace('Welcome, ', '') || 'Student';
+      
+      // Transform backend response to match frontend interface
+      const transformedData: StudentDashboardData = {
+        student: {
+          _id: '', // Will be populated from auth context
+          name: studentName,
+          email: '',
+          role: 'student' as const,
+          courses: [],
+          batch: { _id: '', name: '' },
+          grade: '',
+          parentName: '',
+          parentContact: '',
+          schoolName: '',
+          mobile: '',
+          status: 'active' as const
+        },
+        upcomingClasses: (backendData.dashboardData.todaySchedule || []).map((schedule: any) => ({
+          _id: schedule._id || Math.random().toString(),
+          subject: schedule.courseId?.name || schedule.subject || 'Unknown Subject',
+          time: schedule.startTime || schedule.time || 'TBD',
+          teacher: schedule.teacher || 'TBD',
+          room: schedule.room || undefined
+        })),
+        recentGrades: [], // Not provided by current backend
+        attendanceSummary: {
+          percentage: backendData.dashboardData.attendanceSummary ? 
+            Math.round((backendData.dashboardData.attendanceSummary.present / 
+            Math.max(backendData.dashboardData.attendanceSummary.totalDays, 1)) * 100) : 0,
+          totalClasses: backendData.dashboardData.attendanceSummary?.totalDays || 0,
+          attendedClasses: backendData.dashboardData.attendanceSummary?.present || 0
+        },
+        notifications: (backendData.dashboardData.recentNotices || []).map((notice: any) => ({
+          _id: notice._id || Math.random().toString(),
+          title: notice.title || 'Notice',
+          message: notice.content || notice.message || 'No content available',
+          type: 'info' as const,
+          date: notice.createdAt || new Date().toISOString(),
+          read: false
+        })),
+        assignments: [] // Not provided by current backend - will show empty state
+      };
+      
+      return transformedData;
     } catch (error: any) {
+      console.error('Dashboard fetch error:', error);
       throw new Error(error.response?.data?.message || 'Failed to fetch dashboard data');
     }
   }

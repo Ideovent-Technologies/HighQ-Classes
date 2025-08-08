@@ -31,6 +31,7 @@ export const getAdminDashboard = async (req, res) => {
     ]);
 
     res.status(200).json({
+      success: true,
       totalStudents,
       totalTeachers,
       totalCourses,
@@ -40,6 +41,7 @@ export const getAdminDashboard = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
+      success: false,
       message: "Failed to fetch dashboard data",
       error: error.message
     });
@@ -47,17 +49,18 @@ export const getAdminDashboard = async (req, res) => {
 };
 
 // ✅ GET /api/admin/profile
-export  const getAdminProfile = async (req, res) => {
+export const getAdminProfile = async (req, res) => {
   try {
     const admin = await Admin.findById(req.user.id).select(
       '-password -loginAttempts -lockUntil -passwordResetToken -passwordResetExpires -emailVerificationToken'
     );
 
-    if (!admin) return res.status(404).json({ message: 'Admin not found' });
+    if (!admin) return res.status(404).json({ success: false, message: 'Admin not found' });
 
-    res.status(200).json(admin);
+    res.status(200).json({ success: true, admin });
   } catch (error) {
     res.status(500).json({
+      success: false,
       message: 'Failed to fetch admin profile',
       error: error.message
     });
@@ -69,9 +72,13 @@ export  const getAdminProfile = async (req, res) => {
 export const getAllStudents = async (req, res) => {
   try {
     const students = await Student.find().select('-password');
-    res.json(students);
+    res.json({ success: true, students });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching students', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching students',
+      error: error.message
+    });
   }
 };
 
@@ -79,9 +86,13 @@ export const getAllStudents = async (req, res) => {
 export const getAllTeachers = async (req, res) => {
   try {
     const teachers = await Teacher.find().select('-password');
-    res.json(teachers);
+    res.json({ success: true, teachers });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching teachers', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching teachers',
+      error: error.message
+    });
   }
 };
 
@@ -167,12 +178,12 @@ export const updateUser = async (req, res) => {
     const teacher = await Teacher.findById(id);
     const model = student ? Student : teacher ? Teacher : null;
 
-    if (!model) return res.status(404).json({ message: 'User not found' });
+    if (!model) return res.status(404).json({ success: false, message: 'User not found' });
 
     const updated = await model.findByIdAndUpdate(id, req.body, { new: true }).select('-password');
-    res.json(updated);
+    res.json({ success: true, user: updated, message: 'User updated successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error updating user', error: error.message });
+    res.status(500).json({ success: false, message: 'Error updating user', error: error.message });
   }
 };
 
@@ -184,12 +195,12 @@ export const deleteUser = async (req, res) => {
     const teacher = await Teacher.findById(id);
     const model = student ? Student : teacher ? Teacher : null;
 
-    if (!model) return res.status(404).json({ message: 'User not found' });
+    if (!model) return res.status(404).json({ success: false, message: 'User not found' });
 
     await model.findByIdAndDelete(id);
-    res.json({ message: 'User deleted' });
+    res.json({ success: true, message: 'User deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting user', error: error.message });
+    res.status(500).json({ success: false, message: 'Error deleting user', error: error.message });
   }
 };
 
@@ -199,21 +210,21 @@ export const CreateUser = async (req, res) => {
     const { role, email, password, ...rest } = req.body;
 
     if (!role || !email || !password)
-      return res.status(400).json({ message: 'Missing required fields' });
+      return res.status(400).json({ success: false, message: 'Missing required fields' });
 
     const Model = role === 'student' ? Student : role === 'teacher' ? Teacher : role === 'admin' ? Admin : null;
-    if (!Model) return res.status(400).json({ message: 'Invalid role' });
+    if (!Model) return res.status(400).json({ success: false, message: 'Invalid role' });
 
     const exists = await Model.findOne({ email });
-    if (exists) return res.status(409).json({ message: `${role} already exists` });
+    if (exists) return res.status(409).json({ success: false, message: `${role} already exists` });
 
     const hashedPassword = await bcrypt.hash(password, 12);
     const user = new Model({ email, password: hashedPassword, ...rest });
 
     await user.save();
-    res.status(201).json({ message: `${role} created successfully`, user });
+    res.status(201).json({ success: true, message: `${role} created successfully`, user });
   } catch (error) {
-    res.status(500).json({ message: 'Error creating user', error: error.message });
+    res.status(500).json({ success: false, message: 'Error creating user', error: error.message });
   }
 };
 

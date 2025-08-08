@@ -11,6 +11,7 @@ import {
     User,
     Upload,
     DollarSign,
+    Megaphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
@@ -131,6 +132,11 @@ const Sidebar = () => {
             "/dashboard/manage-notices",
             <Bell className={iconClass} />,
             "Manage Notices"
+        ),
+        navItem(
+            "/admin/announcements",
+            <Megaphone className={iconClass} />,
+            "Announcements"
         ),
         navItem(
             "/dashboard/fee-management",

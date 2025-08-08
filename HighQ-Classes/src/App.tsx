@@ -45,6 +45,8 @@ import BatchManagementPage from "./pages/batch/Batch-management";
 import StudentFeeStatus from "@/modules/fees/FeeStatus";
 import AdminFeeDashboard from "@/modules/fees/AdminFeeDashboard";
 import BatchDetails from "./components/dashboard/batch/BatchDetsils";
+import StudentDashboardTest from "@/components/debug/StudentDashboardTest";
+import ComprehensiveTest from "@/components/debug/ComprehensiveTest";
 
 // Import Attendance and Assignment Management pages
 import AttendanceManagementPage from "@/pages/AttendanceManagementPage";
@@ -57,6 +59,12 @@ import StudentRecordingsPage from "@/pages/StudentRecordingsPage";
 
 // Import Student-specific pages
 import StudentProfile from "@/pages/student/StudentProfile";
+
+// Import Admin-specific pages
+import AdminAnnouncementPage from "@/components/dashboard/admin/AdminAnnouncementPage";
+import ManageNotices from "@/pages/dashboard/ManageNotices";
+import FeeManagement from "@/pages/dashboard/FeeManagement";
+import ScheduleManagement from "@/pages/dashboard/ScheduleManagement";
 
 const queryClient = new QueryClient();
 
@@ -104,6 +112,14 @@ const App: React.FC = () => {
                             />
                             <Route path="/login" element={<Login />} />
                             <Route path="/register" element={<Register />} />
+                            <Route
+                                path="/test-dashboard"
+                                element={<StudentDashboardTest />}
+                            />
+                            <Route
+                                path="/test-comprehensive"
+                                element={<ComprehensiveTest />}
+                            />
                             <Route
                                 path="/forgot-password"
                                 element={<ForgotPassword />}
@@ -244,6 +260,38 @@ const App: React.FC = () => {
                                 element={
                                     <ProtectedRoute roles={["admin"]}>
                                         <Dashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/admin/announcements"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <AdminAnnouncementPage />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/dashboard/manage-notices"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <ManageNotices />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/dashboard/fee-management"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <FeeManagement />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/dashboard/schedule-management"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <ScheduleManagement />
                                     </ProtectedRoute>
                                 }
                             />

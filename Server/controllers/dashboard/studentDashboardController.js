@@ -108,7 +108,7 @@ export const getStudentDashboard = async (req, res) => {
       title: m.title,
       fileUrl: m.fileUrl,
       totalDownloads: m.downloadCount || 0,
-      viewedByStudent: m.viewedBy?.includes(studentId) || false
+      viewedByStudent: Array.isArray(m.viewedBy) ? m.viewedBy.includes(studentId) : false
     }));
 
     // 📺 8. Recording Viewing Stats
@@ -121,8 +121,8 @@ export const getStudentDashboard = async (req, res) => {
       _id: r._id,
       title: r.title,
       videoUrl: r.videoUrl,
-      totalViews: r.views?.length || 0,
-      viewedByStudent: r.views?.some((v) => v.student.toString() === studentId.toString()) || false
+      totalViews: Array.isArray(r.views) ? r.views.length : 0,
+      viewedByStudent: Array.isArray(r.views) ? r.views.some((v) => v.student.toString() === studentId.toString()) : false
     }));
 
     // ✅ 9. Final Response
