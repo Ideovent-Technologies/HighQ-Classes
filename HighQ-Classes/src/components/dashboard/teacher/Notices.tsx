@@ -314,8 +314,12 @@ const Notices = () => {
               // Determine target batches for display
               const targetBatches = notice.targetAudience === "batch"
                 ? assignedBatches
-                  .filter((b) => notice.targetBatchIds.includes(b._id))
-                  .map((b) => b.name)
+                    .filter((b) =>
+                      Array.isArray(notice.targetBatchIds)
+                        ? notice.targetBatchIds.includes(b._id)
+                        : false
+                    )
+                    .map((b) => b.name)
                 : [];
 
               return (
