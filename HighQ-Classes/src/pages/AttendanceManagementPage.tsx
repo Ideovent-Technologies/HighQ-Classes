@@ -299,8 +299,13 @@ const AttendanceManagementPage: React.FC<AttendanceManagementPageProps> = ({
                                                     key={batch._id}
                                                     value={batch._id}
                                                 >
-                                                    {batch.batchName} -{" "}
-                                                    {batch.course?.courseName}
+                                                    {/* FIX: Show batch name robustly */}
+                                                    {(batch.batchName || batch.name) +
+                                                        (batch.course?.courseName
+                                                            ? ` - ${batch.course.courseName}`
+                                                            : batch.course?.name
+                                                            ? ` - ${batch.course.name}`
+                                                            : "")}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -466,7 +471,8 @@ const AttendanceManagementPage: React.FC<AttendanceManagementPageProps> = ({
                                                 key={batch._id}
                                                 value={batch._id}
                                             >
-                                                {batch.batchName}
+                                                {/* FIX: Show batch name robustly */}
+                                                {batch.batchName || batch.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
