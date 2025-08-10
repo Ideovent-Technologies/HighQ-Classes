@@ -283,9 +283,9 @@ const ScheduleManagement: React.FC = () => {
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="title">Title</Label>
+                                    <Label htmlFor="name">Title</Label>
                                     <Input
-                                        id="title"
+                                        id="name"
                                         value={formData.title}
                                         onChange={(e) =>
                                             setFormData({

@@ -233,7 +233,7 @@ const EnhancedMaterialsManagementPage: React.FC<
                         new Date(a.createdAt || 0).getTime() -
                         new Date(b.createdAt || 0).getTime()
                     );
-                case "title":
+                case "name":
                     return a.title.localeCompare(b.title);
                 default:
                     return 0;
@@ -372,7 +372,7 @@ const EnhancedMaterialsManagementPage: React.FC<
                                 <SelectItem value="oldest">
                                     Oldest First
                                 </SelectItem>
-                                <SelectItem value="title">
+                                <SelectItem value="name">
                                     Alphabetical
                                 </SelectItem>
                             </SelectContent>
@@ -525,9 +525,9 @@ const EnhancedMaterialsManagementPage: React.FC<
                             <CardContent className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <Label htmlFor="title">Title *</Label>
+                                        <Label htmlFor="name">Title *</Label>
                                         <Input
-                                            id="title"
+                                            id="name"
                                             value={uploadForm.title}
                                             onChange={(e) =>
                                                 setUploadForm({

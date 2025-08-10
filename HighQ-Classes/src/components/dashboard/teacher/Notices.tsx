@@ -155,11 +155,11 @@ const Notices = () => {
           
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                 Notice Title
               </label>
               <input
-                id="title"
+                id="name"
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}

@@ -44,7 +44,7 @@ export const getSchedulesByTeacher = async (req, res) => {
 
     const schedules = await Schedule.find(filter)
       .populate("batchId", "name")
-      .populate("courseId", "title")
+      .populate("courseId", "name")
       .sort({ startTime: 1 });
 
     res.json({

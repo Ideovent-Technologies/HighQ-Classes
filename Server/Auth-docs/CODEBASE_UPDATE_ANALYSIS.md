@@ -38,7 +38,7 @@ const { name, description, duration, fee, topics } = req.body;
     "description": "Course description",
     "duration": "3 months",
     "fee": 5000,
-    "topics": [{ "title": "Topic 1", "description": "...", "order": 1 }]
+    "topics": [{ "name": "Topic 1", "description": "...", "order": 1 }]
 }
 ```
 
