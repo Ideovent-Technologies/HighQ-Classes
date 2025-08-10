@@ -69,6 +69,7 @@ import AdminAnnouncementPage from "@/components/dashboard/admin/AdminAnnouncemen
 import ManageNotices from "@/pages/dashboard/ManageNotices";
 import FeeManagement from "@/pages/dashboard/FeeManagement";
 import ScheduleManagement from "@/pages/dashboard/ScheduleManagement";
+import AddStudentsToBatchPage from "./pages/batch/Addstudentpage";
 
 const queryClient = new QueryClient();
 
@@ -342,6 +343,14 @@ const App: React.FC = () => {
                                     </ProtectedRoute>
                                 }
                             />
+                            <Route 
+                            path="/dashbaord/batches/add-student"
+                            element = {
+                        <ProtectedRoute roles={["admin"]}>
+                            <AddStudentsToBatchPage/>
+                        </ProtectedRoute>
+                            }
+                        />
                             <Route
                                 path="/dashboard/batches/edit/:batchId"
                                 element={
