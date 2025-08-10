@@ -159,11 +159,11 @@ const UploadMaterials = () => {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1" htmlFor="title">
+                  <label className="block text-sm font-medium mb-1" htmlFor="name">
                     Title*
                   </label>
                   <Input
-                    id="title"
+                    id="name"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="e.g., Wave Optics - Interference"

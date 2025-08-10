@@ -100,7 +100,7 @@ const UploadMaterials = () => {
       // Create form data to send the file and other fields
       const formData = new FormData();
       formData.append("file", selectedFile);
-      formData.append("title", title);
+      formData.append("name", title);
       formData.append("description", description);
       
       // IMPORTANT FIX: Send batchId as a stringified array named "batchIds"
@@ -207,7 +207,7 @@ const UploadMaterials = () => {
             
             <div className="space-y-6">
               <Input
-                placeholder="Title"
+                placeholder="name"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full px-4 py-3 border-2 border-indigo-200 rounded-xl focus:border-indigo-500 transition-all duration-300 shadow-sm"

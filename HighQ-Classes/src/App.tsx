@@ -27,6 +27,7 @@ import Dashboard from "@/pages/dashboard/Dashboard";
 import FeeStatus from "@/pages/dashboard/FeeStatus";
 import StudyMaterials from "@/pages/dashboard/StudyMaterials";
 import AllStudents from "@/pages/dashboard/AllStudents";
+import Settings from "./pages/dashboard/Settings";
 // import UploadMaterials from "@/pages/dashboard/UploadMaterials";
 import MyStudents from "@/components/dashboard/teacher/MyStudents";
 import UploadMaterials from "@/components/dashboard/teacher/UploadMaterials";
@@ -68,6 +69,7 @@ import AdminAnnouncementPage from "@/components/dashboard/admin/AdminAnnouncemen
 import ManageNotices from "@/pages/dashboard/ManageNotices";
 import FeeManagement from "@/pages/dashboard/FeeManagement";
 import ScheduleManagement from "@/pages/dashboard/ScheduleManagement";
+import AddStudentsToBatchPage from "./pages/batch/Addstudentpage";
 
 const queryClient = new QueryClient();
 
@@ -257,6 +259,15 @@ const App: React.FC = () => {
                                     </ProtectedRoute>
                                 }
                             />
+                            <Route
+                                path="/dashboard/settings"
+                                element={
+                                    <ProtectedRoute roles={["teacher"]}>
+                                        <Settings />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            
                             {/* Admin-specific routes */}
                             <Route
                                 path="/admin/dashboard"
@@ -332,6 +343,14 @@ const App: React.FC = () => {
                                     </ProtectedRoute>
                                 }
                             />
+                            <Route 
+                            path="/dashbaord/batches/add-student"
+                            element = {
+                        <ProtectedRoute roles={["admin"]}>
+                            <AddStudentsToBatchPage/>
+                        </ProtectedRoute>
+                            }
+                        />
                             <Route
                                 path="/dashboard/batches/edit/:batchId"
                                 element={

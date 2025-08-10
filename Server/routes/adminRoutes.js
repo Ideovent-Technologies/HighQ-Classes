@@ -14,8 +14,9 @@ import {
     addTeacher,
     updateTeacher,
     deleteTeacher,
-    CreateUser ,
-    getAdminProfile
+    CreateUser,
+    getAdminProfile,
+    syncRelations, // <-- added
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -47,5 +48,9 @@ router.delete("/teachers/:id", deleteTeacher);
 
 // Announcements
 router.post("/announcement", createAnnouncement);
+
+// One-off sync endpoint (admin only) — backfill Teacher.courseIds, Teacher.batches, Course.batches
+// Use with caution; it's idempotent (uses $addToSet) and accepts optional ?limit=100
+router.post("/sync/relations", syncRelations);
 
 export default router;
