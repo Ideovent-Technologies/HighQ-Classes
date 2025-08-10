@@ -1059,7 +1059,7 @@ const FileUploader: React.FC<FileUploadProps> = ({ onUploadComplete }) => {
             try {
                 const formData = new FormData();
                 formData.append("file", file);
-                formData.append("title", file.name);
+                formData.append("name", file.name);
                 formData.append("category", "general"); // You can add category selection
 
                 const result = await materialService.uploadMaterial(

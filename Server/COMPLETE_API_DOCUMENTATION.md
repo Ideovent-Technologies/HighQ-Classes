@@ -793,7 +793,7 @@ profilePic: <image_file>
 
 ```json
 {
-    "title": "System Maintenance",
+    "name": "System Maintenance",
     "content": "System will be down for maintenance on...",
     "priority": "high|medium|low",
     "targetAudience": "all|students|teachers",
@@ -823,12 +823,12 @@ profilePic: <image_file>
     "fee": 15000,
     "topics": [
         {
-            "title": "Quantum Mechanics",
+            "name": "Quantum Mechanics",
             "description": "Introduction to quantum mechanics",
             "order": 1
         },
         {
-            "title": "Thermodynamics",
+            "name": "Thermodynamics",
             "description": "Laws of thermodynamics",
             "order": 2
         }
@@ -849,7 +849,7 @@ profilePic: <image_file>
         "fee": 15000,
         "topics": [
             {
-                "title": "Quantum Mechanics",
+                "name": "Quantum Mechanics",
                 "description": "Introduction to quantum mechanics",
                 "order": 1
             }
@@ -914,7 +914,7 @@ profilePic: <image_file>
     "fee": 18000,
     "topics": [
         {
-            "title": "New Topic",
+            "name": "New Topic",
             "description": "New topic description",
             "order": 3
         }
@@ -1157,7 +1157,7 @@ category: "notes|assignment|reference"
     "message": "Material uploaded successfully",
     "data": {
         "id": "material_id",
-        "title": "Physics Chapter 1",
+        "name": "Physics Chapter 1",
         "description": "Introduction to mechanics",
         "fileName": "physics_ch1.pdf",
         "fileUrl": "https://cloudinary.com/file_url",
@@ -1188,7 +1188,7 @@ category: "notes|assignment|reference"
     "data": [
         {
             "id": "material_id",
-            "title": "Physics Chapter 1",
+            "name": "Physics Chapter 1",
             "description": "Introduction to mechanics",
             "fileName": "physics_ch1.pdf",
             "fileUrl": "https://cloudinary.com/file_url",
@@ -1231,7 +1231,7 @@ category: "notes|assignment|reference"
         "materials": [
             {
                 "id": "material_id",
-                "title": "Physics Chapter 1",
+                "name": "Physics Chapter 1",
                 "description": "Introduction to mechanics",
                 "fileName": "physics_ch1.pdf",
                 "category": "notes",
@@ -1281,7 +1281,7 @@ category: "notes|assignment|reference"
     "data": [
         {
             "id": "material_id",
-            "title": "Physics Chapter 1",
+            "name": "Physics Chapter 1",
             "description": "Introduction to mechanics",
             "category": "notes",
             "uploadDate": "2025-01-01T00:00:00Z",
@@ -1484,7 +1484,7 @@ category: "notes|assignment|reference"
 
 ```json
 {
-    "title": "Important Announcement",
+    "name": "Important Announcement",
     "content": "Class will be rescheduled to 2 PM tomorrow.",
     "priority": "high|medium|low",
     "targetAudience": "batch_id|all",
@@ -1501,7 +1501,7 @@ category: "notes|assignment|reference"
     "message": "Notice created successfully",
     "data": {
         "id": "notice_id",
-        "title": "Important Announcement",
+        "name": "Important Announcement",
         "content": "Class will be rescheduled to 2 PM tomorrow.",
         "priority": "high",
         "targetAudience": "batch_id",
@@ -1538,7 +1538,7 @@ category: "notes|assignment|reference"
         "notices": [
             {
                 "id": "notice_id",
-                "title": "Important Announcement",
+                "name": "Important Announcement",
                 "content": "Class will be rescheduled...",
                 "priority": "high",
                 "targetAudience": "batch_id",
@@ -1574,7 +1574,7 @@ category: "notes|assignment|reference"
     "success": true,
     "data": {
         "id": "notice_id",
-        "title": "Important Announcement",
+        "name": "Important Announcement",
         "content": "Class will be rescheduled to 2 PM tomorrow.",
         "priority": "high",
         "targetAudience": "batch_id",
@@ -1614,7 +1614,7 @@ category: "notes|assignment|reference"
 
 ```json
 {
-    "title": "Updated Announcement",
+    "name": "Updated Announcement",
     "content": "Updated content",
     "priority": "medium",
     "expiryDate": "2025-02-28"
@@ -1898,7 +1898,7 @@ category: "notes|assignment|reference"
         },
         "course": {
             "id": "course_id",
-            "title": "Advanced Physics"
+            "name": "Advanced Physics"
         },
         "amount": 15000,
         "paidAmount": 10000,
@@ -1983,7 +1983,7 @@ category: "notes|assignment|reference"
                     "email": "john@example.com"
                 },
                 "course": {
-                    "title": "Advanced Physics"
+                    "name": "Advanced Physics"
                 },
                 "amount": 15000,
                 "paidAmount": 10000,
@@ -2035,7 +2035,7 @@ courseId: "course_id"
     "success": true,
     "data": {
         "_id": "recording_id",
-        "title": "Physics Lecture 1",
+        "name": "Physics Lecture 1",
         "description": "Introduction to mechanics",
         "subject": "Physics",
         "fileUrl": "https://cloudinary.com/video_url",
@@ -2076,7 +2076,7 @@ courseId: "course_id"
     "data": [
         {
             "_id": "recording_id",
-            "title": "Physics Lecture 1",
+            "name": "Physics Lecture 1",
             "description": "Introduction to mechanics",
             "subject": "Physics",
             "fileUrl": "https://cloudinary.com/video_url",
@@ -2118,7 +2118,7 @@ courseId: "course_id"
     "data": [
         {
             "_id": "recording_id",
-            "title": "Physics Lecture 1",
+            "name": "Physics Lecture 1",
             "subject": "Physics",
             "fileUrl": "https://cloudinary.com/video_url",
             "duration": 3600,
@@ -2150,7 +2150,7 @@ courseId: "course_id"
     "success": true,
     "data": {
         "_id": "recording_id",
-        "title": "Physics Lecture 1",
+        "name": "Physics Lecture 1",
         "description": "Introduction to mechanics",
         "subject": "Physics",
         "fileUrl": "https://cloudinary.com/video_url",
@@ -2194,7 +2194,7 @@ courseId: "course_id"
 
 ```json
 {
-    "title": "Updated Physics Lecture 1",
+    "name": "Updated Physics Lecture 1",
     "description": "Updated description",
     "subject": "Advanced Physics",
     "accessExpires": "2025-02-15T00:00:00Z",
@@ -2209,7 +2209,7 @@ courseId: "course_id"
     "success": true,
     "data": {
         "_id": "recording_id",
-        "title": "Updated Physics Lecture 1",
+        "name": "Updated Physics Lecture 1",
         "description": "Updated description",
         "subject": "Advanced Physics",
         "accessExpires": "2025-02-15T00:00:00Z",
@@ -2257,7 +2257,7 @@ courseId: "course_id"
     "data": [
         {
             "_id": "recording_id",
-            "title": "Physics Lecture 1",
+            "name": "Physics Lecture 1",
             "subject": "Physics",
             "fileUrl": "https://cloudinary.com/video_url",
             "batch": {
@@ -2308,7 +2308,7 @@ courseId: "course_id"
         "topRecordings": [
             {
                 "_id": "recording_id",
-                "title": "Physics Lecture 1",
+                "name": "Physics Lecture 1",
                 "views": 75,
                 "subject": "Physics"
             }
@@ -2340,7 +2340,7 @@ courseId: "course_id"
     "success": true,
     "data": {
         "id": "recording_id",
-        "title": "Physics Lecture 1",
+        "name": "Physics Lecture 1",
         "previousExpiry": "2025-01-29T00:00:00Z",
         "newExpiry": "2025-02-05T00:00:00Z"
     },
@@ -2364,7 +2364,7 @@ courseId: "course_id"
 
 ```json
 {
-    "title": "Physics Assignment 1",
+    "name": "Physics Assignment 1",
     "description": "Solve the given problems on mechanics",
     "batchId": "batch_id",
     "dueDate": "2025-01-15",
@@ -2390,7 +2390,7 @@ courseId: "course_id"
     "data": [
         {
             "id": "assignment_id",
-            "title": "Physics Assignment 1",
+            "name": "Physics Assignment 1",
             "description": "Solve the given problems on mechanics",
             "dueDate": "2025-01-15",
             "maxMarks": 100,
@@ -2436,7 +2436,7 @@ remarks: "Completed all problems"
     "success": true,
     "data": {
         "id": "assignment_id",
-        "title": "Physics Assignment 1",
+        "name": "Physics Assignment 1",
         "description": "Solve the given problems on mechanics",
         "instructions": "Submit in PDF format",
         "maxMarks": 100,
@@ -2465,7 +2465,7 @@ remarks: "Completed all problems"
 
 ```json
 {
-    "title": "Updated Physics Assignment 1",
+    "name": "Updated Physics Assignment 1",
     "description": "Updated description",
     "dueDate": "2025-01-20",
     "maxMarks": 120

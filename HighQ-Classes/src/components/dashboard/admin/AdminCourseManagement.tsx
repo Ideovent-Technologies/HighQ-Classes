@@ -290,11 +290,11 @@ const AdminCourseManagement: React.FC = () => {
                         <div className="space-y-4 max-h-96 overflow-y-auto">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="title">
+                                    <Label htmlFor="name">
                                         Course Title *
                                     </Label>
                                     <Input
-                                        id="title"
+                                        id="name"
                                         value={formData.title}
                                         onChange={(e) =>
                                             setFormData((prev) => ({

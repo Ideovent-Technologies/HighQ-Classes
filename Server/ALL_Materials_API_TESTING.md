@@ -34,7 +34,7 @@ Form Data:
 {
   "message": "Material uploaded successfully",
   "material": {
-    "title": "Testing111",
+    "name": "Testing111",
     "description": "Demo111",
     "fileUrl": "https://res.cloudinary.com/dbqz9nzv6/image/upload/v1753599818/srupccaahqvww3ahq7bn.pdf",
     "fileType": "pdf",
@@ -67,7 +67,7 @@ Authorization: Bearer <token>
 [
   {
     "_id": "6885cf49b675af223f16cb27",
-    "title": "Testing111",
+    "name": "Testing111",
     "description": "Demo111",
     "fileUrl": "https://res.cloudinary.com/dbqz9nzv6/image/upload/v1753599818/srupccaahqvww3ahq7bn.pdf",
     "fileType": "pdf",
@@ -96,7 +96,7 @@ Authorization: Bearer <token>
   },
   {
     "_id": "6885c6c6742943205e65b317",
-    "title": "Testing",
+    "name": "Testing",
     "description": "Demo",
     "fileUrl": "https://res.cloudinary.com/dbqz9nzv6/image/upload/v1753597639/iztpzutya7zwfjkmnxvm.pdf",
     "fileType": "pdf",
@@ -147,7 +147,7 @@ Authorization: Bearer <token>
 [
   {
     "_id": "6885cf49b675af223f16cb27",
-    "title": "Testing111",
+    "name": "Testing111",
     "description": "Demo111",
     "fileUrl": "https://res.cloudinary.com/dbqz9nzv6/image/upload/v1753599818/srupccaahqvww3ahq7bn.pdf",
     "fileType": "pdf",
@@ -189,7 +189,7 @@ Authorization: Bearer <token>
 [
   {
     "_id": "6885cf49b675af223f16cb27",
-    "title": "Testing111",
+    "name": "Testing111",
     "description": "Demo111",
     "fileUrl": "https://res.cloudinary.com/dbqz9nzv6/image/upload/v1753599818/srupccaahqvww3ahq7bn.pdf",
     "fileType": "pdf",

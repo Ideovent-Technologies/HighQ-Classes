@@ -112,7 +112,7 @@ const handleUpload = async (): Promise<UploadResponse> => {
   }
 
   const formData = new FormData();
-  formData.append("title", form.title);
+  formData.append("name", form.title);
   formData.append("subject", form.subject);
   formData.append("description", form.description);
   formData.append("video", form.video);

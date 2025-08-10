@@ -1,5 +1,3 @@
-// QuickActions.tsx
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -13,7 +11,6 @@ import {
     DollarSign,
 } from "lucide-react";
 
-// Add className to the component's props
 interface QuickActionsProps {
     className?: string;
 }
@@ -24,7 +21,9 @@ const QuickActions: React.FC<QuickActionsProps> = ({ className }) => {
         // Apply the className to the root Card element
         <Card className={className}>
             <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
+                <CardTitle className="text-xl font-bold text-indigo-900">
+                    Quick Actions
+                </CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">

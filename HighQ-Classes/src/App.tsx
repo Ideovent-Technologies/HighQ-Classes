@@ -27,6 +27,7 @@ import Dashboard from "@/pages/dashboard/Dashboard";
 import FeeStatus from "@/pages/dashboard/FeeStatus";
 import StudyMaterials from "@/pages/dashboard/StudyMaterials";
 import AllStudents from "@/pages/dashboard/AllStudents";
+import Settings from "./pages/dashboard/Settings";
 // import UploadMaterials from "@/pages/dashboard/UploadMaterials";
 import MyStudents from "@/components/dashboard/teacher/MyStudents";
 import UploadMaterials from "@/components/dashboard/teacher/UploadMaterials";
@@ -258,6 +259,15 @@ const App: React.FC = () => {
                                     </ProtectedRoute>
                                 }
                             />
+                            <Route
+                                path="/dashboard/settings"
+                                element={
+                                    <ProtectedRoute roles={["teacher"]}>
+                                        <Settings />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            
                             {/* Admin-specific routes */}
                             <Route
                                 path="/admin/dashboard"

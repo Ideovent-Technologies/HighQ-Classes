@@ -128,7 +128,7 @@ const CourseForm: React.FC<CourseFormProps> = ({ course }) => {
                 <Input
                   placeholder="Topic Title"
                   value={topic.title}
-                  onChange={(e) => handleTopicChange(index, "title", e.target.value)}
+                  onChange={(e) => handleTopicChange(index, "name", e.target.value)}
                   required
                 />
                 <Textarea

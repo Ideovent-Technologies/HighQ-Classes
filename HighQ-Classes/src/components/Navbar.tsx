@@ -54,14 +54,14 @@ const Navbar = () => {
                                 scrolled ? "text-navy-600" : "text-white"
                             }`}
                         >
-                            Bloom
+                            High
                         </span>
                         <span
                             className={`transition-colors ${
                                 scrolled ? "text-teal-500" : "text-teal-300"
                             }`}
                         >
-                            Scholar
+                            Q
                         </span>
                     </Link>
 
