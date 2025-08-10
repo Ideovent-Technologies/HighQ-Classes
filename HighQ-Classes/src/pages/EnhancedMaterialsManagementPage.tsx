@@ -203,9 +203,12 @@ const EnhancedMaterialsManagementPage: React.FC<
                     ?.toLowerCase()
                     .includes(searchTerm.toLowerCase());
 
+            // --- FIX: Robust courseId check for both object and string, avoid type error ---
             const matchesCourse =
                 selectedCourse === "all" ||
-                material.courseId._id === selectedCourse;
+                (typeof material.courseId === "object" && material.courseId !== null && "_id" in material.courseId
+                    ? (material.courseId as any)._id === selectedCourse
+                    : String(material.courseId) === selectedCourse);
 
             const fileExtension =
                 material.fileUrl?.split(".").pop()?.toLowerCase() || "";
@@ -335,7 +338,7 @@ const EnhancedMaterialsManagementPage: React.FC<
                                         key={course._id}
                                         value={course._id}
                                     >
-                                        {course.courseName}
+                                        {course.courseName || course.name}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -451,8 +454,10 @@ const EnhancedMaterialsManagementPage: React.FC<
                                             <div className="flex items-center gap-1">
                                                 <BookOpen className="h-4 w-4" />
                                                 <span>
-                                                    {material.courseId?.name ||
-                                                        "Unknown Course"}
+                                                    {/* --- FIX: Show course name robustly --- */}
+                                                    {typeof material.courseId === "object" && material.courseId !== null
+                                                        ? (material.courseId as any).courseName || (material.courseId as any).name || (material.courseId as any)._id || "Unknown Course"
+                                                        : material.courseId || "Unknown Course"}
                                                 </span>
                                             </div>
 
@@ -611,7 +616,7 @@ const EnhancedMaterialsManagementPage: React.FC<
                                                         key={course._id}
                                                         value={course._id}
                                                     >
-                                                        {course.courseName}
+                                                        {course.courseName || course.name}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -639,7 +644,7 @@ const EnhancedMaterialsManagementPage: React.FC<
                                                         key={batch._id}
                                                         value={batch._id}
                                                     >
-                                                        {batch.batchName}
+                                                        {batch.batchName || batch.name}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
