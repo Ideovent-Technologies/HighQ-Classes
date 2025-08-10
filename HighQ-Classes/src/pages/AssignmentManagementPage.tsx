@@ -29,16 +29,11 @@ import {
     Edit,
     Trash2,
     Upload,
-    Download,
     Calendar,
-    Clock,
     Users,
     FileText,
     Star,
     CheckCircle,
-    XCircle,
-    AlertTriangle,
-    Filter,
     Search,
 } from "lucide-react";
 import { format } from "date-fns";
@@ -50,7 +45,6 @@ import {
     AssignmentFormData,
     AssignmentSubmission,
     SubmissionFormData,
-    AssignmentSummary,
     AssignmentFilters,
 } from "@/types/assignment.types";
 
@@ -105,30 +99,75 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
 
     const [searchTerm, setSearchTerm] = useState("");
 
+    // Helper to parse different response shapes from services
+    const parseArrayResponse = (res: any, possibleKeys: string[] = []) => {
+        if (!res) return [];
+        if (Array.isArray(res)) return res;
+        // common patterns
+        if (res.success && Array.isArray(res.courses)) return res.courses;
+        if (res.success && Array.isArray(res.batches)) return res.batches;
+        if (res.success && Array.isArray(res.assignments)) return res.assignments;
+        if (res.success && Array.isArray(res.data)) return res.data;
+        if (res.data && Array.isArray(res.data.courses)) return res.data.courses;
+        if (res.data && Array.isArray(res.data.batches)) return res.data.batches;
+        if (res.data && Array.isArray(res.data.assignments)) return res.data.assignments;
+        for (const k of possibleKeys) {
+            if (Array.isArray(res[k])) return res[k];
+        }
+        // fallback: if res.data is array
+        if (res.data && Array.isArray(res.data)) return res.data;
+        // fallback: if res.payload is array
+        if (res.payload && Array.isArray(res.payload)) return res.payload;
+        return [];
+    };
+
     useEffect(() => {
         fetchInitialData();
     }, []);
 
     useEffect(() => {
+        // fetch assignments whenever filters change
         fetchAssignments();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filters]);
 
     const fetchInitialData = async () => {
         setLoading(true);
         try {
-            const [coursesResult, batchesResult] = await Promise.all([
+            const [coursesResult, batchesResult] = await Promise.allSettled([
                 courseService.getAllCourses(),
                 batchService.getAllBatches(),
             ]);
 
-            if (coursesResult.success && coursesResult.courses) {
-                setCourses(coursesResult.courses);
+            // courses
+            if (coursesResult.status === "fulfilled") {
+                const parsed = parseArrayResponse(coursesResult.value, [
+                    "courses",
+                    "data",
+                    "payload",
+                ]);
+                setCourses(parsed);
+            } else {
+                console.error("Failed to fetch courses:", coursesResult.reason);
+                setCourses([]);
             }
-            if (batchesResult.success && batchesResult.batches) {
-                setBatches(batchesResult.batches);
+
+            // batches
+            if (batchesResult.status === "fulfilled") {
+                const parsedBatches = parseArrayResponse(batchesResult.value, [
+                    "batches",
+                    "data",
+                    "payload",
+                ]);
+                setBatches(parsedBatches);
+            } else {
+                console.error("Failed to fetch batches:", batchesResult.reason);
+                setBatches([]);
             }
         } catch (error) {
             console.error("Error fetching initial data:", error);
+            setCourses([]);
+            setBatches([]);
         } finally {
             setLoading(false);
         }
@@ -143,11 +182,11 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                 limit: 50,
             });
 
-            if (result.success && result.data) {
-                setAssignments(result.data.assignments);
-            }
+            const parsed = parseArrayResponse(result, ["assignments", "data"]);
+            setAssignments(parsed);
         } catch (error) {
             console.error("Error fetching assignments:", error);
+            setAssignments([]);
         } finally {
             setLoading(false);
         }
@@ -162,11 +201,11 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                 limit: 50,
             });
 
-            if (result.success && result.data) {
-                setSubmissions(result.data.submissions);
-            }
+            const parsed = parseArrayResponse(result, ["submissions", "data"]);
+            setSubmissions(parsed);
         } catch (error) {
             console.error("Error fetching submissions:", error);
+            setSubmissions([]);
         } finally {
             setLoading(false);
         }
@@ -179,7 +218,7 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                 assignmentForm
             );
 
-            if (result.success) {
+            if (result && result.success) {
                 setMessage({
                     type: "success",
                     text: "Assignment created successfully!",
@@ -188,9 +227,13 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                 resetAssignmentForm();
                 fetchAssignments();
             } else {
-                setMessage({ type: "error", text: result.message });
+                setMessage({
+                    type: "error",
+                    text: (result && result.message) || "Failed to create",
+                });
             }
         } catch (error) {
+            console.error("Create assignment error:", error);
             setMessage({ type: "error", text: "Failed to create assignment" });
         } finally {
             setSaving(false);
@@ -208,7 +251,7 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                 submissionForm
             );
 
-            if (result.success) {
+            if (result && result.success) {
                 setMessage({
                     type: "success",
                     text: "Assignment submitted successfully!",
@@ -217,9 +260,10 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                 resetSubmissionForm();
                 fetchAssignments();
             } else {
-                setMessage({ type: "error", text: result.message });
+                setMessage({ type: "error", text: result.message || "Failed" });
             }
         } catch (error) {
+            console.error("Submit assignment error:", error);
             setMessage({ type: "error", text: "Failed to submit assignment" });
         } finally {
             setSaving(false);
@@ -236,16 +280,17 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                 assignmentId
             );
 
-            if (result.success) {
+            if (result && result.success) {
                 setMessage({
                     type: "success",
                     text: "Assignment deleted successfully!",
                 });
                 fetchAssignments();
             } else {
-                setMessage({ type: "error", text: result.message });
+                setMessage({ type: "error", text: result.message || "Failed" });
             }
         } catch (error) {
+            console.error("Delete assignment error:", error);
             setMessage({ type: "error", text: "Failed to delete assignment" });
         } finally {
             setTimeout(() => setMessage(null), 3000);
@@ -276,12 +321,12 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
 
     const getStatusBadge = (assignment: Assignment) => {
         const now = new Date();
-        const dueDate = new Date(assignment.dueDate);
+        const dueDate = assignment?.dueDate ? new Date(assignment.dueDate) : null;
 
-        if (!assignment.isPublished) {
+        if (!assignment?.isPublished) {
             return <Badge variant="secondary">Draft</Badge>;
         }
-        if (dueDate < now) {
+        if (dueDate && dueDate < now) {
             return <Badge variant="destructive">Overdue</Badge>;
         }
         return <Badge variant="default">Active</Badge>;
@@ -290,41 +335,34 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
     const getSubmissionStatus = (submission: AssignmentSubmission) => {
         switch (submission.status) {
             case "submitted":
-                return (
-                    <Badge className="bg-blue-100 text-blue-800">
-                        Submitted
-                    </Badge>
-                );
+                return <Badge className="bg-blue-100 text-blue-800">Submitted</Badge>;
             case "graded":
-                return (
-                    <Badge className="bg-green-100 text-green-800">
-                        Graded
-                    </Badge>
-                );
+                return <Badge className="bg-green-100 text-green-800">Graded</Badge>;
             case "returned":
-                return (
-                    <Badge className="bg-purple-100 text-purple-800">
-                        Returned
-                    </Badge>
-                );
+                return <Badge className="bg-purple-100 text-purple-800">Returned</Badge>;
             case "late":
-                return (
-                    <Badge className="bg-orange-100 text-orange-800">
-                        Late
-                    </Badge>
-                );
+                return <Badge className="bg-orange-100 text-orange-800">Late</Badge>;
             default:
                 return <Badge variant="outline">Unknown</Badge>;
         }
     };
 
-    const filteredAssignments = assignments.filter(
-        (assignment) =>
-            assignment.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            assignment.description
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase())
-    );
+    // defend against undefined title/description
+    const filteredAssignments = assignments.filter((assignment) => {
+        const title = (assignment?.title || "").toString().toLowerCase();
+        const desc = (assignment?.description || "").toString().toLowerCase();
+        const term = searchTerm.toLowerCase().trim();
+        if (!term) return true;
+        return title.includes(term) || desc.includes(term);
+    });
+
+    // Safe display helper for batches (handles different API shapes)
+    const getBatchDisplayName = (batch: any) => {
+        if (!batch) return "—";
+        if (typeof batch.batchName === "string" && batch.batchName.trim()) return batch.batchName;
+        if (typeof batch.name === "string" && batch.name.trim()) return batch.name;
+        return "—";
+    };
 
     return (
         <div className="container mx-auto p-6 space-y-6">
@@ -366,14 +404,11 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                                             Type
                                         </Label>
                                         <Select
-                                            value={
-                                                assignmentForm.assignmentType
-                                            }
+                                            value={assignmentForm.assignmentType}
                                             onValueChange={(value) =>
                                                 setAssignmentForm({
                                                     ...assignmentForm,
-                                                    assignmentType:
-                                                        value as any,
+                                                    assignmentType: value as any,
                                                 })
                                             }
                                         >
@@ -381,21 +416,11 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="homework">
-                                                    Homework
-                                                </SelectItem>
-                                                <SelectItem value="project">
-                                                    Project
-                                                </SelectItem>
-                                                <SelectItem value="quiz">
-                                                    Quiz
-                                                </SelectItem>
-                                                <SelectItem value="exam">
-                                                    Exam
-                                                </SelectItem>
-                                                <SelectItem value="practical">
-                                                    Practical
-                                                </SelectItem>
+                                                <SelectItem value="homework">Homework</SelectItem>
+                                                <SelectItem value="project">Project</SelectItem>
+                                                <SelectItem value="quiz">Quiz</SelectItem>
+                                                <SelectItem value="exam">Exam</SelectItem>
+                                                <SelectItem value="practical">Practical</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -418,11 +443,8 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {courses.map((course) => (
-                                                    <SelectItem
-                                                        key={course._id}
-                                                        value={course._id}
-                                                    >
-                                                        {course.courseName}
+                                                    <SelectItem key={course._id || course.id} value={course._id || course.id}>
+                                                        {course.courseName || course.name || course.title}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -444,11 +466,8 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {batches.map((batch) => (
-                                                    <SelectItem
-                                                        key={batch._id}
-                                                        value={batch._id}
-                                                    >
-                                                        {batch.batchName}
+                                                    <SelectItem key={batch._id || batch.id} value={batch._id || batch.id}>
+                                                        {getBatchDisplayName(batch)}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -458,9 +477,7 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <Label htmlFor="dueDate">
-                                            Due Date
-                                        </Label>
+                                        <Label htmlFor="dueDate">Due Date</Label>
                                         <Input
                                             id="dueDate"
                                             type="datetime-local"
@@ -474,9 +491,7 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                                         />
                                     </div>
                                     <div>
-                                        <Label htmlFor="totalMarks">
-                                            Total Marks
-                                        </Label>
+                                        <Label htmlFor="totalMarks">Total Marks</Label>
                                         <Input
                                             id="totalMarks"
                                             type="number"
@@ -484,9 +499,7 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                                             onChange={(e) =>
                                                 setAssignmentForm({
                                                     ...assignmentForm,
-                                                    totalMarks: parseInt(
-                                                        e.target.value
-                                                    ),
+                                                    totalMarks: parseInt(e.target.value || "0"),
                                                 })
                                             }
                                         />
@@ -494,9 +507,7 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="description">
-                                        Description
-                                    </Label>
+                                    <Label htmlFor="description">Description</Label>
                                     <Textarea
                                         id="description"
                                         value={assignmentForm.description}
@@ -512,9 +523,7 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                                 </div>
 
                                 <div>
-                                    <Label htmlFor="instructions">
-                                        Instructions
-                                    </Label>
+                                    <Label htmlFor="instructions">Instructions</Label>
                                     <Textarea
                                         id="instructions"
                                         value={assignmentForm.instructions}
@@ -541,49 +550,34 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                                                 })
                                             }
                                         />
-                                        <Label htmlFor="isPublished">
-                                            Publish immediately
-                                        </Label>
+                                        <Label htmlFor="isPublished">Publish immediately</Label>
                                     </div>
                                     <div className="flex items-center space-x-2">
                                         <Checkbox
                                             id="allowLateSubmission"
-                                            checked={
-                                                assignmentForm.allowLateSubmission
-                                            }
+                                            checked={assignmentForm.allowLateSubmission}
                                             onCheckedChange={(checked) =>
                                                 setAssignmentForm({
                                                     ...assignmentForm,
-                                                    allowLateSubmission:
-                                                        !!checked,
+                                                    allowLateSubmission: !!checked,
                                                 })
                                             }
                                         />
-                                        <Label htmlFor="allowLateSubmission">
-                                            Allow late submission
-                                        </Label>
+                                        <Label htmlFor="allowLateSubmission">Allow late submission</Label>
                                     </div>
                                 </div>
 
                                 {assignmentForm.allowLateSubmission && (
                                     <div>
-                                        <Label htmlFor="lateSubmissionPenalty">
-                                            Late Submission Penalty (%)
-                                        </Label>
+                                        <Label htmlFor="lateSubmissionPenalty">Late Submission Penalty (%)</Label>
                                         <Input
                                             id="lateSubmissionPenalty"
                                             type="number"
-                                            value={
-                                                assignmentForm.lateSubmissionPenalty ||
-                                                0
-                                            }
+                                            value={assignmentForm.lateSubmissionPenalty || 0}
                                             onChange={(e) =>
                                                 setAssignmentForm({
                                                     ...assignmentForm,
-                                                    lateSubmissionPenalty:
-                                                        parseInt(
-                                                            e.target.value
-                                                        ),
+                                                    lateSubmissionPenalty: parseInt(e.target.value || "0"),
                                                 })
                                             }
                                             placeholder="10"
@@ -592,21 +586,11 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                                 )}
 
                                 <div className="flex justify-end space-x-2">
-                                    <Button
-                                        variant="outline"
-                                        onClick={() =>
-                                            setIsCreateModalOpen(false)
-                                        }
-                                    >
+                                    <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
                                         Cancel
                                     </Button>
-                                    <Button
-                                        onClick={handleCreateAssignment}
-                                        disabled={saving}
-                                    >
-                                        {saving
-                                            ? "Creating..."
-                                            : "Create Assignment"}
+                                    <Button onClick={handleCreateAssignment} disabled={saving}>
+                                        {saving ? "Creating..." : "Create Assignment"}
                                     </Button>
                                 </div>
                             </div>
@@ -616,36 +600,18 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
             </div>
 
             {message && (
-                <Alert
-                    className={
-                        message.type === "success"
-                            ? "border-green-500"
-                            : "border-red-500"
-                    }
-                >
+                <Alert className={message.type === "success" ? "border-green-500" : "border-red-500"}>
                     <AlertDescription>{message.text}</AlertDescription>
                 </Alert>
             )}
 
-            <Tabs
-                value={activeTab}
-                onValueChange={setActiveTab}
-                className="w-full"
-            >
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="assignments">
-                        {userRole === "student"
-                            ? "Available Assignments"
-                            : "All Assignments"}
+                        {userRole === "student" ? "Available Assignments" : "All Assignments"}
                     </TabsTrigger>
-                    <TabsTrigger value="submissions">
-                        {userRole === "student"
-                            ? "My Submissions"
-                            : "Submissions"}
-                    </TabsTrigger>
-                    <TabsTrigger value="grading">
-                        {userRole === "student" ? "My Grades" : "Grading"}
-                    </TabsTrigger>
+                    <TabsTrigger value="submissions">{userRole === "student" ? "My Submissions" : "Submissions"}</TabsTrigger>
+                    <TabsTrigger value="grading">{userRole === "student" ? "My Grades" : "Grading"}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="assignments" className="space-y-6">
@@ -662,21 +628,13 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                                         <Input
                                             placeholder="Search assignments..."
                                             value={searchTerm}
-                                            onChange={(e) =>
-                                                setSearchTerm(e.target.value)
-                                            }
+                                            onChange={(e) => setSearchTerm(e.target.value)}
                                             className="pl-9 w-64"
                                         />
                                     </div>
                                     <Select
                                         value={filters.status}
-                                        onValueChange={(
-                                            value:
-                                                | "all"
-                                                | "published"
-                                                | "draft"
-                                                | "overdue"
-                                        ) =>
+                                        onValueChange={(value: "all" | "published" | "draft" | "overdue") =>
                                             setFilters({
                                                 ...filters,
                                                 status: value,
@@ -687,18 +645,10 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="all">
-                                                All
-                                            </SelectItem>
-                                            <SelectItem value="published">
-                                                Published
-                                            </SelectItem>
-                                            <SelectItem value="draft">
-                                                Draft
-                                            </SelectItem>
-                                            <SelectItem value="overdue">
-                                                Overdue
-                                            </SelectItem>
+                                            <SelectItem value="all">All</SelectItem>
+                                            <SelectItem value="published">Published</SelectItem>
+                                            <SelectItem value="draft">Draft</SelectItem>
+                                            <SelectItem value="overdue">Overdue</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -707,79 +657,43 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                         <CardContent>
                             <div className="grid gap-4">
                                 {filteredAssignments.map((assignment) => (
-                                    <Card
-                                        key={assignment._id}
-                                        className="hover:shadow-md transition-shadow"
-                                    >
+                                    <Card key={assignment._id} className="hover:shadow-md transition-shadow">
                                         <CardContent className="p-4">
                                             <div className="flex justify-between items-start">
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-2 mb-2">
-                                                        <h3 className="text-lg font-semibold">
-                                                            {assignment.title}
-                                                        </h3>
-                                                        {getStatusBadge(
-                                                            assignment
-                                                        )}
-                                                        <Badge
-                                                            variant="outline"
-                                                            className="capitalize"
-                                                        >
-                                                            {
-                                                                assignment.assignmentType
-                                                            }
+                                                        <h3 className="text-lg font-semibold">{assignment.title}</h3>
+                                                        {getStatusBadge(assignment)}
+                                                        <Badge variant="outline" className="capitalize">
+                                                            {assignment.assignmentType}
                                                         </Badge>
                                                     </div>
-                                                    <p className="text-gray-600 mb-2">
-                                                        {assignment.description}
-                                                    </p>
+                                                    <p className="text-gray-600 mb-2">{assignment.description}</p>
                                                     <div className="flex items-center gap-4 text-sm text-gray-500">
                                                         <div className="flex items-center gap-1">
                                                             <Calendar className="h-4 w-4" />
                                                             Due:{" "}
-                                                            {format(
-                                                                new Date(
-                                                                    assignment.dueDate
-                                                                ),
-                                                                "MMM dd, yyyy HH:mm"
-                                                            )}
+                                                            {assignment.dueDate
+                                                                ? format(new Date(assignment.dueDate), "MMM dd, yyyy HH:mm")
+                                                                : "Not set"}
                                                         </div>
                                                         <div className="flex items-center gap-1">
                                                             <Star className="h-4 w-4" />
-                                                            {
-                                                                assignment.totalMarks
-                                                            }{" "}
-                                                            marks
+                                                            {assignment.totalMarks} marks
                                                         </div>
                                                         <div className="flex items-center gap-1">
                                                             <Users className="h-4 w-4" />
-                                                            {
-                                                                assignment.batch
-                                                                    ?.batchName
-                                                            }
+                                                            {getBatchDisplayName(assignment.batch)}
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-2">
                                                     {userRole === "student" && (
-                                                        <Dialog
-                                                            open={
-                                                                isSubmissionModalOpen
-                                                            }
-                                                            onOpenChange={
-                                                                setIsSubmissionModalOpen
-                                                            }
-                                                        >
-                                                            <DialogTrigger
-                                                                asChild
-                                                            >
+                                                        <Dialog open={isSubmissionModalOpen} onOpenChange={setIsSubmissionModalOpen}>
+                                                            <DialogTrigger asChild>
                                                                 <Button
                                                                     size="sm"
-                                                                    onClick={() =>
-                                                                        setSelectedAssignment(
-                                                                            assignment
-                                                                        )
-                                                                    }
+                                                                    onClick={() => setSelectedAssignment(assignment)}
                                                                 >
                                                                     <Upload className="h-4 w-4 mr-1" />
                                                                     Submit
@@ -788,123 +702,65 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                                                             <DialogContent className="max-w-2xl">
                                                                 <DialogHeader>
                                                                     <DialogTitle>
-                                                                        Submit
-                                                                        Assignment:{" "}
-                                                                        {
-                                                                            assignment.title
-                                                                        }
+                                                                        Submit Assignment: {assignment.title}
                                                                     </DialogTitle>
                                                                 </DialogHeader>
                                                                 <div className="space-y-4">
                                                                     <div>
-                                                                        <Label htmlFor="submissionText">
-                                                                            Submission
-                                                                            Text
-                                                                        </Label>
+                                                                        <Label htmlFor="submissionText">Submission Text</Label>
                                                                         <Textarea
                                                                             id="submissionText"
-                                                                            value={
-                                                                                submissionForm.submissionText
-                                                                            }
-                                                                            onChange={(
-                                                                                e
-                                                                            ) =>
-                                                                                setSubmissionForm(
-                                                                                    {
-                                                                                        ...submissionForm,
-                                                                                        submissionText:
-                                                                                            e
-                                                                                                .target
-                                                                                                .value,
-                                                                                    }
-                                                                                )
+                                                                            value={submissionForm.submissionText}
+                                                                            onChange={(e) =>
+                                                                                setSubmissionForm({
+                                                                                    ...submissionForm,
+                                                                                    submissionText: e.target.value,
+                                                                                })
                                                                             }
                                                                             placeholder="Enter your submission text..."
-                                                                            rows={
-                                                                                6
-                                                                            }
+                                                                            rows={6}
                                                                         />
                                                                     </div>
                                                                     <div>
-                                                                        <Label htmlFor="attachments">
-                                                                            Attachments
-                                                                        </Label>
+                                                                        <Label htmlFor="attachments">Attachments</Label>
                                                                         <Input
                                                                             id="attachments"
                                                                             type="file"
                                                                             multiple
-                                                                            onChange={(
-                                                                                e
-                                                                            ) =>
-                                                                                setSubmissionForm(
-                                                                                    {
-                                                                                        ...submissionForm,
-                                                                                        attachments:
-                                                                                            Array.from(
-                                                                                                e
-                                                                                                    .target
-                                                                                                    .files ||
-                                                                                                    []
-                                                                                            ),
-                                                                                    }
-                                                                                )
+                                                                            onChange={(e: any) =>
+                                                                                setSubmissionForm({
+                                                                                    ...submissionForm,
+                                                                                    attachments: Array.from(e.target.files || []),
+                                                                                })
                                                                             }
                                                                         />
                                                                     </div>
                                                                     <div className="flex justify-end space-x-2">
-                                                                        <Button
-                                                                            variant="outline"
-                                                                            onClick={() =>
-                                                                                setIsSubmissionModalOpen(
-                                                                                    false
-                                                                                )
-                                                                            }
-                                                                        >
+                                                                        <Button variant="outline" onClick={() => setIsSubmissionModalOpen(false)}>
                                                                             Cancel
                                                                         </Button>
-                                                                        <Button
-                                                                            onClick={
-                                                                                handleSubmitAssignment
-                                                                            }
-                                                                            disabled={
-                                                                                saving
-                                                                            }
-                                                                        >
-                                                                            {saving
-                                                                                ? "Submitting..."
-                                                                                : "Submit Assignment"}
+                                                                        <Button onClick={handleSubmitAssignment} disabled={saving}>
+                                                                            {saving ? "Submitting..." : "Submit Assignment"}
                                                                         </Button>
                                                                     </div>
                                                                 </div>
                                                             </DialogContent>
                                                         </Dialog>
                                                     )}
-                                                    {(userRole === "teacher" ||
-                                                        userRole ===
-                                                            "admin") && (
+                                                    {(userRole === "teacher" || userRole === "admin") && (
                                                         <>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                            >
+                                                            <Button size="sm" variant="outline">
                                                                 <Eye className="h-4 w-4 mr-1" />
                                                                 View
                                                             </Button>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                            >
+                                                            <Button size="sm" variant="outline">
                                                                 <Edit className="h-4 w-4 mr-1" />
                                                                 Edit
                                                             </Button>
                                                             <Button
                                                                 size="sm"
                                                                 variant="outline"
-                                                                onClick={() =>
-                                                                    handleDeleteAssignment(
-                                                                        assignment._id
-                                                                    )
-                                                                }
+                                                                onClick={() => handleDeleteAssignment(assignment._id)}
                                                             >
                                                                 <Trash2 className="h-4 w-4 mr-1" />
                                                                 Delete
@@ -930,10 +786,7 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-center py-8 text-gray-500">
-                                Submissions functionality will be implemented
-                                here
-                            </div>
+                            <div className="text-center py-8 text-gray-500">Submissions functionality will be implemented here</div>
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -947,9 +800,7 @@ const AssignmentManagementPage: React.FC<AssignmentManagementPageProps> = ({
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-center py-8 text-gray-500">
-                                Grading functionality will be implemented here
-                            </div>
+                            <div className="text-center py-8 text-gray-500">Grading functionality will be implemented here</div>
                         </CardContent>
                     </Card>
                 </TabsContent>
