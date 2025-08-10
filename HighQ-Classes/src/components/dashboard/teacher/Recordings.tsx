@@ -108,7 +108,7 @@ export default function Recordings() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input
               type="text"
-              name="name"
+              name="title" // FIX: should be "title" not "name"
               placeholder="Recording Title"
               value={form.title}
               onChange={handleInputChange}
