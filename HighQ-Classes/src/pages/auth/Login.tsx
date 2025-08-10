@@ -28,7 +28,7 @@ const Login: React.FC = () => {
             const dashboardRoutes = {
                 student: "/student/dashboard",
                 teacher: "/teacher/dashboard",
-                admin: "/admin/dashboard",
+                admin: "/dashboard",
             };
 
             const targetRoute =
@@ -56,7 +56,7 @@ const Login: React.FC = () => {
                 const dashboardRoutes = {
                     student: "/student/dashboard",
                     teacher: "/teacher/dashboard",
-                    admin: "/admin/dashboard",
+                    admin: "/dashboard",
                 };
                 const targetRoute =
                     dashboardRoutes[user.role as keyof typeof dashboardRoutes] || "/";
