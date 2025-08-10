@@ -112,7 +112,8 @@ const handleUpload = async (): Promise<UploadResponse> => {
   }
 
   const formData = new FormData();
-  formData.append("name", form.title);
+  // FIX: The backend expects "title" not "name" for the recording title
+  formData.append("title", form.title);
   formData.append("subject", form.subject);
   formData.append("description", form.description);
   formData.append("video", form.video);
