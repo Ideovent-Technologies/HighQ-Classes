@@ -20,7 +20,7 @@ import {
 import { ChevronLeft, Loader2, Search, X } from "lucide-react";
 import { toast } from "react-hot-toast";
 
-// Import your custom types from the separate file
+// Types
 import {
     Batch,
     CreateBatchData,
@@ -29,13 +29,13 @@ import {
     StudentRef,
 } from "@/types/Batch.Types";
 
-// Import services
+// Services
 import courseService from "@/API/services/courseService";
 import teacherService from "@/API/services/teacherService";
-import studentService from "@/API/services/studentService";
 import batchService from "@/API/services/batchService";
+import AdminService from "@/API/services/AdminService"; // ✅ Added import
 
-// API service functions that transform responses to match our types
+// API service
 const apiService = {
     getCourses: async (): Promise<CourseRef[]> => {
         try {
@@ -69,8 +69,15 @@ const apiService = {
     },
     getStudents: async (): Promise<StudentRef[]> => {
         try {
-            // We'll need to check if studentService has a getAllStudents method
-            // For now, return empty array and implement once we check the service
+            const response = await AdminService.getAllStudents();
+            if (response.success && response.students) {
+                return response.students.map((student) => ({
+                    _id: student._id,
+                    name: student.name,
+                }));
+                 console.error("Failed to fetch students:", response);
+            }
+           
             return [];
         } catch (error) {
             console.error("Error fetching students:", error);
@@ -79,7 +86,6 @@ const apiService = {
     },
     createBatch: async (data: CreateBatchData) => {
         try {
-            // Transform our CreateBatchData to match batchService expected format
             const batchServiceData = {
                 name: data.name,
                 course: data.courseId,
@@ -90,7 +96,7 @@ const apiService = {
                 capacity: data.capacity || 20,
                 description: data.description || "",
             };
-            const response = await batchService.createBatch(batchServiceData);
+            await batchService.createBatch(batchServiceData);
             return { success: true, message: "Batch created successfully!" };
         } catch (error) {
             console.error("Error creating batch:", error);
@@ -99,7 +105,6 @@ const apiService = {
     },
     updateBatch: async (id: string, data: Partial<CreateBatchData>) => {
         try {
-            // Transform our CreateBatchData to match batchService expected format
             const batchServiceData: any = {
                 name: data.name,
                 course: data.courseId,
@@ -112,10 +117,7 @@ const apiService = {
                 batchServiceData.startDate = new Date(data.startDate);
             if (data.endDate) batchServiceData.endDate = new Date(data.endDate);
 
-            const response = await batchService.updateBatch(
-                id,
-                batchServiceData
-            );
+            await batchService.updateBatch(id, batchServiceData);
             return { success: true, message: "Batch updated successfully!" };
         } catch (error) {
             console.error("Error updating batch:", error);
@@ -155,7 +157,6 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
         endDate: batchToEdit?.endDate?.split("T")[0] || "",
     }));
 
-    // State for dropdown options and search
     const [courses, setCourses] = useState<CourseRef[]>([]);
     const [teachers, setTeachers] = useState<TeacherRef[]>([]);
     const [allStudents, setAllStudents] = useState<StudentRef[]>([]);
@@ -165,7 +166,6 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
     const [errors, setErrors] = useState<Record<string, string>>({});
     const isEditMode = !!batchToEdit;
 
-    // Fetch data for dropdowns on component mount
     useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true);
@@ -174,7 +174,7 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
                     await Promise.all([
                         apiService.getCourses(),
                         apiService.getTeachers(),
-                        apiService.getStudents(),
+                        apiService.getStudents(), 
                     ]);
                 setCourses(coursesData);
                 setTeachers(teachersData);
@@ -289,6 +289,9 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
             setIsLoading(false);
         }
     };
+
+
+
 
     return (
         <div className="max-w-4xl mx-auto p-4">

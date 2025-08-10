@@ -61,6 +61,9 @@ import StudentRecordingsPage from "@/pages/StudentRecordingsPage";
 
 // Import Student-specific pages
 import StudentProfile from "@/pages/student/StudentProfile";
+import MyMaterials from "@/pages/student/MyMaterials";
+import MyClasses from "@/pages/student/MyClasses";
+import StudentNotices from "@/pages/student/StudentNotices";
 
 // Import Admin-specific pages
 import AdminDashboard from "@/components/dashboard/admin/AdminDashboard";
@@ -193,6 +196,30 @@ const App: React.FC = () => {
                                 }
                             />
                             <Route
+                                path="/student/materials"
+                                element={
+                                    <ProtectedRoute roles={["student"]}>
+                                        <MyMaterials />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/student/classes"
+                                element={
+                                    <ProtectedRoute roles={["student"]}>
+                                        <MyClasses />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/student/notices"
+                                element={
+                                    <ProtectedRoute roles={["student"]}>
+                                        <StudentNotices />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
                                 path="/student/recordings"
                                 element={
                                     <ProtectedRoute roles={["student"]}>
@@ -267,7 +294,6 @@ const App: React.FC = () => {
                                     </ProtectedRoute>
                                 }
                             />
-                            
                             {/* Admin-specific routes */}
                             <Route
                                 path="/admin/dashboard"
@@ -343,14 +369,14 @@ const App: React.FC = () => {
                                     </ProtectedRoute>
                                 }
                             />
-                            <Route 
-                            path="/dashbaord/batches/add-student"
-                            element = {
-                        <ProtectedRoute roles={["admin"]}>
-                            <AddStudentsToBatchPage/>
-                        </ProtectedRoute>
-                            }
-                        />
+                            <Route
+                                path="/dashbaord/batches/add-student"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <AddStudentsToBatchPage />
+                                    </ProtectedRoute>
+                                }
+                            />
                             <Route
                                 path="/dashboard/batches/edit/:batchId"
                                 element={

@@ -16,14 +16,15 @@ const materialService = {
   },
 
   /**
-   * Fetches materials for the logged-in Student's batch
+   * Fetches materials for the logged-in Student's batch or specific student
    */
-  getStudentMaterials: async () => {
+  getStudentMaterials: async (studentId?: string) => {
     try {
-      const response = await api.get('/materials/student');
-      return { success: true, materials: response.data };
+      const endpoint = studentId ? `/materials/student/${studentId}` : '/materials/student';
+      const response = await api.get(endpoint);
+      return response.data.materials || response.data;
     } catch (error) {
-      return { success: false, message: error.response?.data?.message || "Failed to fetch materials" };
+      throw new Error(error.response?.data?.message || "Failed to fetch student materials");
     }
   },
 
@@ -67,6 +68,19 @@ const materialService = {
     } catch (error) {
       // Don't bother the user if this fails, just log it.
       console.error("Failed to track material view:", error);
+      return { success: false };
+    }
+  },
+
+  /**
+   * Track material download for analytics
+   */
+  trackDownload: async (materialId: string) => {
+    try {
+      await api.post(`/materials/download/${materialId}`);
+      return { success: true };
+    } catch (error) {
+      console.error("Failed to track material download:", error);
       return { success: false };
     }
   },

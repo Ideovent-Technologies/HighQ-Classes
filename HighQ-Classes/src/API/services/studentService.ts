@@ -201,12 +201,11 @@ class StudentService {
   /**
    * Get student materials
    */
-  async getStudentMaterials(studentId: string): Promise<any[]> {
+  async getStudentMaterials(studentId?: string): Promise<any[]> {
     try {
-      const response = await api.get<ApiResponse<any[]>>(
-        `/materials/student/${studentId}`
-      );
-      return response.data.data;
+      // Use the correct endpoint - /materials/student (without studentId)
+      const response = await api.get('/materials/student');
+      return response.data.materials || response.data || [];
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch materials');
     }
@@ -215,12 +214,11 @@ class StudentService {
   /**
    * Get student recordings
    */
-  async getStudentRecordings(studentId: string): Promise<any[]> {
+  async getStudentRecordings(studentId?: string): Promise<any[]> {
     try {
-      const response = await api.get<ApiResponse<any[]>>(
-        `/recordings/student/${studentId}`
-      );
-      return response.data.data;
+      // Use the correct endpoint - /recordings/student (without studentId)
+      const response = await api.get('/recordings/student');
+      return response.data.recordings || response.data || [];
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch recordings');
     }
