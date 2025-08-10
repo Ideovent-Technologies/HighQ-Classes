@@ -221,10 +221,9 @@ const TeacherRecordingManagementPage: React.FC<
 
             const matchesStatus =
                 selectedStatus === "all" ||
-                (selectedStatus === "processing" &&
-                    recording.status === "processing") ||
-                (selectedStatus === "ready" && recording.status === "ready") ||
-                (selectedStatus === "error" && recording.status === "error");
+                (selectedStatus === "processing" && !recording.fileUrl) ||
+                (selectedStatus === "ready" && recording.fileUrl) ||
+                (selectedStatus === "error" && false); // No error status in current interface
 
             return matchesSearch && matchesCourse && matchesStatus;
         })
@@ -424,12 +423,14 @@ const TeacherRecordingManagementPage: React.FC<
                                             <div className="absolute top-2 left-2">
                                                 <Badge
                                                     className={getStatusColor(
-                                                        recording.status ||
-                                                            "ready"
+                                                        recording.fileUrl
+                                                            ? "ready"
+                                                            : "processing"
                                                     )}
                                                 >
-                                                    {recording.status ||
-                                                        "Ready"}
+                                                    {recording.fileUrl
+                                                        ? "Ready"
+                                                        : "Processing"}
                                                 </Badge>
                                             </div>
 
@@ -463,18 +464,18 @@ const TeacherRecordingManagementPage: React.FC<
                                             <div className="flex items-center gap-1">
                                                 <Video className="h-4 w-4" />
                                                 <span>
-                                                    {recording.courseId?.name ||
+                                                    {recording.course?.name ||
                                                         "Unknown Course"}
                                                 </span>
                                             </div>
 
-                                            {recording.recordingDate && (
+                                            {recording.createdAt && (
                                                 <div className="flex items-center gap-1">
                                                     <Calendar className="h-4 w-4" />
                                                     <span>
                                                         {format(
                                                             new Date(
-                                                                recording.recordingDate
+                                                                recording.createdAt
                                                             ),
                                                             "MMM dd, yyyy"
                                                         )}
@@ -494,12 +495,10 @@ const TeacherRecordingManagementPage: React.FC<
                                             <Button
                                                 size="sm"
                                                 className="flex-1"
-                                                disabled={
-                                                    recording.status !== "ready"
-                                                }
+                                                disabled={!recording.fileUrl}
                                                 onClick={() =>
                                                     window.open(
-                                                        recording.videoUrl,
+                                                        recording.fileUrl,
                                                         "_blank"
                                                     )
                                                 }
@@ -792,7 +791,7 @@ const TeacherRecordingManagementPage: React.FC<
                                 <div className="text-2xl font-bold">
                                     {
                                         new Set(
-                                            recordings.map((r) => r.courseId)
+                                            recordings.map((r) => r.course._id)
                                         ).size
                                     }
                                 </div>
@@ -828,8 +827,7 @@ const TeacherRecordingManagementPage: React.FC<
                                                         </p>
                                                         <p className="text-sm text-gray-500">
                                                             {
-                                                                recording
-                                                                    .courseId
+                                                                recording.course
                                                                     ?.name
                                                             }
                                                         </p>
@@ -855,22 +853,20 @@ const TeacherRecordingManagementPage: React.FC<
                                             status: "ready",
                                             label: "Ready",
                                             count: recordings.filter(
-                                                (r) => r.status === "ready"
+                                                (r) => r.fileUrl
                                             ).length,
                                         },
                                         {
                                             status: "processing",
                                             label: "Processing",
                                             count: recordings.filter(
-                                                (r) => r.status === "processing"
+                                                (r) => !r.fileUrl
                                             ).length,
                                         },
                                         {
                                             status: "error",
                                             label: "Error",
-                                            count: recordings.filter(
-                                                (r) => r.status === "error"
-                                            ).length,
+                                            count: 0, // No error status in current interface
                                         },
                                     ].map((item) => (
                                         <div
