@@ -88,16 +88,19 @@ const apiService = {
         try {
             const batchServiceData = {
                 name: data.name,
-                course: data.courseId,
-                teacher: data.teacherId,
+                courseId: data.courseId,
+                teacherId: data.teacherId,
+                students: data.students || [], 
                 startDate: new Date(data.startDate),
                 endDate: new Date(data.endDate),
                 schedule: data.schedule,
                 capacity: data.capacity || 20,
                 description: data.description || "",
             };
+        
             await batchService.createBatch(batchServiceData);
             return { success: true, message: "Batch created successfully!" };
+
         } catch (error) {
             console.error("Error creating batch:", error);
             return { success: false, message: "Failed to create batch" };
@@ -279,7 +282,8 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
 
             if (response.success) {
                 toast.success(response.message);
-                navigate("/dashboard/batches");
+                navigate("/dashboard/batches/manage");
+                console.log(response)
             } else {
                 toast.error(response.message || "An error occurred.");
             }
