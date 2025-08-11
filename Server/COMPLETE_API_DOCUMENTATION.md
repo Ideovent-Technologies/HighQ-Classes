@@ -2,48 +2,50 @@
 
 ## 🎯 API Overview
 
-**Total Endpoints**: 68  
+**Total Endpoints**: 91  
 **Base URL**: `http://localhost:5000/api`  
 **Authentication**: JWT Bearer Token  
 **Response Format**: JSON
 
 ### 📊 Endpoint Distribution
 
-| Module                | Endpoints | Description                                |
-| --------------------- | --------- | ------------------------------------------ |
-| Authentication        | 8         | Login, register, profile, password mgmt    |
-| Student Management    | 5         | Profile, dashboard, CRUD operations        |
-| Teacher Management    | 3         | Profile, dashboard, management             |
-| Admin Management      | 7         | Admin dashboard, user management           |
-| Course Management     | 6         | Course creation, enrollment, topics        |
-| Batch Management      | 6         | Batch operations, student assignments      |
-| Material Management   | 6         | Study material upload, access control      |
-| Attendance Management | 3         | Mark attendance, view records              |
-| Notice Management     | 5         | Create, update, view notices               |
-| Schedule Management   | 2         | Teacher schedule management                |
-| Fee Management        | 7         | Fee creation, payment processing           |
-| Recording Management  | 9         | Video uploads, analytics, access control   |
-| Assignment Management | 8         | Assignment lifecycle, submissions, grading |
+| Module                | Endpoints | Description                                   |
+| --------------------- | --------- | --------------------------------------------- |
+| Authentication        | 8         | Login, register, profile, password mgmt       |
+| Assignment Management | 8         | Assignment lifecycle, submissions, grading    |
+| Attendance Management | 4         | Mark attendance, view records, student access |
+| Course Management     | 7         | Course creation, enrollment, topics           |
+| Material Management   | 6         | Study material upload, access control         |
+| Recording Management  | 9         | Video uploads, analytics, access control      |
+| Admin Management      | 14        | Admin dashboard, user management              |
+| Student Management    | 5         | Profile, dashboard, CRUD operations           |
+| Teacher Management    | 3         | Profile, dashboard, management                |
+| Notice Management     | 5         | Create, update, view notices                  |
+| Schedule Management   | 2         | Teacher schedule management                   |
+| Batch Management      | 7         | Batch operations, student assignments         |
+| Fee Management        | 7         | Fee creation, payment processing              |
+| Contact Management    | 1         | Contact form submissions                      |
 
 ## Table of Contents
 
 1. [Overview](#overview)
 2. [Authentication](#authentication)
 3. [Authentication Endpoints](#authentication-endpoints)
-4. [Student Management](#student-management)
-5. [Teacher Management](#teacher-management)
-6. [Admin Management](#admin-management)
-7. [Course Management](#course-management)
-8. [Batch Management](#batch-management)
-9. [Material Management](#material-management)
-10. [Attendance Management](#attendance-management)
-11. [Notice Management](#notice-management)
-12. [Schedule Management](#schedule-management)
-13. [Fee Management](#fee-management)
-14. [Recording Management](#recording-management)
-15. [Assignment Management](#assignment-management)
-16. [Error Handling](#error-handling)
-17. [Response Format](#response-format)
+4. [Assignment Management](#assignment-management)
+5. [Attendance Management](#attendance-management)
+6. [Course Management](#course-management)
+7. [Material Management](#material-management)
+8. [Recording Management](#recording-management)
+9. [Admin Management](#admin-management)
+10. [Student Management](#student-management)
+11. [Teacher Management](#teacher-management)
+12. [Notice Management](#notice-management)
+13. [Schedule Management](#schedule-management)
+14. [Batch Management](#batch-management)
+15. [Fee Management](#fee-management)
+16. [Contact Management](#contact-management)
+17. [Error Handling](#error-handling)
+18. [Response Format](#response-format)
 
 ---
 
@@ -2813,13 +2815,540 @@ DELETE /api/materials/:materialId   - Delete material
 POST   /api/materials/view/:materialId - Track material view (students)
 ```
 
-### ✅ Attendance Management
+---
+
+## Assignment Management
+
+### 1. Create Assignment
+
+**POST** `/api/assignments`
+
+**Access**: Private (Teachers only)
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Request Body**:
+
+```json
+{
+    "title": "Physics Assignment 1",
+    "description": "Solve the problems in chapter 5",
+    "courseId": "course_id",
+    "batchId": "batch_id",
+    "dueDate": "2025-08-20T23:59:59.000Z",
+    "totalMarks": 100
+}
+```
+
+**Optional File Upload**: Attach assignment file using multipart/form-data
+
+**Response**:
+
+```json
+{
+    "success": true,
+    "message": "Assignment created successfully",
+    "assignment": {
+        "_id": "assignment_id",
+        "title": "Physics Assignment 1",
+        "description": "Solve the problems in chapter 5",
+        "course": "course_id",
+        "batch": "batch_id",
+        "teacher": "teacher_id",
+        "dueDate": "2025-08-20T23:59:59.000Z",
+        "totalMarks": 100,
+        "fileUrl": "https://cloudinary.com/file_url",
+        "fileName": "assignment.pdf",
+        "createdAt": "2025-08-11T10:00:00.000Z"
+    }
+}
+```
+
+### 2. Get All Assignments
+
+**GET** `/api/assignments`
+
+**Access**: Private (All roles - filtered by role)
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Query Parameters**:
+
+-   `courseId` (optional): Filter by course
+-   `batchId` (optional): Filter by batch
+-   `status` (optional): Filter by status
+
+**Behavior**:
+
+-   **Teachers**: Returns only their created assignments
+-   **Students**: Returns assignments for their batch only
+-   **Admins**: Returns all assignments
+
+**Response**:
+
+```json
+{
+    "success": true,
+    "count": 5,
+    "assignments": [
+        {
+            "_id": "assignment_id",
+            "title": "Physics Assignment 1",
+            "description": "Solve the problems in chapter 5",
+            "course": {
+                "_id": "course_id",
+                "name": "Physics 101"
+            },
+            "batch": {
+                "_id": "batch_id",
+                "name": "Batch A"
+            },
+            "teacher": {
+                "_id": "teacher_id",
+                "name": "John Teacher"
+            },
+            "dueDate": "2025-08-20T23:59:59.000Z",
+            "totalMarks": 100,
+            "fileUrl": "https://cloudinary.com/file_url",
+            "hasSubmitted": false,
+            "submission": null
+        }
+    ]
+}
+```
+
+### 3. Get Single Assignment
+
+**GET** `/api/assignments/:id`
+
+**Access**: Private (All roles - with permissions check)
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Response**:
+
+```json
+{
+    "success": true,
+    "assignment": {
+        "_id": "assignment_id",
+        "title": "Physics Assignment 1",
+        "description": "Solve the problems in chapter 5",
+        "course": {
+            "_id": "course_id",
+            "name": "Physics 101"
+        },
+        "batch": {
+            "_id": "batch_id",
+            "name": "Batch A"
+        },
+        "teacher": {
+            "_id": "teacher_id",
+            "name": "John Teacher"
+        },
+        "dueDate": "2025-08-20T23:59:59.000Z",
+        "totalMarks": 100,
+        "submissions": [
+            {
+                "_id": "submission_id",
+                "student": {
+                    "_id": "student_id",
+                    "name": "Jane Student",
+                    "email": "jane@example.com"
+                },
+                "fileUrl": "https://cloudinary.com/submission_url",
+                "submittedAt": "2025-08-15T14:30:00.000Z",
+                "marks": 85,
+                "remarks": "Good work!"
+            }
+        ],
+        "hasSubmitted": true,
+        "submission": {
+            "_id": "submission_id",
+            "fileUrl": "https://cloudinary.com/my_submission_url",
+            "submittedAt": "2025-08-15T14:30:00.000Z",
+            "marks": 85
+        }
+    }
+}
+```
+
+### 4. Update Assignment
+
+**PUT** `/api/assignments/:id`
+
+**Access**: Private (Teachers only - own assignments)
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Request Body**:
+
+```json
+{
+    "title": "Updated Physics Assignment 1",
+    "description": "Updated description",
+    "dueDate": "2025-08-25T23:59:59.000Z",
+    "totalMarks": 120,
+    "status": "active"
+}
+```
+
+**Response**:
+
+```json
+{
+    "success": true,
+    "message": "Assignment updated successfully",
+    "assignment": {
+        // Updated assignment object
+    }
+}
+```
+
+### 5. Delete Assignment
+
+**DELETE** `/api/assignments/:id`
+
+**Access**: Private (Teachers only - own assignments)
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Response**:
+
+```json
+{
+    "success": true,
+    "message": "Assignment deleted successfully"
+}
+```
+
+### 6. Submit Assignment
+
+**POST** `/api/assignments/:id/submit`
+
+**Access**: Private (Students only)
+
+**Headers**:
+
+-   `Authorization: Bearer <token>`
+-   `Content-Type: multipart/form-data`
+
+**Request Body** (Form Data):
 
 ```
-POST /api/attendance         - Mark attendance
-GET  /api/attendance         - Get attendance records
-GET  /api/attendance/summary - Get attendance summary
+file: <assignment_file>
+remarks: "Completed all problems as requested"
 ```
+
+**Response**:
+
+```json
+{
+    "success": true,
+    "message": "Assignment submitted successfully",
+    "submission": {
+        "_id": "submission_id",
+        "student": "student_id",
+        "assignment": "assignment_id",
+        "fileUrl": "https://cloudinary.com/submission_url",
+        "fileName": "my_assignment.pdf",
+        "remarks": "Completed all problems as requested",
+        "submittedAt": "2025-08-15T14:30:00.000Z",
+        "status": "submitted"
+    }
+}
+```
+
+### 7. Grade Submission
+
+**PUT** `/api/assignments/:id/grade/:submissionId`
+
+**Access**: Private (Teachers only)
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Request Body**:
+
+```json
+{
+    "marks": 85,
+    "feedback": "Excellent work! Minor improvements needed in problem 3."
+}
+```
+
+**Response**:
+
+```json
+{
+    "success": true,
+    "message": "Assignment graded successfully",
+    "submission": {
+        "_id": "submission_id",
+        "marks": 85,
+        "feedback": "Excellent work! Minor improvements needed in problem 3.",
+        "gradedAt": "2025-08-16T10:00:00.000Z",
+        "gradedBy": "teacher_id",
+        "status": "graded"
+    }
+}
+```
+
+### 8. Get Assignment Submissions
+
+**GET** `/api/assignments/:id/submissions`
+
+**Access**: Private (Teachers only)
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Response**:
+
+```json
+{
+    "success": true,
+    "assignment": {
+        "_id": "assignment_id",
+        "title": "Physics Assignment 1"
+    },
+    "submissions": [
+        {
+            "_id": "submission_id",
+            "student": {
+                "_id": "student_id",
+                "name": "Jane Student",
+                "email": "jane@example.com"
+            },
+            "fileUrl": "https://cloudinary.com/submission_url",
+            "fileName": "jane_assignment.pdf",
+            "submittedAt": "2025-08-15T14:30:00.000Z",
+            "marks": 85,
+            "feedback": "Good work!",
+            "status": "graded"
+        }
+    ],
+    "statistics": {
+        "totalStudents": 25,
+        "submitted": 20,
+        "pending": 5,
+        "graded": 15,
+        "averageMarks": 78.5
+    }
+}
+```
+
+---
+
+## Attendance Management
+
+### 1. Mark Attendance
+
+**POST** `/api/attendance`
+
+**Access**: Private (Teachers only)
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Request Body**:
+
+```json
+{
+    "batchId": "batch_id",
+    "date": "2025-08-11",
+    "attendance": [
+        {
+            "studentId": "student_id_1",
+            "status": "present"
+        },
+        {
+            "studentId": "student_id_2",
+            "status": "absent"
+        },
+        {
+            "studentId": "student_id_3",
+            "status": "leave"
+        }
+    ]
+}
+```
+
+**Response**:
+
+```json
+{
+    "success": true,
+    "message": "Attendance marked successfully.",
+    "count": 25
+}
+```
+
+### 2. Get Attendance by Batch and Date
+
+**GET** `/api/attendance?batchId=<batch_id>&date=<date>`
+
+**Access**: Private (Teachers only)
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Query Parameters**:
+
+-   `batchId` (required): Batch ID
+-   `date` (required): Date in YYYY-MM-DD format
+
+**Response**:
+
+```json
+{
+    "success": true,
+    "data": [
+        {
+            "_id": "attendance_id",
+            "studentId": {
+                "_id": "student_id",
+                "name": "John Student",
+                "rollNumber": "2025001"
+            },
+            "batchId": "batch_id",
+            "date": "2025-08-11T00:00:00.000Z",
+            "status": "present",
+            "markedBy": "teacher_id",
+            "createdAt": "2025-08-11T09:00:00.000Z"
+        }
+    ]
+}
+```
+
+### 3. Get Attendance Summary
+
+**GET** `/api/attendance/summary?date=<date>`
+
+**Access**: Private (Teachers only)
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Query Parameters**:
+
+-   `date` (optional): Date in YYYY-MM-DD format (defaults to today)
+
+**Response**:
+
+```json
+{
+    "success": true,
+    "summary": [
+        {
+            "batchId": "batch_id",
+            "batchName": "Physics Batch A",
+            "totalStudents": 30,
+            "present": 25,
+            "absent": 3,
+            "leave": 2,
+            "attendancePercentage": 83.3
+        }
+    ],
+    "date": "2025-08-11"
+}
+```
+
+### 4. Get Student Attendance ✅ **NEW**
+
+**GET** `/api/attendance/student?startDate=<start>&endDate=<end>&page=<page>&limit=<limit>`
+
+**Access**: Private (Students only - own records)
+
+**Headers**: `Authorization: Bearer <token>`
+
+**Query Parameters**:
+
+-   `startDate` (optional): Start date in YYYY-MM-DD format
+-   `endDate` (optional): End date in YYYY-MM-DD format
+-   `page` (optional): Page number for pagination (default: 1)
+-   `limit` (optional): Records per page (default: 50)
+
+**Response**:
+
+```json
+{
+    "success": true,
+    "data": {
+        "attendance": [
+            {
+                "_id": "attendance_id",
+                "studentId": "student_id",
+                "batchId": {
+                    "_id": "batch_id",
+                    "name": "Physics Batch A"
+                },
+                "date": "2025-08-11T00:00:00.000Z",
+                "status": "present",
+                "markedBy": {
+                    "_id": "teacher_id",
+                    "name": "John Teacher"
+                },
+                "createdAt": "2025-08-11T09:00:00.000Z"
+            }
+        ],
+        "pagination": {
+            "currentPage": 1,
+            "totalPages": 3,
+            "totalRecords": 45,
+            "limit": 20
+        },
+        "statistics": {
+            "totalDays": 45,
+            "presentDays": 38,
+            "absentDays": 5,
+            "leaveDays": 2,
+            "attendancePercentage": 84
+        }
+    }
+}
+```
+
+---
+
+## Contact Management
+
+### 1. Send Contact Message
+
+**POST** `/api/contact`
+
+**Access**: Public (No authentication required)
+
+**Headers**: `Content-Type: application/json`
+
+**Request Body**:
+
+```json
+{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "phone": "1234567890",
+    "subject": "Inquiry about courses",
+    "message": "I would like to know more about your physics courses."
+}
+```
+
+**Response**:
+
+```json
+{
+    "success": true,
+    "message": "Contact message sent successfully. We will get back to you soon."
+}
+```
+
+**Error Response**:
+
+```json
+{
+    "success": false,
+    "message": "Failed to send message. Please try again later."
+}
+```
+
+---
+
+## Quick Reference Guide
 
 ### 📢 Notice Management
 
@@ -2864,20 +3393,35 @@ GET    /api/recordings/analytics          - Get recording analytics
 PUT    /api/recordings/:id/extend         - Extend recording access
 ```
 
-### 📝 Assignment Management
+### 📝 Assignment Management (8 endpoints)
 
 ```
-POST   /api/assignments                                    - Create assignment
-GET    /api/assignments/batch/:batchId                     - Get assignments by batch
-GET    /api/assignments/:assignmentId                      - Get single assignment
-PUT    /api/assignments/:assignmentId                      - Update assignment
-DELETE /api/assignments/:assignmentId                      - Delete assignment
-POST   /api/assignments/:assignmentId/submit               - Submit assignment
-GET    /api/assignments/:assignmentId/submissions          - Get assignment submissions
-PUT    /api/assignments/:assignmentId/submissions/:submissionId/grade - Grade assignment
+POST   /api/assignments                                    - Create assignment (teachers)
+GET    /api/assignments                                    - Get assignments (role-filtered)
+GET    /api/assignments/:id                                - Get single assignment
+PUT    /api/assignments/:id                                - Update assignment (teachers)
+DELETE /api/assignments/:id                                - Delete assignment (teachers)
+POST   /api/assignments/:id/submit                         - Submit assignment (students)
+PUT    /api/assignments/:id/grade/:submissionId            - Grade assignment (teachers)
+GET    /api/assignments/:id/submissions                    - Get assignment submissions (teachers)
 ```
 
-### 🔍 Search & Analytics Endpoints
+### ✅ Attendance Management (4 endpoints)
+
+```
+POST /api/attendance             - Mark attendance (teachers)
+GET  /api/attendance             - Get attendance by batch/date (teachers)
+GET  /api/attendance/summary     - Get attendance summary (teachers)
+GET  /api/attendance/student     - Get student's own attendance records (students) ✅ NEW
+```
+
+### � Contact Management (1 endpoint)
+
+```
+POST /api/contact                - Send contact message (public)
+```
+
+### �🔍 Search & Analytics Endpoints
 
 ```
 GET /api/recordings/search                    - Search recordings

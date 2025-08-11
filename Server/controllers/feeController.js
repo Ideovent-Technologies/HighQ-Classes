@@ -404,6 +404,7 @@ export const deleteFee = async (req, res) => {
         });
     }
 };
+
 export const getFeesByBatch = async (req, res) => {
     try {
         const { batchId } = req.params;

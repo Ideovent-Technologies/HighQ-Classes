@@ -115,8 +115,9 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
         createNavItem("/student/materials", FileText, "Study Materials"),
         createNavItem("/student/classes", BookOpen, "My Classes"),
         createNavItem("/student/recordings", FileText, "Video Lectures"),
-        createNavItem("/dashboard/assignments", FileText, "Assignments"),
-        createNavItem("/dashboard/fee-status", DollarSign, "Fee Status"),
+        createNavItem("/student/assignments", FileText, "My Assignments"),
+        createNavItem("/student/attendance", Users, "My Attendance"),
+        createNavItem("/student/fees", DollarSign, "Fee Details"),
     ];
 
     const adminItems = [

@@ -63,7 +63,10 @@ import StudentRecordingsPage from "@/pages/StudentRecordingsPage";
 import StudentProfile from "@/pages/student/StudentProfile";
 import MyMaterials from "@/pages/student/MyMaterials";
 import MyClasses from "@/pages/student/MyClasses";
+import MyFees from "@/pages/student/MyFees";
 import StudentNotices from "@/pages/student/StudentNotices";
+import StudentAssignments from "@/pages/student/StudentAssignments";
+import StudentAttendance from "@/pages/student/StudentAttendance";
 
 // Import Admin-specific pages
 import AdminDashboard from "@/components/dashboard/admin/AdminDashboard";
@@ -212,10 +215,34 @@ const App: React.FC = () => {
                                 }
                             />
                             <Route
+                                path="/student/fees"
+                                element={
+                                    <ProtectedRoute roles={["student"]}>
+                                        <MyFees />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
                                 path="/student/notices"
                                 element={
                                     <ProtectedRoute roles={["student"]}>
                                         <StudentNotices />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/student/assignments"
+                                element={
+                                    <ProtectedRoute roles={["student"]}>
+                                        <StudentAssignments />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/student/attendance"
+                                element={
+                                    <ProtectedRoute roles={["student"]}>
+                                        <StudentAttendance />
                                     </ProtectedRoute>
                                 }
                             />

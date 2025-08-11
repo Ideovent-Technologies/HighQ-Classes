@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
+import { FullScreenLoader } from "@/components/common/Loader";
 import { Separator } from "@/components/ui/separator";
 import {
     Book,
@@ -23,6 +24,7 @@ import {
     Video,
     GraduationCap,
     BarChart3,
+    DollarSign,
 } from "lucide-react";
 import { StudentUser, StudentDashboardData } from "@/types/student.types";
 import { studentService } from "@/API/services/studentService";
@@ -155,7 +157,8 @@ const StudentDashboard: React.FC = () => {
     if (isLoading) {
         return (
             <div className="flex justify-center items-center h-96">
-                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+                {/* <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div> */}
+                <FullScreenLoader />
             </div>
         );
     }
@@ -334,7 +337,7 @@ const StudentDashboard: React.FC = () => {
                                     <FileText className="h-5 w-5 mr-2 text-green-600" />
                                     Recent Assignments
                                 </div>
-                                <Link to="/dashboard/assignments">
+                                <Link to="/student/assignments">
                                     <Button variant="outline" size="sm">
                                         View All
                                     </Button>
@@ -416,7 +419,7 @@ const StudentDashboard: React.FC = () => {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                            <Link to="/dashboard/materials" className="block">
+                            <Link to="/student/materials" className="block">
                                 <Button
                                     variant="outline"
                                     className="w-full justify-start"
@@ -434,16 +437,34 @@ const StudentDashboard: React.FC = () => {
                                     Video Lectures
                                 </Button>
                             </Link>
-                            <Link to="/dashboard/assignments" className="block">
+                            <Link to="/student/assignments" className="block">
                                 <Button
                                     variant="outline"
                                     className="w-full justify-start"
                                 >
                                     <FileText className="h-4 w-4 mr-2" />
-                                    Assignments
+                                    My Assignments
                                 </Button>
                             </Link>
-                            <Link to="/dashboard/profile" className="block">
+                            <Link to="/student/attendance" className="block">
+                                <Button
+                                    variant="outline"
+                                    className="w-full justify-start"
+                                >
+                                    <Users className="h-4 w-4 mr-2" />
+                                    My Attendance
+                                </Button>
+                            </Link>
+                            <Link to="/student/fees" className="block">
+                                <Button
+                                    variant="outline"
+                                    className="w-full justify-start"
+                                >
+                                    <DollarSign className="h-4 w-4 mr-2" />
+                                    Fee Details
+                                </Button>
+                            </Link>
+                            <Link to="/student/profile" className="block">
                                 <Button
                                     variant="outline"
                                     className="w-full justify-start"
