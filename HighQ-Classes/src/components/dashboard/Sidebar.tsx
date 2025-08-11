@@ -234,7 +234,7 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
                                 {createNavItem(
                                     "/dashboard/settings",
                                     Settings,
-                                    "Settings"
+                                    "Contact Admin"
                                 )}
                                 <motion.div whileHover={{ x: 4 }}>
                                     <Button
