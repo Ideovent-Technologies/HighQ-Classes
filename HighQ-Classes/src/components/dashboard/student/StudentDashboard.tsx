@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
+import { FullScreenLoader } from "@/components/common/Loader";
 import { Separator } from "@/components/ui/separator";
 import {
     Book,
@@ -23,10 +24,12 @@ import {
     Video,
     GraduationCap,
     BarChart3,
+    DollarSign,
 } from "lucide-react";
 import { StudentUser, StudentDashboardData } from "@/types/student.types";
 import { studentService } from "@/API/services/studentService";
 import { Link } from "react-router-dom";
+import { useBatchInfo } from "@/hooks/useBatch";
 
 interface DashboardStats {
     totalCourses: number;
@@ -48,6 +51,14 @@ const StudentDashboard: React.FC = () => {
         useState<StudentDashboardData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    // Get batch information
+    const {
+        batchInfo,
+        loading: batchLoading,
+        error: batchError,
+        isAssigned,
+    } = useBatchInfo();
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -72,6 +83,7 @@ const StudentDashboard: React.FC = () => {
                 }
 
                 setDashboardData(data);
+                console.log(data)
                 setError(null);
             } catch (err: any) {
                 console.error("Dashboard fetch error:", err);
@@ -155,7 +167,8 @@ const StudentDashboard: React.FC = () => {
     if (isLoading) {
         return (
             <div className="flex justify-center items-center h-96">
-                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+                {/* <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div> */}
+                <FullScreenLoader />
             </div>
         );
     }
@@ -271,6 +284,122 @@ const StudentDashboard: React.FC = () => {
                 </Card>
             </div>
 
+            {/* Batch Information Section */}
+            {isAssigned && batchInfo && (
+                <Card className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
+                    <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                            <div className="flex items-center">
+                                <GraduationCap className="h-6 w-6 mr-2" />
+                                Your Batch: {batchInfo.name}
+                            </div>
+                            <Link to="/student/batch">
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    className="text-purple-700"
+                                >
+                                    View Details
+                                </Button>
+                            </Link>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div className="bg-white/10 rounded-lg p-4">
+                                <p className="text-indigo-200 text-sm">
+                                    Course
+                                </p>
+                                <p className="font-semibold">
+                                    {batchInfo.course.name}
+                                </p>
+                            </div>
+                            <div className="bg-white/10 rounded-lg p-4">
+                                <p className="text-indigo-200 text-sm">
+                                    Teacher
+                                </p>
+                                <p className="font-semibold">
+                                    {batchInfo.teacher.name}
+                                </p>
+                            </div>
+                            <div className="bg-white/10 rounded-lg p-4">
+                                <p className="text-indigo-200 text-sm">
+                                    Schedule
+                                </p>
+                                <p className="font-semibold text-sm">
+                                    {batchInfo.schedule.days.join(", ")}
+                                </p>
+                                <p className="text-indigo-200 text-xs">
+                                    {batchInfo.schedule.startTime} -{" "}
+                                    {batchInfo.schedule.endTime}
+                                </p>
+                            </div>
+                            <div className="bg-white/10 rounded-lg p-4">
+                                <p className="text-indigo-200 text-sm">
+                                    Students
+                                </p>
+                                <p className="font-semibold">
+                                    {batchInfo.totalStudents}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-4 flex gap-3">
+                            <Link to="/student/materials">
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    className="text-purple-700"
+                                >
+                                    <BookOpen className="h-4 w-4 mr-2" />
+                                    Materials
+                                </Button>
+                            </Link>
+                            <Link to="/student/recordings">
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    className="text-purple-700"
+                                >
+                                    <Video className="h-4 w-4 mr-2" />
+                                    Recordings
+                                </Button>
+                            </Link>
+                            <Link to="/student/assignments">
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    className="text-purple-700"
+                                >
+                                    <FileText className="h-4 w-4 mr-2" />
+                                    Assignments
+                                </Button>
+                            </Link>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* No Batch Alert */}
+            {!batchLoading && !isAssigned && (
+                <Card className="border-orange-200 bg-orange-50">
+                    <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                            <AlertCircle className="h-6 w-6 text-orange-600" />
+                            <div>
+                                <h3 className="font-semibold text-orange-900">
+                                    Not Assigned to Batch
+                                </h3>
+                                <p className="text-orange-700 text-sm">
+                                    You haven't been assigned to any batch yet.
+                                    Please contact your administrator.
+                                </p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column - Upcoming Classes & Recent Assignments */}
@@ -334,7 +463,7 @@ const StudentDashboard: React.FC = () => {
                                     <FileText className="h-5 w-5 mr-2 text-green-600" />
                                     Recent Assignments
                                 </div>
-                                <Link to="/dashboard/assignments">
+                                <Link to="/student/assignments">
                                     <Button variant="outline" size="sm">
                                         View All
                                     </Button>
@@ -416,7 +545,7 @@ const StudentDashboard: React.FC = () => {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                            <Link to="/dashboard/materials" className="block">
+                            <Link to="/student/materials" className="block">
                                 <Button
                                     variant="outline"
                                     className="w-full justify-start"
@@ -434,16 +563,34 @@ const StudentDashboard: React.FC = () => {
                                     Video Lectures
                                 </Button>
                             </Link>
-                            <Link to="/dashboard/assignments" className="block">
+                            <Link to="/student/assignments" className="block">
                                 <Button
                                     variant="outline"
                                     className="w-full justify-start"
                                 >
                                     <FileText className="h-4 w-4 mr-2" />
-                                    Assignments
+                                    My Assignments
                                 </Button>
                             </Link>
-                            <Link to="/dashboard/profile" className="block">
+                            <Link to="/student/attendance" className="block">
+                                <Button
+                                    variant="outline"
+                                    className="w-full justify-start"
+                                >
+                                    <Users className="h-4 w-4 mr-2" />
+                                    My Attendance
+                                </Button>
+                            </Link>
+                            <Link to="/student/fees" className="block">
+                                <Button
+                                    variant="outline"
+                                    className="w-full justify-start"
+                                >
+                                    <DollarSign className="h-4 w-4 mr-2" />
+                                    Fee Details
+                                </Button>
+                            </Link>
+                            <Link to="/student/profile" className="block">
                                 <Button
                                     variant="outline"
                                     className="w-full justify-start"

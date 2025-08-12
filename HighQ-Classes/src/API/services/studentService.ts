@@ -157,44 +157,70 @@ class StudentService {
   }
 
   /**
-   * Get student courses
+   * Get student assignments for their batch
    */
-  async getStudentCourses(studentId: string): Promise<any[]> {
+  async getStudentAssignments(): Promise<any[]> {
     try {
-      const response = await api.get<ApiResponse<any[]>>(
-        `/courses/student/${studentId}`
-      );
-      return response.data.data;
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch courses');
-    }
-  }
-
-  /**
-   * Get student assignments
-   */
-  async getStudentAssignments(studentId: string): Promise<any[]> {
-    try {
-      const response = await api.get<ApiResponse<any[]>>(
-        `/assignments/student/${studentId}`
-      );
-      return response.data.data;
+      // Use the general assignments endpoint - backend filters by student's batch automatically
+      const response = await api.get('/assignments');
+      return response.data.assignments || response.data || [];
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch assignments');
     }
   }
 
   /**
-   * Get student attendance
+   * Submit assignment
    */
-  async getStudentAttendance(studentId: string): Promise<any[]> {
+  async submitAssignment(assignmentId: string, file: File, remarks?: string): Promise<any> {
     try {
-      const response = await api.get<ApiResponse<any[]>>(
-        `/attendance/student/${studentId}`
+      const formData = new FormData();
+      formData.append('file', file);
+      if (remarks) {
+        formData.append('remarks', remarks);
+      }
+
+      const response = await api.post(
+        `/assignments/${assignmentId}/submit`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
       );
-      return response.data.data;
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to submit assignment');
+    }
+  }
+
+  /**
+   * Get student attendance with date range
+   */
+  async getStudentAttendance(startDate?: string, endDate?: string): Promise<any> {
+    try {
+      const params = new URLSearchParams();
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+      
+      const response = await api.get(`/attendance/student?${params.toString()}`);
+      return response.data;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch attendance');
+    }
+  }
+
+  /**
+   * Get student fee details
+   * Note: Requires studentId parameter - backend security check ensures students can only view their own fees
+   */
+  async getStudentFees(studentId: string): Promise<any> {
+    try {
+      const response = await api.get(`/fee/student/${studentId}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Failed to fetch fee details');
     }
   }
 

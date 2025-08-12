@@ -46,6 +46,96 @@ export const markAttendance = async (req, res) => {
   }
 };
 
+// @desc    Get student's own attendance records
+// @route   GET /api/attendance/student
+// @access  Private (Student)
+export const getStudentAttendance = async (req, res) => {
+  try {
+    const studentUserId = req.user._id;
+    const { startDate, endDate, limit = 50, page = 1 } = req.query;
+
+    // Find the student document using the user ID
+    const student = await Student.findOne({ user: studentUserId });
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student record not found"
+      });
+    }
+
+    // Build date filter
+    const dateFilter = {};
+    if (startDate) {
+      dateFilter.$gte = new Date(startDate);
+    }
+    if (endDate) {
+      dateFilter.$lte = new Date(endDate);
+    }
+
+    // Build query
+    const query = { studentId: student._id };
+    if (Object.keys(dateFilter).length > 0) {
+      query.date = dateFilter;
+    }
+
+    // Get total count for pagination
+    const totalRecords = await Attendance.countDocuments(query);
+
+    // Get attendance records with pagination
+    const attendanceRecords = await Attendance.find(query)
+      .populate('batchId', 'name')
+      .populate('markedBy', 'name')
+      .sort({ date: -1 })
+      .limit(parseInt(limit))
+      .skip((parseInt(page) - 1) * parseInt(limit))
+      .lean();
+
+    // Calculate attendance statistics
+    const stats = await Attendance.aggregate([
+      { $match: { studentId: student._id } },
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const totalDays = stats.reduce((sum, stat) => sum + stat.count, 0);
+    const presentDays = stats.find(stat => stat._id === 'present')?.count || 0;
+    const absentDays = stats.find(stat => stat._id === 'absent')?.count || 0;
+    const leaveDays = stats.find(stat => stat._id === 'leave')?.count || 0;
+    const attendancePercentage = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        attendance: attendanceRecords,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(totalRecords / parseInt(limit)),
+          totalRecords,
+          limit: parseInt(limit)
+        },
+        statistics: {
+          totalDays,
+          presentDays,
+          absentDays,
+          leaveDays,
+          attendancePercentage
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error("❌ Error fetching student attendance:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching attendance records"
+    });
+  }
+};
+
 // @desc    Get attendance for a batch on a specific date
 // @route   GET /api/teacher/attendance?batchId=...&date=...
 // @access  Private (Teacher)

@@ -96,7 +96,9 @@ const AllStudents = () => {
                         },
                     })
                 );
-                setStudents(transformedStudents); // Update students state
+                setStudents(transformedStudents);
+                console.log("Fetched students:", transformedStudents);
+                
             } else {
                 // Show error toast if API call fails
                 toast({

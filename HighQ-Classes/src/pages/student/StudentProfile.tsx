@@ -57,11 +57,26 @@ const StudentProfile: React.FC = () => {
     const [showPasswordChange, setShowPasswordChange] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
-        if (user) {
-            setProfileData(user);
+   useEffect(() => {
+    const fetchProfile = async () => {
+        if (!user?._id) return;
+
+        try {
+            const profile = await studentService.getProfile(user._id);
+            console.log("Full Profile Data:", profile);
+            console.log("Enrolled Courses:", profile.enrolledCourses);
+            console.log("Batch Info:", profile.batch);
+
+            // Optionally set this to state if you want to use it in UI
+            setProfileData(profile);
+        } catch (error) {
+            console.error("Error fetching profile:", error);
         }
-    }, [user]);
+    };
+
+    fetchProfile();
+}, []);
+
 
     const showMessage = (type: "success" | "error", text: string) => {
         setMessage({ type, text });
@@ -124,6 +139,7 @@ const StudentProfile: React.FC = () => {
             setIsLoading(false);
         }
     };
+
 
     const handleProfilePictureUpload = async (file: File) => {
         if (!user?._id) return;

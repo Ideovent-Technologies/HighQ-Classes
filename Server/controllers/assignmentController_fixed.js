@@ -462,7 +462,7 @@ export const submitAssignment = async (req, res) => {
  */
 export const gradeSubmission = async (req, res) => {
     try {
-        if (!mongoose.Types.ObjectId.isValid(req.params.id) || 
+        if (!mongoose.Types.ObjectId.isValid(req.params.id) ||
             !mongoose.Types.ObjectId.isValid(req.params.submissionId)) {
             return res.status(400).json({
                 success: false,

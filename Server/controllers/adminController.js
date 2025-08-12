@@ -166,7 +166,9 @@ export const getAdminProfile = async (req, res) => {
 // ✅ All Students
 export const getAllStudents = async (req, res) => {
   try {
-    const students = await Student.find().select('-password');
+    const students = await Student.find()
+      .select('-password')
+      .populate('batch', 'name'); // Only get batch name
     res.json({ success: true, students });
   } catch (error) {
     res.status(500).json({

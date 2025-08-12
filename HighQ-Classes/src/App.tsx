@@ -63,7 +63,14 @@ import StudentRecordingsPage from "@/pages/StudentRecordingsPage";
 import StudentProfile from "@/pages/student/StudentProfile";
 import MyMaterials from "@/pages/student/MyMaterials";
 import MyClasses from "@/pages/student/MyClasses";
+import MyFees from "@/pages/student/MyFees";
 import StudentNotices from "@/pages/student/StudentNotices";
+import StudentAssignments from "@/pages/student/StudentAssignments";
+import StudentAttendance from "@/pages/student/StudentAttendance";
+
+// Import new student batch components
+import StudentBatch from "@/pages/student/StudentBatch";
+import StudentMaterials from "@/pages/student/StudentMaterials";
 
 // Import Admin-specific pages
 import AdminDashboard from "@/components/dashboard/admin/AdminDashboard";
@@ -73,6 +80,7 @@ import ManageNotices from "@/pages/dashboard/ManageNotices";
 import FeeManagement from "@/pages/dashboard/FeeManagement";
 import ScheduleManagement from "@/pages/dashboard/ScheduleManagement";
 import AddStudentsToBatchPage from "./pages/batch/Addstudentpage";
+import CourseForm from "./components/dashboard/courses/CourseForm";
 
 const queryClient = new QueryClient();
 
@@ -196,10 +204,18 @@ const App: React.FC = () => {
                                 }
                             />
                             <Route
+                                path="/student/batch"
+                                element={
+                                    <ProtectedRoute roles={["student"]}>
+                                        <StudentBatch />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
                                 path="/student/materials"
                                 element={
                                     <ProtectedRoute roles={["student"]}>
-                                        <MyMaterials />
+                                        <StudentMaterials />
                                     </ProtectedRoute>
                                 }
                             />
@@ -212,10 +228,34 @@ const App: React.FC = () => {
                                 }
                             />
                             <Route
+                                path="/student/fees"
+                                element={
+                                    <ProtectedRoute roles={["student"]}>
+                                        <MyFees />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
                                 path="/student/notices"
                                 element={
                                     <ProtectedRoute roles={["student"]}>
                                         <StudentNotices />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/student/assignments"
+                                element={
+                                    <ProtectedRoute roles={["student"]}>
+                                        <StudentAssignments />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/student/attendance"
+                                element={
+                                    <ProtectedRoute roles={["student"]}>
+                                        <StudentAttendance />
                                     </ProtectedRoute>
                                 }
                             />
@@ -425,6 +465,15 @@ const App: React.FC = () => {
                                     </ProtectedRoute>
                                 }
                             />
+                        <Route 
+    path="/dashboard/courses/add"
+    element={
+        <ProtectedRoute roles={["admin"]}>
+            <CourseForm />
+        </ProtectedRoute>
+    }
+/>
+<Route path="/dashboard/courses/:id/edit" element={<CourseForm />} />
                             <Route
                                 path="/dashboard/courses/manage"
                                 element={
@@ -467,7 +516,7 @@ const App: React.FC = () => {
                                     <ProtectedRoute
                                         roles={["teacher", "admin"]}
                                     >
-                                        <AssignmentManagementPage userRole="teacher" />
+                                        <AssignmentManagementPage />
                                     </ProtectedRoute>
                                 }
                             />
@@ -475,7 +524,7 @@ const App: React.FC = () => {
                                 path="/admin/assignments"
                                 element={
                                     <ProtectedRoute roles={["admin"]}>
-                                        <AssignmentManagementPage userRole="admin" />
+                                        <AssignmentManagementPage />
                                     </ProtectedRoute>
                                 }
                             />
@@ -483,7 +532,7 @@ const App: React.FC = () => {
                                 path="/student/assignments"
                                 element={
                                     <ProtectedRoute roles={["student"]}>
-                                        <AssignmentManagementPage userRole="student" />
+                                        <StudentAssignments />
                                     </ProtectedRoute>
                                 }
                             />
