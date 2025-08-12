@@ -1,6 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import api from "../Axios"
-import { Course } from "../../types/course.types";
+import api from "../Axios";
+import { Course, CourseTopic } from "../../types/course.types"; // Ensure CourseTopic is imported if used in CreateCourseData
+
+// Define CreateCourseData locally or import it if you define it globally in course.types.ts
+// For this fix, we'll define it here to ensure the service knows its type.
+interface CreateCourseData {
+    name: string;
+    description?: string;
+    duration: string;
+    fee: number;
+    topics?: CourseTopic[]; // Include topics
+    batches?: any[]; // Include batches
+}
 
 class CourseService {
     async getAllCourses(): Promise<{
@@ -20,7 +31,8 @@ class CourseService {
         }
     }
 
-    async CreateCourse(courseData: Course): Promise<{
+    // FIXED: Changed parameter type from 'Course' to 'CreateCourseData'
+    async CreateCourse(courseData: CreateCourseData): Promise<{
         success: boolean;
         course?: Course;
         message?: string;
@@ -71,6 +83,24 @@ class CourseService {
         }
     }
 
+    // FIXED: Changed method name from 'DeleteCourse' to 'deleteCourse' (camelCase)
+    // This aligns with the error message you received.
+    async deleteCourse(id: string): Promise<{
+        success: boolean;
+        message?: string;
+    }> {
+        try {
+            const response = await api.delete(`/courses/${id}`);
+            return { success: true, message: response.data.message || 'Course deleted successfully' };
+        } catch (error: any) {
+            console.error('Delete course error:', error);
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Failed to delete course',
+            };
+        }
+    }
+
     async AddbatchtoCourse(courseId: string, batchId: string): Promise<{
         success: boolean;
         message?: string;
@@ -86,7 +116,8 @@ class CourseService {
             };
         }
     }
-async updatebatch(courseId: string, batchId: string, updateData: Partial<Course>): Promise<{
+
+    async updatebatch(courseId: string, batchId: string, updateData: Partial<Course>): Promise<{
         success: boolean;
         course?: Course;
         message?: string;
@@ -102,8 +133,9 @@ async updatebatch(courseId: string, batchId: string, updateData: Partial<Course>
             };
         }
     }
+
     async updatestudentinBatch(courseId: string, batchId: string, studentIds: string[]): Promise<{
-        success: boolean;   
+        success: boolean;
         message?: string;
     }> {
         try {
