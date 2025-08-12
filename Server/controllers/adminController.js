@@ -1,3 +1,4 @@
+// Server/controllers/adminController.js
 import Admin from "../models/Admin.js";
 import Teacher from "../models/Teacher.js";
 import Student from "../models/Student.js";
@@ -7,8 +8,9 @@ import Fee from "../models/Fee.js";
 import Notice from "../models/Notice.js";
 import bcrypt from "bcryptjs";
 
-// 🧠 Admin Dashboard Data
 
+
+// 🧠 Admin Dashboard Data
 
 // ✅ GET /api/admin/dashboard
 export const getAdminDashboard = async (req, res) => {
@@ -71,6 +73,77 @@ export const getAdminDashboard = async (req, res) => {
   }
 };
 
+// ---------------------- new sync endpoint ----------------------
+/**
+ * POST /api/admin/sync/relations
+ * One-off: iterate batches and ensure Teacher.batches, Teacher.courseIds and Course.batches are in sync.
+ * Protected – admin only.
+ */
+export const syncRelations = async (req, res) => {
+  try {
+    // Optionally accept a query param ?limit=100 to limit how many batches processed in one run
+    const limit = parseInt(req.query.limit, 10) || 0; // 0 => process all
+    const filter = {};
+    const batches = limit > 0
+      ? await Batch.find(filter).limit(limit).lean()
+      : await Batch.find(filter).lean();
+
+    let updatedCount = 0;
+    const errors = [];
+
+    for (const b of batches) {
+      try {
+        const batchId = b._id;
+        const teacherId = b.teacherId;
+        const courseId = b.courseId;
+
+        // Update teacher: add batchId and courseId
+        if (teacherId) {
+          await Teacher.findByIdAndUpdate(
+            teacherId,
+            { $addToSet: { batches: batchId, courseIds: courseId } },
+            { new: true }
+          );
+        }
+
+        // Update course: add embedded batch object if missing
+        if (courseId) {
+          // Use name and startDate to avoid duplicates (Course.batches is an embedded array)
+          await Course.updateOne(
+            { _id: courseId, "batches.name": { $ne: b.name } },
+            {
+              $addToSet: {
+                batches: {
+                  name: b.name,
+                  startDate: b.startDate,
+                  teacher: teacherId
+                }
+              }
+            }
+          );
+        }
+
+        updatedCount++;
+      } catch (innerErr) {
+        console.error("Error syncing batch", b._id, innerErr);
+        errors.push({ batchId: b._id, message: innerErr.message });
+      }
+    }
+
+    res.json({
+      success: true,
+      message: "Sync completed",
+      processed: batches.length,
+      updated: updatedCount,
+      errors
+    });
+  } catch (err) {
+    console.error("syncRelations error:", err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+// ---------------------- end sync endpoint ----------------------
+
 // ✅ GET /api/admin/profile
 export const getAdminProfile = async (req, res) => {
   try {
@@ -89,7 +162,6 @@ export const getAdminProfile = async (req, res) => {
     });
   }
 };
-
 
 // ✅ All Students
 export const getAllStudents = async (req, res) => {

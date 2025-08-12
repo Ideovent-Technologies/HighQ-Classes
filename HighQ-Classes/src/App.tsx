@@ -27,6 +27,7 @@ import Dashboard from "@/pages/dashboard/Dashboard";
 import FeeStatus from "@/pages/dashboard/FeeStatus";
 import StudyMaterials from "@/pages/dashboard/StudyMaterials";
 import AllStudents from "@/pages/dashboard/AllStudents";
+import Settings from "./pages/dashboard/ContactAdmin";
 // import UploadMaterials from "@/pages/dashboard/UploadMaterials";
 import MyStudents from "@/components/dashboard/teacher/MyStudents";
 import UploadMaterials from "@/components/dashboard/teacher/UploadMaterials";
@@ -60,6 +61,9 @@ import StudentRecordingsPage from "@/pages/StudentRecordingsPage";
 
 // Import Student-specific pages
 import StudentProfile from "@/pages/student/StudentProfile";
+import MyMaterials from "@/pages/student/MyMaterials";
+import MyClasses from "@/pages/student/MyClasses";
+import StudentNotices from "@/pages/student/StudentNotices";
 
 // Import Admin-specific pages
 import AdminDashboard from "@/components/dashboard/admin/AdminDashboard";
@@ -193,6 +197,30 @@ const App: React.FC = () => {
                                 }
                             />
                             <Route
+                                path="/student/materials"
+                                element={
+                                    <ProtectedRoute roles={["student"]}>
+                                        <MyMaterials />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/student/classes"
+                                element={
+                                    <ProtectedRoute roles={["student"]}>
+                                        <MyClasses />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/student/notices"
+                                element={
+                                    <ProtectedRoute roles={["student"]}>
+                                        <StudentNotices />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
                                 path="/student/recordings"
                                 element={
                                     <ProtectedRoute roles={["student"]}>
@@ -256,6 +284,14 @@ const App: React.FC = () => {
                                 element={
                                     <ProtectedRoute roles={["teacher"]}>
                                         <Notices />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/dashboard/settings"
+                                element={
+                                    <ProtectedRoute roles={["teacher"]}>
+                                        <Settings />
                                     </ProtectedRoute>
                                 }
                             />
@@ -334,14 +370,14 @@ const App: React.FC = () => {
                                     </ProtectedRoute>
                                 }
                             />
-                            <Route 
-                            path="/dashbaord/batches/add-student"
-                            element = {
-                        <ProtectedRoute roles={["admin"]}>
-                            <AddStudentsToBatchPage/>
-                        </ProtectedRoute>
-                            }
-                        />
+                            <Route
+                                path="/dashbaord/batches/add-student"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <AddStudentsToBatchPage />
+                                    </ProtectedRoute>
+                                }
+                            />
                             <Route
                                 path="/dashboard/batches/edit/:batchId"
                                 element={

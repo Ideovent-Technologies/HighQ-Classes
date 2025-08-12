@@ -111,8 +111,8 @@ const Contact = () => {
                   <Mail className="h-9 w-9 text-sky-600" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2 text-gray-800">Email Us</h3>
-                <p className="text-gray-600 mb-1">info@bloomscholar.com</p>
-                <p className="text-gray-600">admissions@bloomscholar.com</p>
+                <p className="text-gray-600 mb-1">info@HighQ.com</p>
+                <p className="text-gray-600">admissions@HighQ.com</p>
               </CardContent>
             </Card>
 
@@ -232,7 +232,7 @@ const Contact = () => {
               <h2 className="text-4xl font-bold mb-6 text-gray-800">Find Us Here</h2>
               <div className="mb-10 rounded-xl overflow-hidden shadow-xl">
                 <iframe
-                  title="BloomScholar Coaching Center Location"
+                  title="HighQ Coaching Center Location"
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d387193.305935303!2d-74.25986548248684!3d40.69714941932609!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c24fa5d33f083b%3A0xc80b8f06e177fe62!2sNew%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2sin!4v1617438185384!5m2!1sen!2sin"
                   width="100%"
                   height="450"

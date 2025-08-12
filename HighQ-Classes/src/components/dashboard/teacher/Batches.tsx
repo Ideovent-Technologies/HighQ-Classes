@@ -82,9 +82,10 @@ const Batches = () => {
                                         {batch.name}
                                     </h3>
                                     <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow px-3 py-1 text-sm rounded-full">
-                                        {typeof batch.courseId === "object"
-                                            ? batch.courseId.name
-                                            : batch.courseId}
+                                        {/* FIX: Show course name robustly */}
+                                        {batch.courseId && typeof batch.courseId === "object"
+                                            ? batch.courseId.courseName || batch.courseId.name || batch.courseId._id
+                                            : batch.courseId || "Unknown Course"}
                                     </Badge>
                                 </div>
 
