@@ -27,7 +27,7 @@ import Dashboard from "@/pages/dashboard/Dashboard";
 import FeeStatus from "@/pages/dashboard/FeeStatus";
 import StudyMaterials from "@/pages/dashboard/StudyMaterials";
 import AllStudents from "@/pages/dashboard/AllStudents";
-import Settings from "./pages/dashboard/Settings";
+import Settings from "./pages/dashboard/ContactAdmin";
 // import UploadMaterials from "@/pages/dashboard/UploadMaterials";
 import MyStudents from "@/components/dashboard/teacher/MyStudents";
 import UploadMaterials from "@/components/dashboard/teacher/UploadMaterials";
