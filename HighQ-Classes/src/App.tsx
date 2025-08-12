@@ -69,6 +69,7 @@ import ManageNotices from "@/pages/dashboard/ManageNotices";
 import FeeManagement from "@/pages/dashboard/FeeManagement";
 import ScheduleManagement from "@/pages/dashboard/ScheduleManagement";
 import AddStudentsToBatchPage from "./pages/batch/Addstudentpage";
+import CourseForm from "./components/dashboard/courses/CourseForm";
 
 const queryClient = new QueryClient();
 
@@ -389,6 +390,15 @@ const App: React.FC = () => {
                                     </ProtectedRoute>
                                 }
                             />
+                        <Route 
+    path="/dashboard/courses/add"
+    element={
+        <ProtectedRoute roles={["admin"]}>
+            <CourseForm />
+        </ProtectedRoute>
+    }
+/>
+<Route path="/dashboard/courses/:id/edit" element={<CourseForm />} />
                             <Route
                                 path="/dashboard/courses/manage"
                                 element={

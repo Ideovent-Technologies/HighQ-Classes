@@ -4,13 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import CourseService from "@/API/services/courseService";
 import CourseCard from "@/components/dashboard/courses/CourseCard";
-import CourseForm from "@/components/dashboard/courses/CourseForm";
+import { useNavigate } from "react-router-dom";
 
 const CourseManagementPage: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
-  const [showForm, setShowForm] = useState<boolean>(false);
+  const navigate = useNavigate();
 
   const fetchCourses = async () => {
     try {
@@ -28,20 +27,12 @@ const CourseManagementPage: React.FC = () => {
     fetchCourses();
   }, []);
 
-  const handleEdit = (course: Course) => {
-    setEditingCourse(course);
-    setShowForm(true);
-  };
-
   const handleCreate = () => {
-    setEditingCourse(null);
-    setShowForm(true);
+    navigate("/dashboard/courses/add");
   };
 
-  const handleFormClose = () => {
-    setShowForm(false);
-    setEditingCourse(null);
-    fetchCourses(); // Refresh list after update/create
+  const handleEdit = (courseId: string) => {
+    navigate(`/dashboard/courses/${courseId}/edit`);
   };
 
   return (
@@ -54,10 +45,6 @@ const CourseManagementPage: React.FC = () => {
         </Button>
       </div>
 
-      {showForm && (
-        <CourseForm course={editingCourse!} key={editingCourse?._id || "new"} />
-      )}
-
       {loading ? (
         <p>Loading courses...</p>
       ) : courses.length === 0 ? (
@@ -66,7 +53,11 @@ const CourseManagementPage: React.FC = () => {
         courses.map((course) => (
           <div key={course._id} className="space-y-2">
             <CourseCard course={course} />
-            <Button variant="outline" size="sm" onClick={() => handleEdit(course)}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleEdit(course._id)}
+            >
               Edit
             </Button>
           </div>

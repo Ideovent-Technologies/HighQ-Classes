@@ -83,6 +83,8 @@ const AllStudents = () => {
                     })
                 );
                 setStudents(transformedStudents);
+                console.log("Fetched students:", transformedStudents);
+                
             } else {
                 toast({
                     title: "Error",

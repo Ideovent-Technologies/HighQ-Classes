@@ -52,7 +52,7 @@ const Sidebar = () => {
     const commonItems = [
         user?.role === "admin"
             ? navItem(
-                  "/admin/dashboard",
+                  "/dashboard",
                   <Home className={iconClass} />,
                   "Dashboard"
               )
