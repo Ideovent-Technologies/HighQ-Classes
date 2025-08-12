@@ -506,7 +506,7 @@ const App: React.FC = () => {
                                     <ProtectedRoute
                                         roles={["teacher", "admin"]}
                                     >
-                                        <AssignmentManagementPage userRole="teacher" />
+                                        <AssignmentManagementPage />
                                     </ProtectedRoute>
                                 }
                             />
@@ -514,7 +514,7 @@ const App: React.FC = () => {
                                 path="/admin/assignments"
                                 element={
                                     <ProtectedRoute roles={["admin"]}>
-                                        <AssignmentManagementPage userRole="admin" />
+                                        <AssignmentManagementPage />
                                     </ProtectedRoute>
                                 }
                             />
@@ -522,7 +522,7 @@ const App: React.FC = () => {
                                 path="/student/assignments"
                                 element={
                                     <ProtectedRoute roles={["student"]}>
-                                        <AssignmentManagementPage userRole="student" />
+                                        <StudentAssignments />
                                     </ProtectedRoute>
                                 }
                             />
