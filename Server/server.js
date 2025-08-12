@@ -43,6 +43,8 @@ import studentRoutes from "./routes/studentRoutes.js";
 import studentDashboardRoutes from "./routes/studentDashboardRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
 import contactRoutes from './routes/contactRoutes.js';
+import supportRoutes from "./routes/supportRoutes.js";
+import submissionRoutes from "./routes/submissionRoutes.js";
 
 
 const app = express();
@@ -86,6 +88,8 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/batches", batchRouter);
 app.use("/api/fee", feeRouter);
 app.use('/api', contactRoutes); // your contact route
+app.use("/api/support", supportRoutes);
+app.use("/api/submissions", submissionRoutes);
 
 
 // Home route
