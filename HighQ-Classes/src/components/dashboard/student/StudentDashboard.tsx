@@ -83,6 +83,7 @@ const StudentDashboard: React.FC = () => {
                 }
 
                 setDashboardData(data);
+                console.log(data)
                 setError(null);
             } catch (err: any) {
                 console.error("Dashboard fetch error:", err);

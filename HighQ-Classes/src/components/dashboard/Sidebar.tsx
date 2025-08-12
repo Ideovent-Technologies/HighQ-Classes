@@ -16,7 +16,7 @@ import {
     GraduationCap,
     UserCheck,
     Building,
-    X, // <-- Added 'X' icon here
+    X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
