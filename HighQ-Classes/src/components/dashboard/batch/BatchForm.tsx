@@ -37,35 +37,42 @@ import AdminService from "@/API/services/AdminService";
 
 const WEEK_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-interface BatchFormProps {
-    batchToEdit?: Batch;
+// Corrected BatchFormProps interface to match what EditBatchPage sends
+export interface BatchFormProps {
+    initialData?: Batch; // Renamed from batchToEdit to match parent prop name
+    onSubmit: (data: CreateBatchData) => Promise<void>; // Added onSubmit prop
+    isSubmitting: boolean; // Added isSubmitting prop from parent
 }
 
-const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
+const BatchForm: React.FC<BatchFormProps> = ({ initialData, onSubmit, isSubmitting }) => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState<CreateBatchData>(() => ({
-        name: batchToEdit?.name || "",
+        name: initialData?.name || "",
+        // Ensure that courseId and teacherId are strings,
+        // and extract _id if they are objects (CourseRef, TeacherRef)
         courseId:
-            typeof batchToEdit?.courseId === "string"
-                ? batchToEdit.courseId
-                : batchToEdit?.courseId?._id || "",
+            typeof initialData?.courseId === "string"
+                ? initialData.courseId
+                : initialData?.courseId?._id || "",
         teacherId:
-            typeof batchToEdit?.teacherId === "string"
-                ? batchToEdit.teacherId
-                : batchToEdit?.teacherId?._id || "",
+            typeof initialData?.teacherId === "string"
+                ? initialData.teacherId
+                : initialData?.teacherId?._id || "",
+        // Map students to their _id strings, handling both string and object types
         students:
-            batchToEdit?.students?.map((student) =>
+            initialData?.students?.map((student) =>
                 typeof student === "string" ? student : student._id
             ) || [],
         schedule: {
-            days: batchToEdit?.schedule?.days || [],
-            startTime: batchToEdit?.schedule?.startTime || "",
-            endTime: batchToEdit?.schedule?.endTime || "",
+            days: initialData?.schedule?.days || [],
+            startTime: initialData?.schedule?.startTime || "",
+            endTime: initialData?.schedule?.endTime || "",
         },
-        startDate: batchToEdit?.startDate?.split("T")[0] || "",
-        endDate: batchToEdit?.endDate?.split("T")[0] || "",
-        description: batchToEdit?.description || "",
-        capacity: batchToEdit?.capacity || 20,
+        // Format dates correctly for input type="date"
+        startDate: initialData?.startDate?.split("T")[0] || "",
+        endDate: initialData?.endDate?.split("T")[0] || "",
+        description: initialData?.description || "",
+        capacity: initialData?.capacity || 20,
     }));
 
     const [courses, setCourses] = useState<CourseRef[]>([]);
@@ -73,14 +80,16 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
     const [allStudents, setAllStudents] = useState<StudentRef[]>([]);
     const [studentSearch, setStudentSearch] = useState("");
 
-    const [isLoading, setIsLoading] = useState(false);
+    // Use a separate loading state for fetching dropdown resources
+    const [isLoadingResources, setIsLoadingResources] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
-    const isEditMode = !!batchToEdit;
+
+    const isEditMode = !!initialData; // Use initialData for edit mode check
 
     // Fetch Courses, Teachers, and Students
     useEffect(() => {
         const fetchData = async () => {
-            setIsLoading(true);
+            setIsLoadingResources(true); // Set loading for resources
             try {
                 const [coursesData, teachersData, studentsData] = await Promise.all([
                     courseService.getAllCourses(),
@@ -94,7 +103,7 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
             } catch (error) {
                 toast.error("Failed to load required data.");
             } finally {
-                setIsLoading(false);
+                setIsLoadingResources(false); // Clear loading for resources
             }
         };
         fetchData();
@@ -176,23 +185,9 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
             toast.error("Please fix the errors before submitting.");
             return;
         }
-        setIsLoading(true);
-        try {
-            const response = isEditMode
-                ? await batchService.updateBatch(batchToEdit!._id, formData)
-                : await batchService.createBatch(formData);
-
-            if (response.success) {
-                toast.success(isEditMode ? "Batch updated successfully!" : "Batch created successfully!");
-                navigate("/dashboard/batches/manage");
-            } else {
-                toast.error(response.message || "An error occurred.");
-            }
-        } catch (error) {
-            toast.error("Failed to save the batch.");
-        } finally {
-            setIsLoading(false);
-        }
+        // Call the onSubmit prop provided by the parent (EditBatchPageContent)
+        // The parent is responsible for setting the isSubmitting state.
+        await onSubmit(formData);
     };
 
     return (
@@ -226,11 +221,17 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
                                     <SelectValue placeholder="Select a course" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {courses.map((course) => (
-                                        <SelectItem key={course._id} value={course._id}>
-                                            {course.name}
-                                        </SelectItem>
-                                    ))}
+                                    {isLoadingResources ? (
+                                        <SelectItem value="" disabled>Loading courses...</SelectItem>
+                                    ) : courses.length > 0 ? (
+                                        courses.map((course) => (
+                                            <SelectItem key={course._id} value={course._id}>
+                                                {course.name}
+                                            </SelectItem>
+                                        ))
+                                    ) : (
+                                        <SelectItem value="" disabled>No courses available</SelectItem>
+                                    )}
                                 </SelectContent>
                             </Select>
                             {errors.courseId && <p className="text-sm text-red-500 mt-1">{errors.courseId}</p>}
@@ -242,11 +243,17 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
                                     <SelectValue placeholder="Select a teacher" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {teachers.map((teacher) => (
-                                        <SelectItem key={teacher._id} value={teacher._id}>
-                                            {teacher.name}
-                                        </SelectItem>
-                                    ))}
+                                    {isLoadingResources ? (
+                                        <SelectItem value="" disabled>Loading teachers...</SelectItem>
+                                    ) : teachers.length > 0 ? (
+                                        teachers.map((teacher) => (
+                                            <SelectItem key={teacher._id} value={teacher._id}>
+                                                {teacher.name}
+                                            </SelectItem>
+                                        ))
+                                    ) : (
+                                        <SelectItem value="" disabled>No teachers available</SelectItem>
+                                    )}
                                 </SelectContent>
                             </Select>
                             {errors.teacherId && <p className="text-sm text-red-500 mt-1">{errors.teacherId}</p>}
@@ -310,7 +317,7 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
                                     return (
                                         <div key={studentId} className="flex items-center gap-2 bg-secondary rounded-full px-3 py-1 text-sm">
                                             {student?.name || "Unknown"}
-                                            <button type="button" onClick={() => toggleStudent(studentId)}>
+                                            <button type="button" onClick={() => toggleStudent(studentId)} className="focus:outline-none">
                                                 <X className="h-3 w-3" />
                                             </button>
                                         </div>
@@ -326,12 +333,17 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
                                         <Search className="h-4 w-4 mr-2" />
                                         <Input placeholder="Search students..." value={studentSearch} onChange={(e) => setStudentSearch(e.target.value)} />
                                     </div>
-                                    {filteredStudents.map((student) => (
-                                        <SelectItem key={student._id} value={student._id}>
-                                            {student.name}
-                                        </SelectItem>
-                                    ))}
-                                    {filteredStudents.length === 0 && <p className="p-4 text-center text-sm">No matching students found.</p>}
+                                    {isLoadingResources ? (
+                                        <SelectItem value="" disabled>Loading students...</SelectItem>
+                                    ) : filteredStudents.length > 0 ? (
+                                        filteredStudents.map((student) => (
+                                            <SelectItem key={student._id} value={student._id}>
+                                                {student.name}
+                                            </SelectItem>
+                                        ))
+                                    ) : (
+                                        <p className="p-4 text-center text-sm">No matching students found.</p>
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -339,8 +351,8 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
                 </Card>
 
                 <div className="flex justify-end">
-                    <Button type="submit" disabled={isLoading} size="lg">
-                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <Button type="submit" disabled={isSubmitting || isLoadingResources} size="lg">
+                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         {isEditMode ? "Save Changes" : "Create Batch"}
                     </Button>
                 </div>

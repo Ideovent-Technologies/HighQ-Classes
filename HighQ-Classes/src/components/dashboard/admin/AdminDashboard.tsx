@@ -17,7 +17,7 @@ import {
 // The following imports are external to this compilation unit and are assumed to be provided by the environment.
 // They are not 'mocked' but rather treated as external dependencies.
 import AdminService from "@/API/services/AdminService";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
+
 import QuickActions from "@/components/dashboard/Widgets/QuickActions";
 import { useToast } from "@/hooks/use-toast";
 
@@ -186,7 +186,7 @@ const AdminDashboard: React.FC = () => {
 
     if (loading) {
         return (
-            <DashboardLayout>
+            
                 <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] bg-gradient-to-br from-indigo-50 to-purple-100 text-indigo-900 p-8 rounded-lg">
                     <motion.div
                         animate={{ rotate: 360 }}
@@ -199,13 +199,13 @@ const AdminDashboard: React.FC = () => {
                     </p>
                     <p className="text-base text-indigo-600 mt-2">Gathering the latest insights for you.</p>
                 </div>
-            </DashboardLayout>
+       
         );
     }
 
     if (error) {
         return (
-            <DashboardLayout>
+         
                 <div className="flex items-center justify-center min-h-[calc(100vh-80px)] bg-gradient-to-br from-red-50 to-orange-50 p-8 rounded-lg">
                     <Card className="bg-red-50 border-red-300 shadow-xl text-center p-6">
                         <CardHeader>
@@ -217,7 +217,7 @@ const AdminDashboard: React.FC = () => {
                         </CardContent>
                     </Card>
                 </div>
-            </DashboardLayout>
+          
         );
     }
 
@@ -289,7 +289,7 @@ const AdminDashboard: React.FC = () => {
     ];
 
     return (
-        <DashboardLayout>
+     
             <motion.div
                 className="p-6 sm:p-8 space-y-10 bg-gray-50 dark:bg-gray-900 min-h-screen rounded-lg"
                 variants={pageVariants}
@@ -387,7 +387,7 @@ const AdminDashboard: React.FC = () => {
                     </div>
                 </div>
             </motion.div>
-        </DashboardLayout>
+      
     );
 };
 
