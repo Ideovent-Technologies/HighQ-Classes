@@ -33,101 +33,7 @@ import {
 import courseService from "@/API/services/courseService";
 import teacherService from "@/API/services/teacherService";
 import batchService from "@/API/services/batchService";
-import AdminService from "@/API/services/AdminService"; // ✅ Added import
-
-// API service
-const apiService = {
-    getCourses: async (): Promise<CourseRef[]> => {
-        try {
-            const response = await courseService.getAllCourses();
-            if (response.success && response.courses) {
-                return response.courses.map((course) => ({
-                    _id: course._id,
-                    name: course.name,
-                }));
-            }
-            return [];
-        } catch (error) {
-            console.error("Error fetching courses:", error);
-            return [];
-        }
-    },
-    getTeachers: async (): Promise<TeacherRef[]> => {
-        try {
-            const response = await teacherService.getAllTeachers();
-            if (response.success && response.teachers) {
-                return response.teachers.map((teacher) => ({
-                    _id: teacher._id,
-                    name: teacher.name,
-                }));
-            }
-            return [];
-        } catch (error) {
-            console.error("Error fetching teachers:", error);
-            return [];
-        }
-    },
-    getStudents: async (): Promise<StudentRef[]> => {
-        try {
-            const response = await AdminService.getAllStudents();
-            if (response.success && response.students) {
-                return response.students.map((student) => ({
-                    _id: student._id,
-                    name: student.name,
-                }));
-                 console.error("Failed to fetch students:", response);
-            }
-           
-            return [];
-        } catch (error) {
-            console.error("Error fetching students:", error);
-            return [];
-        }
-    },
-    createBatch: async (data: CreateBatchData) => {
-        try {
-            const batchServiceData = {
-                name: data.name,
-                courseId: data.courseId,
-                teacherId: data.teacherId,
-                students: data.students || [], 
-                startDate: new Date(data.startDate),
-                endDate: new Date(data.endDate),
-                schedule: data.schedule,
-                capacity: data.capacity || 20,
-                description: data.description || "",
-            };
-        
-            await batchService.createBatch(batchServiceData);
-            return { success: true, message: "Batch created successfully!" };
-
-        } catch (error) {
-            console.error("Error creating batch:", error);
-            return { success: false, message: "Failed to create batch" };
-        }
-    },
-    updateBatch: async (id: string, data: Partial<CreateBatchData>) => {
-        try {
-            const batchServiceData: any = {
-                name: data.name,
-                course: data.courseId,
-                teacher: data.teacherId,
-                schedule: data.schedule,
-                capacity: data.capacity,
-                description: data.description,
-            };
-            if (data.startDate)
-                batchServiceData.startDate = new Date(data.startDate);
-            if (data.endDate) batchServiceData.endDate = new Date(data.endDate);
-
-            await batchService.updateBatch(id, batchServiceData);
-            return { success: true, message: "Batch updated successfully!" };
-        } catch (error) {
-            console.error("Error updating batch:", error);
-            return { success: false, message: "Failed to update batch" };
-        }
-    },
-};
+import AdminService from "@/API/services/AdminService";
 
 const WEEK_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -158,6 +64,8 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
         },
         startDate: batchToEdit?.startDate?.split("T")[0] || "",
         endDate: batchToEdit?.endDate?.split("T")[0] || "",
+        description: batchToEdit?.description || "",
+        capacity: batchToEdit?.capacity || 20,
     }));
 
     const [courses, setCourses] = useState<CourseRef[]>([]);
@@ -169,19 +77,20 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
     const [errors, setErrors] = useState<Record<string, string>>({});
     const isEditMode = !!batchToEdit;
 
+    // Fetch Courses, Teachers, and Students
     useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true);
             try {
-                const [coursesData, teachersData, studentsData] =
-                    await Promise.all([
-                        apiService.getCourses(),
-                        apiService.getTeachers(),
-                        apiService.getStudents(), 
-                    ]);
-                setCourses(coursesData);
-                setTeachers(teachersData);
-                setAllStudents(studentsData);
+                const [coursesData, teachersData, studentsData] = await Promise.all([
+                    courseService.getAllCourses(),
+                    teacherService.getAllTeachers(),
+                    AdminService.getAllStudents(),
+                ]);
+
+                setCourses(coursesData.courses || []);
+                setTeachers(teachersData.teachers || []);
+                setAllStudents(studentsData.students || []);
             } catch (error) {
                 toast.error("Failed to load required data.");
             } finally {
@@ -195,13 +104,8 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
         const newErrors: Record<string, string> = {};
         if (!formData.name.trim()) newErrors.name = "Batch name is required.";
         if (!formData.courseId) newErrors.courseId = "Please select a course.";
-        if (!formData.teacherId)
-            newErrors.teacherId = "Please select a teacher.";
-        if (
-            formData.startDate &&
-            formData.endDate &&
-            formData.startDate > formData.endDate
-        ) {
+        if (!formData.teacherId) newErrors.teacherId = "Please select a teacher.";
+        if (formData.startDate && formData.endDate && formData.startDate > formData.endDate) {
             newErrors.endDate = "End date cannot be before the start date.";
         }
         setErrors(newErrors);
@@ -261,9 +165,7 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
     const filteredStudents = useMemo(() => {
         return allStudents.filter(
             (student) =>
-                student.name
-                    .toLowerCase()
-                    .includes(studentSearch.toLowerCase()) &&
+                student.name.toLowerCase().includes(studentSearch.toLowerCase()) &&
                 !formData.students?.includes(student._id)
         );
     }, [studentSearch, allStudents, formData.students]);
@@ -277,13 +179,12 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
         setIsLoading(true);
         try {
             const response = isEditMode
-                ? await apiService.updateBatch(batchToEdit._id, formData)
-                : await apiService.createBatch(formData);
+                ? await batchService.updateBatch(batchToEdit!._id, formData)
+                : await batchService.createBatch(formData);
 
             if (response.success) {
-                toast.success(response.message);
+                toast.success(isEditMode ? "Batch updated successfully!" : "Batch created successfully!");
                 navigate("/dashboard/batches/manage");
-                console.log(response)
             } else {
                 toast.error(response.message || "An error occurred.");
             }
@@ -294,18 +195,10 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
         }
     };
 
-
-
-
     return (
         <div className="max-w-4xl mx-auto p-4">
             <div className="flex items-center mb-6">
-                <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => navigate(-1)}
-                    className="mr-4"
-                >
+                <Button variant="outline" size="icon" onClick={() => navigate(-1)} className="mr-4">
                     <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <h1 className="text-3xl font-bold tracking-tight">
@@ -314,93 +207,57 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-8">
+                {/* Core Details */}
                 <Card>
                     <CardHeader>
                         <CardTitle>Core Details</CardTitle>
-                        <CardDescription>
-                            Provide the fundamental details for this batch.
-                        </CardDescription>
+                        <CardDescription>Provide the fundamental details for this batch.</CardDescription>
                     </CardHeader>
                     <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <Label htmlFor="name">Batch Name</Label>
-                            <Input
-                                id="name"
-                                value={formData.name}
-                                onChange={handleInputChange}
-                                placeholder="e.g., MERN Evening - July 2024"
-                            />
-                            {errors.name && (
-                                <p className="text-sm text-red-500 mt-1">
-                                    {errors.name}
-                                </p>
-                            )}
+                            <Input id="name" value={formData.name} onChange={handleInputChange} />
+                            {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name}</p>}
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="courseId">Course</Label>
-                            <Select
-                                onValueChange={(value) =>
-                                    handleSelectChange("courseId", value)
-                                }
-                                value={formData.courseId}
-                            >
+                            <Select onValueChange={(value) => handleSelectChange("courseId", value)} value={formData.courseId}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select a course" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {courses.map((course) => (
-                                        <SelectItem
-                                            key={course._id}
-                                            value={course._id}
-                                        >
+                                        <SelectItem key={course._id} value={course._id}>
                                             {course.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
-                            {errors.courseId && (
-                                <p className="text-sm text-red-500 mt-1">
-                                    {errors.courseId}
-                                </p>
-                            )}
+                            {errors.courseId && <p className="text-sm text-red-500 mt-1">{errors.courseId}</p>}
                         </div>
                         <div className="space-y-2 md:col-span-2">
                             <Label htmlFor="teacherId">Lead Teacher</Label>
-                            <Select
-                                onValueChange={(value) =>
-                                    handleSelectChange("teacherId", value)
-                                }
-                                value={formData.teacherId}
-                            >
+                            <Select onValueChange={(value) => handleSelectChange("teacherId", value)} value={formData.teacherId}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select a teacher" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {teachers.map((teacher) => (
-                                        <SelectItem
-                                            key={teacher._id}
-                                            value={teacher._id}
-                                        >
+                                        <SelectItem key={teacher._id} value={teacher._id}>
                                             {teacher.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
-                            {errors.teacherId && (
-                                <p className="text-sm text-red-500 mt-1">
-                                    {errors.teacherId}
-                                </p>
-                            )}
+                            {errors.teacherId && <p className="text-sm text-red-500 mt-1">{errors.teacherId}</p>}
                         </div>
                     </CardContent>
                 </Card>
 
+                {/* Schedule & Duration */}
                 <Card>
                     <CardHeader>
                         <CardTitle>Schedule & Duration</CardTitle>
-                        <CardDescription>
-                            Define when the batch will run.
-                        </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="space-y-2">
@@ -410,13 +267,7 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
                                     <Button
                                         key={day}
                                         type="button"
-                                        variant={
-                                            formData.schedule?.days.includes(
-                                                day
-                                            )
-                                                ? "secondary"
-                                                : "outline"
-                                        }
+                                        variant={formData.schedule?.days.includes(day) ? "secondary" : "outline"}
                                         onClick={() => handleDayToggle(day)}
                                     >
                                         {day}
@@ -425,83 +276,41 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
+                            <div>
                                 <Label htmlFor="startTime">Start Time</Label>
-                                <Input
-                                    id="startTime"
-                                    type="time"
-                                    value={formData.schedule?.startTime || ""}
-                                    onChange={handleScheduleChange}
-                                />
+                                <Input id="startTime" type="time" value={formData.schedule?.startTime || ""} onChange={handleScheduleChange} />
                             </div>
-                            <div className="space-y-2">
+                            <div>
                                 <Label htmlFor="endTime">End Time</Label>
-                                <Input
-                                    id="endTime"
-                                    type="time"
-                                    value={formData.schedule?.endTime || ""}
-                                    onChange={handleScheduleChange}
-                                />
+                                <Input id="endTime" type="time" value={formData.schedule?.endTime || ""} onChange={handleScheduleChange} />
                             </div>
-                            <div className="space-y-2">
+                            <div>
                                 <Label htmlFor="startDate">Start Date</Label>
-                                <Input
-                                    id="startDate"
-                                    type="date"
-                                    value={formData.startDate || ""}
-                                    onChange={handleInputChange}
-                                />
+                                <Input id="startDate" type="date" value={formData.startDate || ""} onChange={handleInputChange} />
                             </div>
-                            <div className="space-y-2">
+                            <div>
                                 <Label htmlFor="endDate">End Date</Label>
-                                <Input
-                                    id="endDate"
-                                    type="date"
-                                    value={formData.endDate || ""}
-                                    onChange={handleInputChange}
-                                />
-                                {errors.endDate && (
-                                    <p className="text-sm text-red-500 mt-1">
-                                        {errors.endDate}
-                                    </p>
-                                )}
+                                <Input id="endDate" type="date" value={formData.endDate || ""} onChange={handleInputChange} />
+                                {errors.endDate && <p className="text-sm text-red-500 mt-1">{errors.endDate}</p>}
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
+                {/* Students */}
                 <Card>
                     <CardHeader>
                         <CardTitle>Student Enrollment</CardTitle>
-                        <CardDescription>
-                            Assign students to this batch.
-                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="p-3 border rounded-md min-h-[120px]">
                             <div className="flex flex-wrap gap-2 mb-4">
-                                {formData.students?.length === 0 && (
-                                    <p className="text-sm text-muted-foreground">
-                                        No students assigned yet.
-                                    </p>
-                                )}
                                 {formData.students?.map((studentId) => {
-                                    const student = allStudents.find(
-                                        (s) => s._id === studentId
-                                    );
+                                    const student = allStudents.find((s) => s._id === studentId);
                                     return (
-                                        <div
-                                            key={studentId}
-                                            className="flex items-center gap-2 bg-secondary text-secondary-foreground rounded-full px-3 py-1 text-sm animate-in fade-in-0 zoom-in-95"
-                                        >
+                                        <div key={studentId} className="flex items-center gap-2 bg-secondary rounded-full px-3 py-1 text-sm">
                                             {student?.name || "Unknown"}
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    toggleStudent(studentId)
-                                                }
-                                                className="rounded-full hover:bg-muted p-0.5"
-                                            >
+                                            <button type="button" onClick={() => toggleStudent(studentId)}>
                                                 <X className="h-3 w-3" />
                                             </button>
                                         </div>
@@ -514,29 +323,15 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <div className="flex items-center border-b p-2">
-                                        <Search className="h-4 w-4 mr-2 text-muted-foreground" />
-                                        <Input
-                                            placeholder="Search students..."
-                                            className="border-none focus-visible:ring-0"
-                                            value={studentSearch}
-                                            onChange={(e) =>
-                                                setStudentSearch(e.target.value)
-                                            }
-                                        />
+                                        <Search className="h-4 w-4 mr-2" />
+                                        <Input placeholder="Search students..." value={studentSearch} onChange={(e) => setStudentSearch(e.target.value)} />
                                     </div>
                                     {filteredStudents.map((student) => (
-                                        <SelectItem
-                                            key={student._id}
-                                            value={student._id}
-                                        >
+                                        <SelectItem key={student._id} value={student._id}>
                                             {student.name}
                                         </SelectItem>
                                     ))}
-                                    {filteredStudents.length === 0 && (
-                                        <p className="p-4 text-center text-sm text-muted-foreground">
-                                            No matching students found.
-                                        </p>
-                                    )}
+                                    {filteredStudents.length === 0 && <p className="p-4 text-center text-sm">No matching students found.</p>}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -545,9 +340,7 @@ const BatchForm: React.FC<BatchFormProps> = ({ batchToEdit }) => {
 
                 <div className="flex justify-end">
                     <Button type="submit" disabled={isLoading} size="lg">
-                        {isLoading && (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        )}
+                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         {isEditMode ? "Save Changes" : "Create Batch"}
                     </Button>
                 </div>

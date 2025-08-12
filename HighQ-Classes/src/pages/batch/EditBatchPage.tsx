@@ -20,14 +20,18 @@ const EditBatchPage: React.FC = () => {
             }
 
             try {
-                setLoading(true);
-                const batchData = await batchService.getBatchById(batchId);
-                setBatch(batchData as any); // Temporary type assertion until type mismatch is fixed
-                setLoading(false);
+                const response = await batchService.getBatchById(batchId);
+                if (response.success && response.batch) {
+                    setBatch(response.batch);
+                } else {
+                    toast.error("Batch not found");
+                    navigate("/dashboard/batches/manage");
+                }
             } catch (error) {
-                console.error("Error fetching batch:", error);
                 toast.error("Failed to load batch data");
                 navigate("/dashboard/batches/manage");
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -35,37 +39,11 @@ const EditBatchPage: React.FC = () => {
     }, [batchId, navigate]);
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-4 text-lg text-gray-600">
-                        Loading batch data...
-                    </p>
-                </div>
-            </div>
-        );
+        return <p className="text-center mt-6">Loading batch details...</p>;
     }
 
     if (!batch) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                        Batch Not Found
-                    </h2>
-                    <p className="text-gray-600 mb-4">
-                        The batch you're looking for doesn't exist.
-                    </p>
-                    <button
-                        onClick={() => navigate("/dashboard/batches/manage")}
-                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                    >
-                        Back to Batches
-                    </button>
-                </div>
-            </div>
-        );
+        return <p className="text-center mt-6 text-red-500">Batch not found.</p>;
     }
 
     return <BatchForm batchToEdit={batch} />;

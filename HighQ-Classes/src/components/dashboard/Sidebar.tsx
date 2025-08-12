@@ -16,7 +16,7 @@ import {
     GraduationCap,
     UserCheck,
     Building,
-    X, // <-- Added 'X' icon here
+    X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
@@ -83,27 +83,21 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
     );
 
     const commonItems = [
-        user?.role === "admin"
-            ? navItem(
-                  "/admin/dashboard",
-                  <Home className={iconClass} />,
-                  "Dashboard"
-              )
-            : navItem(
-                  "/dashboard",
-                  <Home className={iconClass} />,
-                  "Dashboard"
-              ),
-        user?.role === "admin"
-            ? navItem(
-                  "/admin/profile",
-                  <User className={iconClass} />,
-                  "Profile"
-              )
-            : navItem("/profile", <User className={iconClass} />, "Profile"),
-        navItem(
-            "/dashboard/notices",
-            <Bell className={iconClass} />,
+        createNavItem(
+            user?.role === "admin" ? "/admin/dashboard" : "/dashboard",
+            Home,
+            "Dashboard"
+        ),
+        createNavItem(
+            user?.role === "admin" ? "/admin/profile" : "/profile",
+            User,
+            "Profile"
+        ),
+        createNavItem(
+            user?.role === "student"
+                ? "/student/notices"
+                : "/dashboard/notices",
+            Bell,
             "Notices"
         ),
     ];

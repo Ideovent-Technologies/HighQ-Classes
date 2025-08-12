@@ -94,7 +94,7 @@ const CourseForm: React.FC = () => {
         await CourseService.CreateCourse(formData);
         alert("Course created successfully!");
       }
-      navigate("/dashboard/courses");
+      navigate("/dashboard/course-management");
     } catch (err) {
       console.error("API Error:", err);
       alert("Failed to save course.");
