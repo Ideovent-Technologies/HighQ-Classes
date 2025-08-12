@@ -68,6 +68,10 @@ import StudentNotices from "@/pages/student/StudentNotices";
 import StudentAssignments from "@/pages/student/StudentAssignments";
 import StudentAttendance from "@/pages/student/StudentAttendance";
 
+// Import new student batch components
+import StudentBatch from "@/pages/student/StudentBatch";
+import StudentMaterials from "@/pages/student/StudentMaterials";
+
 // Import Admin-specific pages
 import AdminDashboard from "@/components/dashboard/admin/AdminDashboard";
 import AdminProfile from "@/pages/admin/AdminProfile";
@@ -199,10 +203,18 @@ const App: React.FC = () => {
                                 }
                             />
                             <Route
+                                path="/student/batch"
+                                element={
+                                    <ProtectedRoute roles={["student"]}>
+                                        <StudentBatch />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
                                 path="/student/materials"
                                 element={
                                     <ProtectedRoute roles={["student"]}>
-                                        <MyMaterials />
+                                        <StudentMaterials />
                                     </ProtectedRoute>
                                 }
                             />

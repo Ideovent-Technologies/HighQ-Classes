@@ -3,13 +3,17 @@ import {
     getProfile,
     updateProfile,
     uploadProfilePicture,
-    changePassword
+    changePassword,
+    getStudentBatch
 } from '../controllers/studentController.js';
 
 import { authenticate, authorizeStudent } from '../middleware/authMiddleware.js';
 import { fileUpload } from '../middleware/fileUpload.js';
 
 const router = Router();
+
+// Get student's assigned batch information
+router.get('/batch', authenticate, authorizeStudent, getStudentBatch);
 
 // View profile
 router.get('/:id/profile', authenticate, authorizeStudent, getProfile);

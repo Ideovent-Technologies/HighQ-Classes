@@ -95,11 +95,9 @@ export const getAssignments = async (req, res) => {
 
         // For students, only show assignments for their batches
         if (req.user.role === 'student') {
-            // Get student's batch from their profile
-            const student = await Student.findOne({ user: req.user._id });
-
-            if (student && student.batch) {
-                filter.batch = student.batch;
+            // Get student's batch directly from user (student document)
+            if (req.user.batch) {
+                filter.batch = req.user.batch;
             } else {
                 return res.status(400).json({
                     success: false,

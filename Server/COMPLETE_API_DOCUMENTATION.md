@@ -1009,7 +1009,7 @@ profilePic: <image_file>
 
 ### 2. Get All Batches
 
-**GET** `/api/batch`
+**GET** `/api/batches`
 
 **Access**: Private (All roles)
 

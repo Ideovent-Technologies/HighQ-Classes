@@ -29,6 +29,7 @@ import {
 import { StudentUser, StudentDashboardData } from "@/types/student.types";
 import { studentService } from "@/API/services/studentService";
 import { Link } from "react-router-dom";
+import { useBatchInfo } from "@/hooks/useBatch";
 
 interface DashboardStats {
     totalCourses: number;
@@ -50,6 +51,14 @@ const StudentDashboard: React.FC = () => {
         useState<StudentDashboardData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    // Get batch information
+    const {
+        batchInfo,
+        loading: batchLoading,
+        error: batchError,
+        isAssigned,
+    } = useBatchInfo();
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -273,6 +282,122 @@ const StudentDashboard: React.FC = () => {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Batch Information Section */}
+            {isAssigned && batchInfo && (
+                <Card className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
+                    <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                            <div className="flex items-center">
+                                <GraduationCap className="h-6 w-6 mr-2" />
+                                Your Batch: {batchInfo.name}
+                            </div>
+                            <Link to="/student/batch">
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    className="text-purple-700"
+                                >
+                                    View Details
+                                </Button>
+                            </Link>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div className="bg-white/10 rounded-lg p-4">
+                                <p className="text-indigo-200 text-sm">
+                                    Course
+                                </p>
+                                <p className="font-semibold">
+                                    {batchInfo.course.name}
+                                </p>
+                            </div>
+                            <div className="bg-white/10 rounded-lg p-4">
+                                <p className="text-indigo-200 text-sm">
+                                    Teacher
+                                </p>
+                                <p className="font-semibold">
+                                    {batchInfo.teacher.name}
+                                </p>
+                            </div>
+                            <div className="bg-white/10 rounded-lg p-4">
+                                <p className="text-indigo-200 text-sm">
+                                    Schedule
+                                </p>
+                                <p className="font-semibold text-sm">
+                                    {batchInfo.schedule.days.join(", ")}
+                                </p>
+                                <p className="text-indigo-200 text-xs">
+                                    {batchInfo.schedule.startTime} -{" "}
+                                    {batchInfo.schedule.endTime}
+                                </p>
+                            </div>
+                            <div className="bg-white/10 rounded-lg p-4">
+                                <p className="text-indigo-200 text-sm">
+                                    Students
+                                </p>
+                                <p className="font-semibold">
+                                    {batchInfo.totalStudents}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-4 flex gap-3">
+                            <Link to="/student/materials">
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    className="text-purple-700"
+                                >
+                                    <BookOpen className="h-4 w-4 mr-2" />
+                                    Materials
+                                </Button>
+                            </Link>
+                            <Link to="/student/recordings">
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    className="text-purple-700"
+                                >
+                                    <Video className="h-4 w-4 mr-2" />
+                                    Recordings
+                                </Button>
+                            </Link>
+                            <Link to="/student/assignments">
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    className="text-purple-700"
+                                >
+                                    <FileText className="h-4 w-4 mr-2" />
+                                    Assignments
+                                </Button>
+                            </Link>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* No Batch Alert */}
+            {!batchLoading && !isAssigned && (
+                <Card className="border-orange-200 bg-orange-50">
+                    <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                            <AlertCircle className="h-6 w-6 text-orange-600" />
+                            <div>
+                                <h3 className="font-semibold text-orange-900">
+                                    Not Assigned to Batch
+                                </h3>
+                                <p className="text-orange-700 text-sm">
+                                    You haven't been assigned to any batch yet.
+                                    Please contact your administrator.
+                                </p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

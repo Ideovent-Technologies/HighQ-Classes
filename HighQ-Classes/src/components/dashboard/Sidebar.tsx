@@ -112,6 +112,7 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
     ];
 
     const studentItems = [
+        createNavItem("/student/batch", GraduationCap, "My Batch"),
         createNavItem("/student/materials", FileText, "Study Materials"),
         createNavItem("/student/classes", BookOpen, "My Classes"),
         createNavItem("/student/recordings", FileText, "Video Lectures"),

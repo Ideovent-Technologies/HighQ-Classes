@@ -360,3 +360,93 @@ export const changePassword = async (req, res) => {
     });
   }
 };
+
+// GET /api/student/batch
+export const getStudentBatch = async (req, res) => {
+  try {
+    const studentId = req.user.id; // Get from authenticated user
+
+    // Find student and populate batch with detailed information
+    const student = await Student.findById(studentId)
+      .populate({
+        path: 'batch',
+        populate: [
+          {
+            path: 'courseId',
+            select: 'name description duration instructor topics'
+          },
+          {
+            path: 'teacherId',
+            select: 'name email employeeId qualification specialization profilePicture'
+          },
+          {
+            path: 'students',
+            select: 'name email grade profilePicture'
+          }
+        ]
+      });
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student not found'
+      });
+    }
+
+    if (!student.batch) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student is not assigned to any batch'
+      });
+    }
+
+    const batch = student.batch;
+
+    // Format the response
+    const batchInfo = {
+      _id: batch._id,
+      name: batch.name,
+      course: {
+        _id: batch.courseId._id,
+        name: batch.courseId.name,
+        description: batch.courseId.description,
+        duration: batch.courseId.duration,
+        instructor: batch.courseId.instructor,
+        topics: batch.courseId.topics || []
+      },
+      teacher: {
+        _id: batch.teacherId._id,
+        name: batch.teacherId.name,
+        email: batch.teacherId.email,
+        employeeId: batch.teacherId.employeeId,
+        qualification: batch.teacherId.qualification,
+        specialization: batch.teacherId.specialization,
+        profilePicture: batch.teacherId.profilePicture
+      },
+      students: batch.students.map(student => ({
+        _id: student._id,
+        name: student.name,
+        email: student.email,
+        grade: student.grade,
+        profilePicture: student.profilePicture
+      })),
+      schedule: batch.schedule,
+      startDate: batch.startDate,
+      endDate: batch.endDate,
+      totalStudents: batch.students.length,
+      isActive: batch.status === 'active'
+    };
+
+    res.status(200).json({
+      success: true,
+      batch: batchInfo
+    });
+
+  } catch (error) {
+    console.error("Get student batch error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching batch information"
+    });
+  }
+};
