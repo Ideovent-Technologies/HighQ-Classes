@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAssignments } from "@/hooks/useAssignments";
 import { useTeacherAssignments } from "@/hooks/useTeacherAssignments";
-import { useSubmissions } from "@/hooks/useTeacherSubmissions"; // Import the new hook
+import { useSubmissions } from "@/hooks/useTeacherSubmissions";
 import { toast } from "@/hooks/use-toast";
 import {
   FaTrashAlt,
@@ -11,8 +11,6 @@ import {
   FaListAlt,
 } from "react-icons/fa";
 
-// Note: Interfaces are defined here to match the data structure from the hooks.
-// Assuming your useAssignments hook provides these populated types.
 interface Course {
   _id: string;
   name: string;
@@ -39,7 +37,6 @@ export default function TeacherAssignments() {
     "create" | "assignments" | "reports"
   >("create");
 
-  // Use the existing assignment hooks
   const {
     assignments,
     loading,
@@ -55,16 +52,13 @@ export default function TeacherAssignments() {
     error: assignmentsError,
   } = useTeacherAssignments();
 
-  // Use the new useSubmissions hook for reports
   const {
     submissions,
     loading: submissionsLoading,
     error: submissionsError,
     fetchSubmissionsByTeacher,
-    gradeSubmission,
   } = useSubmissions();
 
-  // Fetch submissions when the reports tab becomes active
   useEffect(() => {
     if (activeTab === "reports") {
       fetchSubmissionsByTeacher();
@@ -123,14 +117,13 @@ export default function TeacherAssignments() {
         totalMarks: "",
         file: null,
       });
-      setActiveTab("assignments"); // Switch to assignments tab after creation
+      setActiveTab("assignments");
     } else {
       toast({ title: "Failed to create assignment", variant: "destructive" });
     }
   };
 
   const handleDelete = async (id: string) => {
-    // A custom confirmation modal should be used here instead of window.confirm
     if (window.confirm("Are you sure you want to delete this assignment?")) {
       const res = await deleteAssignment(id);
       if (res.success) {
@@ -144,59 +137,55 @@ export default function TeacherAssignments() {
   const combinedLoading = loading || assignmentsLoading;
 
   return (
-    <div className="max-w-7xl mx-auto p-6 bg-gray-100 min-h-screen font-sans">
+    <div className="max-w-7xl mx-auto p-8 bg-gradient-to-tr from-indigo-50 via-white to-indigo-50 min-h-screen font-sans text-gray-900">
       {/* Tabs */}
-      <div className="flex space-x-4 mb-6 border-b border-gray-300">
-        <button
-          className={`px-4 py-2 font-semibold border-b-2 ${
-            activeTab === "create"
-              ? "border-blue-600 text-blue-600"
-              : "border-transparent"
-          }`}
-          onClick={() => setActiveTab("create")}
-        >
-          <FaUpload className="inline mr-2" /> Create Assignment
-        </button>
-        <button
-          className={`px-4 py-2 font-semibold border-b-2 ${
-            activeTab === "assignments"
-              ? "border-blue-600 text-blue-600"
-              : "border-transparent"
-          }`}
-          onClick={() => setActiveTab("assignments")}
-        >
-          <FaListAlt className="inline mr-2" /> All Assignments
-        </button>
-        <button
-          className={`px-4 py-2 font-semibold border-b-2 ${
-            activeTab === "reports"
-              ? "border-blue-600 text-blue-600"
-              : "border-transparent"
-          }`}
-          onClick={() => setActiveTab("reports")}
-        >
-          📊 Student Submissions
-        </button>
+      <div className="flex space-x-6 mb-8 border-b border-indigo-300">
+        {["create", "assignments", "reports"].map((tab) => {
+          const isActive = activeTab === tab;
+          const labels = {
+            create: "Create Assignment",
+            assignments: "All Assignments",
+            reports: "Student Submissions",
+          };
+          const icons = {
+            create: <FaUpload />,
+            assignments: <FaListAlt />,
+            reports: <span role="img" aria-label="chart">📊</span>,
+          };
+          return (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab as typeof activeTab)}
+              className={`flex items-center space-x-2 px-6 py-3 text-lg font-semibold rounded-t-lg transition-all duration-300
+                ${
+                  isActive
+                    ? "bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-400/30"
+                    : "text-indigo-600 hover:text-indigo-900 hover:bg-indigo-100"
+                }`}
+            >
+              <span className="text-xl">{icons[tab]}</span>
+              <span>{labels[tab]}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Tab Panels */}
+      {/* Create Tab */}
       {activeTab === "create" && (
-        <div className="bg-white p-6 rounded-xl shadow-lg">
-          {/* Create Assignment Form (same as before) */}
-          <h1 className="text-2xl font-bold mb-4 flex items-center">
-            <FaUpload className="mr-3 text-blue-600" /> Create New Assignment
+        <div className="bg-white p-8 rounded-xl shadow-xl max-w-3xl mx-auto">
+          <h1 className="text-3xl font-extrabold mb-6 text-indigo-700 flex items-center space-x-3">
+            <FaUpload className="text-indigo-500" />
+            <span>Create New Assignment</span>
           </h1>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* ... your form inputs same as before ... */}
-            {/* For brevity, you can paste your form inputs here */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <input
                 type="text"
                 name="title"
                 placeholder="Assignment Title"
                 value={form.title}
                 onChange={handleInputChange}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-800"
+                className="w-full px-5 py-3 border border-indigo-300 rounded-lg focus:outline-none focus:ring-4 focus:ring-indigo-300 text-lg font-medium transition"
                 required
               />
               <input
@@ -204,7 +193,7 @@ export default function TeacherAssignments() {
                 name="dueDate"
                 value={form.dueDate}
                 onChange={handleInputChange}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-800"
+                className="w-full px-5 py-3 border border-indigo-300 rounded-lg focus:outline-none focus:ring-4 focus:ring-indigo-300 text-lg font-medium transition"
                 required
               />
             </div>
@@ -214,19 +203,21 @@ export default function TeacherAssignments() {
               placeholder="Description (Optional)"
               value={form.description}
               onChange={handleInputChange}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 resize-none text-gray-800"
-              rows={2}
+              rows={3}
+              className="w-full px-5 py-3 border border-indigo-300 rounded-lg resize-none focus:outline-none focus:ring-4 focus:ring-indigo-300 text-lg font-medium transition"
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <select
                 name="batchId"
                 value={form.batchId}
                 onChange={handleInputChange}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-800"
+                className="w-full px-5 py-3 border border-indigo-300 rounded-lg focus:outline-none focus:ring-4 focus:ring-indigo-300 text-lg font-medium transition"
                 required
               >
-                <option value="">Select Batch</option>
+                <option value="" disabled>
+                  Select Batch
+                </option>
                 {assignedBatches.map((batch) => (
                   <option key={batch._id} value={batch._id}>
                     {batch.name}
@@ -238,10 +229,12 @@ export default function TeacherAssignments() {
                 name="courseId"
                 value={form.courseId}
                 onChange={handleInputChange}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-800"
+                className="w-full px-5 py-3 border border-indigo-300 rounded-lg focus:outline-none focus:ring-4 focus:ring-indigo-300 text-lg font-medium transition"
                 required
               >
-                <option value="">Select Course</option>
+                <option value="" disabled>
+                  Select Course
+                </option>
                 {assignedCourses.map((course) => (
                   <option key={course._id} value={course._id}>
                     {course.name}
@@ -255,75 +248,86 @@ export default function TeacherAssignments() {
                 placeholder="Total Marks (optional)"
                 value={form.totalMarks}
                 onChange={handleInputChange}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-gray-800"
+                className="w-full px-5 py-3 border border-indigo-300 rounded-lg focus:outline-none focus:ring-4 focus:ring-indigo-300 text-lg font-medium transition"
                 min={0}
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+            {/* Drag and drop style file upload */}
+            <div className="border-2 border-dashed border-indigo-400 rounded-lg p-6 text-center cursor-pointer hover:bg-indigo-50 transition relative">
+              <label
+                htmlFor="file"
+                className="block text-indigo-700 font-semibold mb-2 cursor-pointer"
+              >
                 Upload File (optional)
               </label>
               <input
+                id="file"
                 type="file"
                 name="file"
                 accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar,.txt"
                 onChange={handleInputChange}
-                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
               />
+              <p className="text-indigo-500 text-sm select-none">
+                {form.file ? form.file.name : "Click or drag file to upload"}
+              </p>
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 px-4 rounded-md text-white font-semibold flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700"
+              className="w-full py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-700 text-white text-xl font-extrabold tracking-wide shadow-lg hover:scale-[1.03] transform transition"
             >
-              <FaUpload />
-              <span>Create Assignment</span>
+              <div className="flex items-center justify-center space-x-3">
+                <FaUpload className="text-2xl" />
+                <span>Create Assignment</span>
+              </div>
             </button>
           </form>
         </div>
       )}
 
+      {/* Assignments Tab */}
       {activeTab === "assignments" && (
-        <div className="bg-white p-6 rounded-xl shadow-lg">
-          <h2 className="text-2xl font-bold mb-6">Your Assignments</h2>
+        <div className="bg-white p-8 rounded-xl shadow-xl max-w-5xl mx-auto">
+          <h2 className="text-3xl font-extrabold mb-8 text-indigo-700">Your Assignments</h2>
 
           {combinedLoading ? (
-            <div className="flex justify-center items-center">
-              <FaSpinner className="animate-spin text-4xl text-blue-500" />
-              <p className="ml-4">Loading assignments...</p>
+            <div className="flex justify-center items-center space-x-4">
+              <FaSpinner className="animate-spin text-indigo-600 text-5xl" />
+              <p className="text-indigo-600 text-xl font-semibold">Loading assignments...</p>
             </div>
           ) : error ? (
-            <p className="text-red-600">{error}</p>
+            <p className="text-red-600 text-lg font-medium">{error}</p>
           ) : assignments.length === 0 ? (
-            <div className="text-center p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
-              <FaFileAlt className="text-5xl text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">No assignments found.</p>
+            <div className="text-center p-12 bg-indigo-50 rounded-2xl border-2 border-dashed border-indigo-300">
+              <FaFileAlt className="text-7xl text-indigo-300 mx-auto mb-6" />
+              <p className="text-indigo-400 text-xl font-semibold">No assignments found.</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {assignments.map((a: AssignmentWithDetails) => (
                 <div
                   key={a._id}
-                  className="bg-gray-50 p-4 rounded-lg shadow hover:shadow-lg flex justify-between items-center"
+                  className="bg-indigo-50 rounded-xl shadow-md p-6 flex justify-between items-center space-x-6 transition-transform hover:shadow-xl hover:scale-[1.02]"
                 >
-                  <div>
-                    <h3 className="font-semibold text-lg">{a.title}</h3>
-                    <p className="text-sm text-gray-600 truncate max-w-md">
-                      {a.description}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Batch: {a.batch?.name || "N/A"} | Course:{" "}
-                      {a.course?.name || "N/A"} | Due:{" "}
-                      {a.dueDate ? new Date(a.dueDate).toLocaleDateString() : "N/A"}
+                  <div className="flex flex-col space-y-1 max-w-4xl">
+                    <h3 className="font-extrabold text-indigo-800 text-2xl truncate">{a.title}</h3>
+                    <p className="text-indigo-600 text-base line-clamp-2">{a.description || "No description provided."}</p>
+                    <p className="text-indigo-400 text-sm font-semibold mt-1">
+                      Batch: <span className="text-indigo-700">{a.batch?.name || "N/A"}</span> | Course:{" "}
+                      <span className="text-indigo-700">{a.course?.name || "N/A"}</span> | Due:{" "}
+                      <span className="text-indigo-700">{a.dueDate ? new Date(a.dueDate).toLocaleDateString() : "N/A"}</span>
                     </p>
                   </div>
                   <button
                     onClick={() => handleDelete(a._id)}
-                    className="text-red-600 hover:text-red-800 flex items-center space-x-1"
+                    className="text-red-600 hover:text-red-800 flex items-center space-x-2 text-lg font-semibold transition-transform hover:scale-110"
+                    aria-label={`Delete assignment ${a.title}`}
+                    title="Delete assignment"
                   >
                     <FaTrashAlt />
-                    <span className="text-sm font-medium">Delete</span>
+                    <span>Delete</span>
                   </button>
                 </div>
               ))}
@@ -332,79 +336,76 @@ export default function TeacherAssignments() {
         </div>
       )}
 
+      {/* Reports Tab */}
       {activeTab === "reports" && (
-        <div className="bg-white p-6 rounded-xl shadow-lg">
-          <h2 className="text-2xl font-bold mb-6">Student Submission Reports</h2>
+        <div className="bg-white p-8 rounded-xl shadow-xl max-w-6xl mx-auto">
+          <h2 className="text-3xl font-extrabold mb-8 text-indigo-700">Student Submission Reports</h2>
           {submissionsLoading ? (
-            <div className="flex justify-center items-center">
-              <FaSpinner className="animate-spin text-4xl text-blue-500" />
-              <p className="ml-4">Loading submissions...</p>
+            <div className="flex justify-center items-center space-x-4">
+              <FaSpinner className="animate-spin text-indigo-600 text-5xl" />
+              <p className="text-indigo-600 text-xl font-semibold">Loading submissions...</p>
             </div>
           ) : submissionsError ? (
-            <p className="text-red-600">{submissionsError}</p>
+            <p className="text-red-600 text-lg font-semibold">{submissionsError}</p>
           ) : submissions.length === 0 ? (
-            <div className="text-center p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
-              <FaFileAlt className="text-5xl text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">No submissions found.</p>
+            <div className="text-center p-12 bg-indigo-50 rounded-2xl border-2 border-dashed border-indigo-300">
+              <FaFileAlt className="text-7xl text-indigo-300 mx-auto mb-6" />
+              <p className="text-indigo-400 text-xl font-semibold">No submissions found.</p>
             </div>
           ) : (
-            <table className="w-full table-auto border-collapse border border-gray-300">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border border-gray-300 p-2 text-left">
-                    Student
-                  </th>
-                  <th className="border border-gray-300 p-2 text-left">
-                    Assignment
-                  </th>
-                  <th className="border border-gray-300 p-2 text-left">
-                    Submitted At
-                  </th>
-                  <th className="border border-gray-300 p-2 text-left">
-                    Grade
-                  </th>
-                  <th className="border border-gray-300 p-2 text-left">
-                    Status
-                  </th>
-                  <th className="border border-gray-300 p-2 text-left">File</th>
-                </tr>
-              </thead>
-              <tbody>
-                {submissions.map((sub) => (
-                  <tr key={sub._id} className="hover:bg-gray-50">
-                    <td className="border border-gray-300 p-2">
-                      {sub.student?.name}
-                    </td>
-                    <td className="border border-gray-300 p-2">
-                      {sub.assignment?.title}
-                    </td>
-                    <td className="border border-gray-300 p-2">
-                      {new Date(sub.submittedAt).toLocaleString()}
-                    </td>
-                    <td className="border border-gray-300 p-2">
-                      {sub.grade ?? "-"}
-                    </td>
-                    <td className="border border-gray-300 p-2">
-                      {sub.status ?? "-"}
-                    </td>
-                    <td className="border border-gray-300 p-2">
-                      {sub.fileUrl ? (
-                        <a
-                          href={sub.fileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
-                        >
-                          View File
-                        </a>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
+            <div className="overflow-x-auto rounded-lg shadow-lg border border-indigo-300">
+              <table className="min-w-full divide-y divide-indigo-200 table-fixed">
+                <thead className="bg-indigo-100">
+                  <tr>
+                    {[
+                      "Student",
+                      "Assignment",
+                      "Submitted At",
+                      "Grade",
+                      "Status",
+                      "File",
+                    ].map((header) => (
+                      <th
+                        key={header}
+                        className="px-6 py-3 text-left text-indigo-700 font-semibold text-lg select-none"
+                      >
+                        {header}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-indigo-100">
+                  {submissions.map((sub) => (
+                    <tr
+                      key={sub._id}
+                      className="hover:bg-indigo-50 transition-colors duration-200"
+                    >
+                      <td className="px-6 py-4 truncate max-w-xs">{sub.student?.name}</td>
+                      <td className="px-6 py-4 truncate max-w-xs">{sub.assignment?.title}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {new Date(sub.submittedAt).toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 text-center">{sub.grade ?? "-"}</td>
+                      <td className="px-6 py-4 text-center">{sub.status ?? "-"}</td>
+                      <td className="px-6 py-4 text-center">
+                        {sub.fileUrl ? (
+                          <a
+                            href={sub.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-indigo-600 font-semibold hover:underline"
+                          >
+                            View File
+                          </a>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}
