@@ -263,6 +263,16 @@ export const getAttendanceRecords = async (req, res) => {
 
     const teacherId = req.user._id;
 
+    console.log("🔍 Teacher requesting attendance records:", {
+      teacherId,
+      batchId,
+      startDate,
+      endDate,
+      status,
+      page,
+      limit
+    });
+
     // Build filter query
     const filter = {
       markedBy: teacherId, // Only show records marked by this teacher
@@ -280,6 +290,8 @@ export const getAttendanceRecords = async (req, res) => {
       if (endDate) filter.date.$lte = new Date(endDate);
     }
 
+    console.log("🔍 Final filter query:", filter);
+
     // Pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const limitNum = parseInt(limit);
@@ -295,6 +307,12 @@ export const getAttendanceRecords = async (req, res) => {
 
     // Get total count for pagination
     const totalRecords = await Attendance.countDocuments(filter);
+
+    console.log("📊 Query results:", {
+      recordsFound: records.length,
+      totalRecords,
+      sampleRecord: records[0] || "No records found"
+    });
 
     res.json({
       success: true,

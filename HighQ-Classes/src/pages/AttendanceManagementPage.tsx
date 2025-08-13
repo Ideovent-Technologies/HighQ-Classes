@@ -205,6 +205,13 @@ const AttendanceManagementPage: React.FC<AttendanceManagementPageProps> = ({
 
         setLoading(true);
         try {
+            console.log("🔍 Fetching attendance records with filters:", {
+                batchId: selectedBatch,
+                ...filters,
+                page: 1,
+                limit: 50,
+            });
+
             const raw: any = await AttendanceService.getAttendanceRecords({
                 batchId: selectedBatch,
                 ...filters,
@@ -212,12 +219,42 @@ const AttendanceManagementPage: React.FC<AttendanceManagementPageProps> = ({
                 limit: 50,
             });
 
-            // common shapes: { success, data: { records: [...] } } || { data: [...] } || [...]
-            const records =
-                raw?.data?.records ?? raw?.data ?? raw?.records ?? raw ?? [];
+            console.log("📥 Raw attendance records response:", raw);
+
+            // Check if the response has the expected structure
+            console.log("🔍 Response structure analysis:", {
+                hasSuccess: "success" in raw,
+                hasData: "data" in raw,
+                hasRecords: raw?.data && "records" in raw.data,
+                successValue: raw?.success,
+                dataType: typeof raw?.data,
+                dataKeys: raw?.data ? Object.keys(raw.data) : "no data",
+            });
+
+            // The service wraps the response, so we need to unwrap it properly
+            // Structure: { success: true, data: { success: true, data: { records: [...] } } }
+            const unwrappedData = raw?.data?.data || raw?.data || raw;
+            const records = unwrappedData?.records || unwrappedData || [];
+
+            console.log("📋 Unwrapped data:", unwrappedData);
+            console.log("📋 Processed records:", records);
+            console.log(
+                "📋 Records count:",
+                Array.isArray(records) ? records.length : "not array"
+            );
+            console.log("📋 First record sample:", records[0]);
+
             setAttendanceRecords(Array.isArray(records) ? records : []);
+
+            if (records.length === 0) {
+                setMessage({
+                    type: "error",
+                    text: "No attendance records found for the selected criteria. Make sure you have marked attendance for this batch first.",
+                });
+                setTimeout(() => setMessage(null), 5000);
+            }
         } catch (error) {
-            // console.error("Error fetching attendance records:", error);
+            console.error("❌ Error fetching attendance records:", error);
             setAttendanceRecords([]);
             setMessage({
                 type: "error",
@@ -676,64 +713,132 @@ const AttendanceManagementPage: React.FC<AttendanceManagementPageProps> = ({
                             </div>
 
                             <div className="overflow-x-auto">
-                                <table className="w-full border-collapse border border-gray-300">
-                                    <thead>
-                                        <tr className="bg-gray-50">
-                                            <th className="border border-gray-300 p-3 text-left">
-                                                Student
-                                            </th>
-                                            <th className="border border-gray-300 p-3 text-left">
-                                                Date
-                                            </th>
-                                            <th className="border border-gray-300 p-3 text-left">
-                                                Status
-                                            </th>
-                                            <th className="border border-gray-300 p-3 text-left">
-                                                Notes
-                                            </th>
-                                            <th className="border border-gray-300 p-3 text-left">
-                                                Marked By
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {attendanceRecords.map((record) => (
-                                            <tr key={record._id}>
-                                                <td className="border border-gray-300 p-3">
-                                                    {record.student?.name ||
-                                                        "Unknown Student"}
-                                                </td>
-                                                <td className="border border-gray-300 p-3">
-                                                    {format(
-                                                        new Date(record.date),
-                                                        "MMM dd, yyyy"
-                                                    )}
-                                                </td>
-                                                <td className="border border-gray-300 p-3">
-                                                    <Badge
-                                                        className={getStatusColor(
-                                                            record.status
-                                                        )}
-                                                    >
-                                                        {getStatusIcon(
-                                                            record.status
-                                                        )}
-                                                        <span className="ml-1 capitalize">
-                                                            {record.status}
-                                                        </span>
-                                                    </Badge>
-                                                </td>
-                                                <td className="border border-gray-300 p-3">
-                                                    {record.notes || "-"}
-                                                </td>
-                                                <td className="border border-gray-300 p-3">
-                                                    {record.markedBy?.name ||
-                                                        "System"}
-                                                </td>
+                                {attendanceRecords.length === 0 ? (
+                                    <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                                        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 mb-4">
+                                            <AlertCircle className="h-6 w-6 text-gray-600" />
+                                        </div>
+                                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                            No Attendance Records Found
+                                        </h3>
+                                        <p className="text-gray-600 mb-4">
+                                            No attendance records match your
+                                            current filters. This could be
+                                            because:
+                                        </p>
+                                        <ul className="text-left text-sm text-gray-600 mb-6 max-w-md mx-auto space-y-1">
+                                            <li>
+                                                • No attendance has been marked
+                                                for this batch yet
+                                            </li>
+                                            <li>
+                                                • The date range doesn't include
+                                                any marked attendance
+                                            </li>
+                                            <li>
+                                                • The selected batch has no
+                                                students enrolled
+                                            </li>
+                                        </ul>
+                                        <div className="space-y-2">
+                                            <p className="text-sm text-gray-600 mb-4">
+                                                Try marking attendance first,
+                                                then viewing the records.
+                                            </p>
+                                            <Button
+                                                onClick={() =>
+                                                    setActiveTab("mark")
+                                                }
+                                                className="mr-2"
+                                            >
+                                                Go to Mark Attendance
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => {
+                                                    setFilters({
+                                                        startDate: "",
+                                                        endDate: "",
+                                                        status: "",
+                                                        studentId: "",
+                                                    });
+                                                    fetchAttendanceRecords();
+                                                }}
+                                            >
+                                                Clear Filters & Retry
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <table className="w-full border-collapse border border-gray-300">
+                                        <thead>
+                                            <tr className="bg-gray-50">
+                                                <th className="border border-gray-300 p-3 text-left">
+                                                    Student
+                                                </th>
+                                                <th className="border border-gray-300 p-3 text-left">
+                                                    Date
+                                                </th>
+                                                <th className="border border-gray-300 p-3 text-left">
+                                                    Status
+                                                </th>
+                                                <th className="border border-gray-300 p-3 text-left">
+                                                    Notes
+                                                </th>
+                                                <th className="border border-gray-300 p-3 text-left">
+                                                    Marked By
+                                                </th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            {attendanceRecords.map((record) => (
+                                                <tr key={record._id}>
+                                                    <td className="border border-gray-300 p-3">
+                                                        {record.studentId
+                                                            ?.name ||
+                                                            record.student
+                                                                ?.name ||
+                                                            "Unknown Student"}
+                                                    </td>
+                                                    <td className="border border-gray-300 p-3">
+                                                        {format(
+                                                            new Date(
+                                                                record.date
+                                                            ),
+                                                            "MMM dd, yyyy"
+                                                        )}
+                                                    </td>
+                                                    <td className="border border-gray-300 p-3">
+                                                        <Badge
+                                                            className={getStatusColor(
+                                                                record.status
+                                                            )}
+                                                        >
+                                                            {getStatusIcon(
+                                                                record.status
+                                                            )}
+                                                            <span className="ml-1 capitalize">
+                                                                {record.status}
+                                                            </span>
+                                                        </Badge>
+                                                    </td>
+                                                    <td className="border border-gray-300 p-3">
+                                                        {record.notes || "-"}
+                                                    </td>
+                                                    <td className="border border-gray-300 p-3">
+                                                        {record.markedBy
+                                                            ?.name ||
+                                                            (typeof record.markedBy ===
+                                                            "string"
+                                                                ? record.markedBy
+                                                                : null) ||
+                                                            "System"}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
