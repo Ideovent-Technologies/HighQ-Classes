@@ -15,6 +15,7 @@ export default function FeeStatus() {
       try {
         const data = await getAllFees(); // ✅ Now works
         setFees(data);
+        console.log("Fetched fees:", data); 
       } catch (error) {
         console.error("Failed to load fees:", error);
       } finally {
