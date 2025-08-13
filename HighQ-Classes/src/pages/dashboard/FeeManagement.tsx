@@ -27,6 +27,7 @@ import {
 import { Input } from "@/components/ui/input";
 import AdminService from "@/API/services/AdminService";
 import { useToast } from "@/hooks/use-toast";
+import { useFeeService } from "@/API/services/feeService";
 
 interface Student {
     _id: string;
@@ -56,6 +57,8 @@ const FeeManagement: React.FC = () => {
     useEffect(() => {
         fetchStudents();
     }, []);
+
+   
 
     const fetchStudents = async () => {
         setLoading(true);
