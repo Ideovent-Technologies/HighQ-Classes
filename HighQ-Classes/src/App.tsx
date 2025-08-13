@@ -49,7 +49,7 @@ import AdminFeeDashboard from "@/modules/fees/AdminFeeDashboard";
 import BatchDetails from "./components/dashboard/batch/BatchDetsils";
 import StudentDashboardTest from "@/components/debug/StudentDashboardTest";
 import ComprehensiveTest from "@/components/debug/ComprehensiveTest";
-import BatchForm from "@/components/dashboard/batch/BatchForm";
+
 
 // Import Attendance and Assignment Management pages
 import AttendanceManagementPage from "@/pages/AttendanceManagementPage";
