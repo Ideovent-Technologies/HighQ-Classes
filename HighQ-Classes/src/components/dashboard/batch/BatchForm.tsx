@@ -96,6 +96,8 @@ const BatchForm: React.FC<BatchFormProps> = ({ initialData, onSubmit, isSubmitti
                     teacherService.getAllTeachers(),
                     AdminService.getAllStudents(),
                 ]);
+                console.log("studentsData", studentsData);
+            
 
                 setCourses(coursesData.courses || []);
                 setTeachers(teachersData.teachers || []);
@@ -334,7 +336,7 @@ const BatchForm: React.FC<BatchFormProps> = ({ initialData, onSubmit, isSubmitti
                                         <Input placeholder="Search students..." value={studentSearch} onChange={(e) => setStudentSearch(e.target.value)} />
                                     </div>
                                     {isLoadingResources ? (
-                                        <SelectItem value="" disabled>Loading students...</SelectItem>
+                                        <SelectItem value="loading" disabled>Loading students...</SelectItem>
                                     ) : filteredStudents.length > 0 ? (
                                         filteredStudents.map((student) => (
                                             <SelectItem key={student._id} value={student._id}>
@@ -342,7 +344,7 @@ const BatchForm: React.FC<BatchFormProps> = ({ initialData, onSubmit, isSubmitti
                                             </SelectItem>
                                         ))
                                     ) : (
-                                        <p className="p-4 text-center text-sm">No matching students found.</p>
+                                        <SelectItem value="none" disabled>No matching students found.</SelectItem>
                                     )}
                                 </SelectContent>
                             </Select>

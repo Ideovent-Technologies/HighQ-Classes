@@ -17,6 +17,8 @@ import {
     CreateUser,
     getAdminProfile,
     syncRelations, // <-- added
+    changeUserStatus,
+    getPendingApprovals // <-- added
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -32,6 +34,7 @@ router.get("/profile", getAdminProfile);
 // Users
 router.post("/user", validateAdminCreateUser, CreateUser); // ✅ new
 router.put("/user/:id", updateUser);
+router.patch('/user/:id/status', changeUserStatus);
 router.delete("/user/:id", deleteUser);
 
 // Students
@@ -52,5 +55,8 @@ router.post("/announcement", createAnnouncement);
 // One-off sync endpoint (admin only) — backfill Teacher.courseIds, Teacher.batches, Course.batches
 // Use with caution; it's idempotent (uses $addToSet) and accepts optional ?limit=100
 router.post("/sync/relations", syncRelations);
+
+// Pending approvals
+router.get('/pending-approvals', getPendingApprovals);
 
 export default router;
