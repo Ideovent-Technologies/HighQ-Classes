@@ -2,7 +2,7 @@
 
 ## 🎯 API Overview
 
-**Total Endpoints**: 91  
+**Total Endpoints**: 93  
 **Base URL**: `http://localhost:5000/api`  
 **Authentication**: JWT Bearer Token  
 **Response Format**: JSON
@@ -24,7 +24,7 @@
 | Schedule Management   | 2         | Teacher schedule management                   |
 | Batch Management      | 7         | Batch operations, student assignments         |
 | Fee Management        | 7         | Fee creation, payment processing              |
-| Contact Management    | 1         | Contact form submissions                      |
+| Contact Management    | 3         | Contact form, admin message management        |
 
 ## Table of Contents
 
@@ -3314,6 +3314,8 @@ remarks: "Completed all problems as requested"
 
 **Access**: Public (No authentication required)
 
+**Description**: Submit a contact message to the admin team. Automatically sends confirmation email to user and notification email to admin.
+
 **Headers**: `Content-Type: application/json`
 
 **Request Body**:
@@ -3322,29 +3324,302 @@ remarks: "Completed all problems as requested"
 {
     "name": "John Doe",
     "email": "john@example.com",
-    "phone": "1234567890",
-    "subject": "Inquiry about courses",
-    "message": "I would like to know more about your physics courses."
+    "message": "I would like to know more about your physics courses and enrollment process."
 }
 ```
 
-**Response**:
+**Validation Rules**:
+
+-   `name`: Required, string, trimmed
+-   `email`: Required, valid email format, lowercase
+-   `message`: Required, string, trimmed
+
+**Success Response** (200):
 
 ```json
 {
     "success": true,
-    "message": "Contact message sent successfully. We will get back to you soon."
+    "message": "Message sent successfully! We'll get back to you soon.",
+    "messageId": "64f8b123456789abcdef0123"
 }
 ```
 
-**Error Response**:
+**Error Response** (400):
 
 ```json
 {
     "success": false,
-    "message": "Failed to send message. Please try again later."
+    "message": "All fields are required (name, email, message)"
 }
 ```
+
+**Error Response** (400 - Invalid Email):
+
+```json
+{
+    "success": false,
+    "message": "Please provide a valid email address"
+}
+```
+
+**Error Response** (500):
+
+```json
+{
+    "success": false,
+    "message": "Something went wrong. Please try again."
+}
+```
+
+---
+
+### 2. Get Contact Messages (Admin Only)
+
+**GET** `/api/contact/messages`
+
+**Access**: Private (Admin only)
+
+**Authentication**: Bearer Token required
+
+**Headers**:
+
+```
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+**Query Parameters**:
+
+-   `page` (optional): Page number for pagination (default: 1)
+-   `limit` (optional): Number of messages per page (default: 10, max: 50)
+-   `status` (optional): Filter by status (`all`, `unread`, `read`, `replied`) (default: `all`)
+
+**Example Request**:
+
+```
+GET /api/contact/messages?page=1&limit=10&status=unread
+```
+
+**Success Response** (200):
+
+```json
+{
+    "success": true,
+    "data": [
+        {
+            "_id": "64f8b123456789abcdef0123",
+            "name": "John Doe",
+            "email": "john@example.com",
+            "message": "I would like to know more about your physics courses.",
+            "status": "unread",
+            "priority": "medium",
+            "category": "general",
+            "createdAt": "2025-08-13T10:30:00.000Z",
+            "updatedAt": "2025-08-13T10:30:00.000Z",
+            "formattedDate": "August 13, 2025 at 10:30 AM"
+        },
+        {
+            "_id": "64f8b123456789abcdef0124",
+            "name": "Jane Smith",
+            "email": "jane@example.com",
+            "message": "Having trouble accessing my student dashboard.",
+            "status": "replied",
+            "priority": "high",
+            "category": "technical",
+            "adminReply": "Hi Jane, I've reset your account. Please try logging in again.",
+            "repliedBy": "64f8b123456789abcdef0125",
+            "repliedAt": "2025-08-13T11:15:00.000Z",
+            "createdAt": "2025-08-13T09:45:00.000Z",
+            "updatedAt": "2025-08-13T11:15:00.000Z",
+            "formattedDate": "August 13, 2025 at 09:45 AM"
+        }
+    ],
+    "totalPages": 5,
+    "currentPage": 1,
+    "total": 47
+}
+```
+
+**Error Response** (401):
+
+```json
+{
+    "success": false,
+    "message": "Access denied. Admin privileges required."
+}
+```
+
+**Error Response** (500):
+
+```json
+{
+    "success": false,
+    "message": "Error fetching messages"
+}
+```
+
+---
+
+### 3. Update Message Status (Admin Only)
+
+**PATCH** `/api/contact/messages/:messageId`
+
+**Access**: Private (Admin only)
+
+**Authentication**: Bearer Token required
+
+**Headers**:
+
+```
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+**URL Parameters**:
+
+-   `messageId`: MongoDB ObjectId of the contact message
+
+**Request Body**:
+
+```json
+{
+    "status": "replied",
+    "adminReply": "Thank you for contacting us. We've reviewed your inquiry about physics courses. Our enrollment for the next semester starts on September 1st. Please visit our enrollment page or contact us at admissions@highqclasses.com for more details."
+}
+```
+
+**Request Body Fields**:
+
+-   `status`: Required, enum (`read`, `replied`)
+-   `adminReply`: Optional, string (required when status is 'replied')
+
+**Success Response** (200):
+
+```json
+{
+    "success": true,
+    "message": "Message status updated successfully",
+    "data": {
+        "_id": "64f8b123456789abcdef0123",
+        "name": "John Doe",
+        "email": "john@example.com",
+        "message": "I would like to know more about your physics courses.",
+        "status": "replied",
+        "adminReply": "Thank you for contacting us. We've reviewed your inquiry...",
+        "repliedBy": "64f8b123456789abcdef0125",
+        "repliedAt": "2025-08-13T12:00:00.000Z",
+        "createdAt": "2025-08-13T10:30:00.000Z",
+        "updatedAt": "2025-08-13T12:00:00.000Z"
+    }
+}
+```
+
+**Error Response** (404):
+
+```json
+{
+    "success": false,
+    "message": "Message not found"
+}
+```
+
+**Error Response** (401):
+
+```json
+{
+    "success": false,
+    "message": "Access denied. Admin privileges required."
+}
+```
+
+**Error Response** (500):
+
+```json
+{
+    "success": false,
+    "message": "Error updating message status"
+}
+```
+
+---
+
+### Contact Message Schema
+
+```javascript
+{
+    name: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    email: {
+        type: String,
+        required: true,
+        trim: true,
+        lowercase: true
+    },
+    message: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    status: {
+        type: String,
+        enum: ['unread', 'read', 'replied'],
+        default: 'unread'
+    },
+    adminReply: {
+        type: String,
+        trim: true
+    },
+    repliedBy: {
+        type: ObjectId,
+        ref: 'Admin'
+    },
+    repliedAt: {
+        type: Date
+    },
+    priority: {
+        type: String,
+        enum: ['low', 'medium', 'high'],
+        default: 'medium'
+    },
+    category: {
+        type: String,
+        enum: ['general', 'technical', 'billing', 'course', 'complaint', 'other'],
+        default: 'general'
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now
+    }
+}
+```
+
+### Email Notifications
+
+When a contact message is submitted:
+
+1. **Admin Notification Email**:
+
+    - Sent to: `process.env.ADMIN_EMAIL` or `admin@highqclasses.com`
+    - Subject: `New Contact Message from [Name]`
+    - Contains: User details, message content, timestamp
+
+2. **User Confirmation Email**:
+    - Sent to: User's provided email
+    - Subject: `Thank you for contacting HighQ Classes`
+    - Contains: Confirmation message, copy of their message, expected response time
+
+### Status Workflow
+
+1. **unread** → Initial status when message is created
+2. **read** → Admin has viewed the message
+3. **replied** → Admin has sent a reply to the user
 
 ---
 
@@ -3415,10 +3690,12 @@ GET  /api/attendance/summary     - Get attendance summary (teachers)
 GET  /api/attendance/student     - Get student's own attendance records (students) ✅ NEW
 ```
 
-### � Contact Management (1 endpoint)
+### 📞 Contact Management (3 endpoints)
 
 ```
-POST /api/contact                - Send contact message (public)
+POST  /api/contact                      - Send contact message (public)
+GET   /api/contact/messages             - Get contact messages (admin only)
+PATCH /api/contact/messages/:messageId  - Update message status/reply (admin only)
 ```
 
 ### �🔍 Search & Analytics Endpoints
@@ -3438,6 +3715,36 @@ POST /api/materials                           - Study material upload (teachers)
 POST /api/student/:id/profile-picture         - Profile picture upload
 POST /api/assignments/:assignmentId/submit    - Assignment submission
 ```
+
+---
+
+## 📞 Contact Management Features
+
+### Key Features
+
+-   **Public Contact Form**: No authentication required for users to submit inquiries
+-   **Email Notifications**: Automatic confirmation emails to users and notifications to admin
+-   **Status Tracking**: Messages progress through unread → read → replied states
+-   **Admin Management**: Full admin interface to view, filter, search, and respond to messages
+-   **Message Categories**: Categorization by type (general, technical, billing, course, complaint, other)
+-   **Priority Levels**: Support for low, medium, and high priority messages
+-   **Response Tracking**: Track admin replies and response timestamps
+-   **Pagination**: Efficient handling of large volumes of contact messages
+
+### Use Cases
+
+1. **Student Inquiries**: Course information, enrollment questions, technical support
+2. **Parent Communication**: Student progress, fee inquiries, general questions
+3. **Support Tickets**: Technical issues, account problems, access issues
+4. **Feedback**: Course feedback, suggestions, complaints
+5. **Administrative**: General administrative questions and requests
+
+### Email Integration
+
+-   **SMTP Configuration**: Configurable email service with nodemailer
+-   **Admin Notifications**: Instant email alerts when new messages arrive
+-   **User Confirmations**: Professional confirmation emails with message copies
+-   **Response Templates**: Standardized email formatting for consistency
 
 ---
 

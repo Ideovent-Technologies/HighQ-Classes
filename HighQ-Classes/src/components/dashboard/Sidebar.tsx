@@ -18,6 +18,8 @@ import {
     Building,
     X,
     ClipboardCheck,
+    MessageSquare,
+    UserCog,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
@@ -91,7 +93,9 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
             "Profile"
         ),
         createNavItem(
-            user?.role === "student" ? "/student/notices" : "/dashboard/notices",
+            user?.role === "student"
+                ? "/student/notices"
+                : "/dashboard/notices",
             Bell,
             "Notices"
         ),
@@ -104,7 +108,7 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
         createNavItem("/dashboard/schedule", BookOpen, "My Schedule"),
         createNavItem("/dashboard/attendance", ClipboardCheck, "Attendance"),
         createNavItem("/dashboard/assignments", FileText, "Assignments"),
-        createNavItem("/dashboard/settings", Settings, "Contact Admin"),
+        createNavItem("/dashboard/contact-admin", Settings, "Contact Admin"),
     ];
 
     const studentItems = [
@@ -115,7 +119,7 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
         createNavItem("/student/assignments", FileText, "My Assignments"),
         createNavItem("/student/attendance", Users, "My Attendance"),
         createNavItem("/student/fees", DollarSign, "Fee Details"),
-        createNavItem("/dashboard/settings", Settings, "Contact Admin"),
+        createNavItem("/dashboard/contact-admin", Settings, "Contact Admin"),
     ];
 
     const adminItems = [
@@ -151,6 +155,16 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
             "Attendance Management"
         ),
         createNavItem("/admin/assignments", FileText, "Assignment Management"),
+        createNavItem(
+            "/admin/contact-messages",
+            MessageSquare,
+            "Contact Messages"
+        ),
+        createNavItem(
+            "/admin/student-teacher-messages",
+            UserCog,
+            "Student/Teacher Messages"
+        ),
         createNavItem("/dashboard/settings", Settings, "Customer Support"),
         createNavItem("/dashboard/analytics", FileText, "User Support"),
     ];

@@ -81,6 +81,8 @@ import ScheduleManagement from "@/pages/dashboard/ScheduleManagement";
 import AddStudentsToBatchPage from "./pages/batch/Addstudentpage";
 import CourseForm from "./components/dashboard/courses/CourseForm";
 import PendingApprovalPage from "./pages/admin/PendingApproval";
+import AdminContactMessages from "./pages/admin/AdminContactMessages";
+import AdminStudentTeacherMessages from "./pages/admin/AdminStudentTeacherMessages";
 import BatchForm from "./components/dashboard/batch/BatchForm";
 
 const queryClient = new QueryClient();
@@ -268,6 +270,16 @@ const App: React.FC = () => {
                                     </ProtectedRoute>
                                 }
                             />
+                            <Route
+                                path="/dashboard/contact-admin"
+                                element={
+                                    <ProtectedRoute
+                                        roles={["student", "teacher"]}
+                                    >
+                                        <Settings />
+                                    </ProtectedRoute>
+                                }
+                            />
                             {/* -------------------- Teacher-specific routes -------------------- */}
                             <Route
                                 path="/teacher/dashboard"
@@ -327,14 +339,6 @@ const App: React.FC = () => {
                                     </ProtectedRoute>
                                 }
                             />
-                            <Route
-                                path="/dashboard/settings"
-                                element={
-                                    <ProtectedRoute roles={["teacher"]}>
-                                        <Settings />
-                                    </ProtectedRoute>
-                                }
-                            />
                             {/* Admin-specific routes */}
                             <Route
                                 path="/admin/dashboard"
@@ -381,6 +385,22 @@ const App: React.FC = () => {
                                 element={
                                     <ProtectedRoute roles={["admin"]}>
                                         <ScheduleManagement />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/admin/contact-messages"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <AdminContactMessages />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/admin/student-teacher-messages"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <AdminStudentTeacherMessages />
                                     </ProtectedRoute>
                                 }
                             />
