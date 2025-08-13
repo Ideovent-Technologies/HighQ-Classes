@@ -477,13 +477,13 @@ const BatchForm: React.FC<BatchFormProps> = ({
                                         <Input
                                             placeholder="Search students..."
                                             value={studentSearch}
-                                            onChange={(e) =>
-                                                setStudentSearch(e.target.value)
-                                            }
+                                            onChange={(e) => setStudentSearch(e.target.value)}
                                         />
                                     </div>
                                     {isLoadingResources ? (
-                                        <SelectItem value="" disabled>Loading students...</SelectItem>
+                                        <div className="p-2 text-muted-foreground text-center text-sm">
+                                            Loading students...
+                                        </div>
                                     ) : filteredStudents.length > 0 ? (
                                         filteredStudents.map((student) => (
                                             <SelectItem
@@ -494,7 +494,9 @@ const BatchForm: React.FC<BatchFormProps> = ({
                                             </SelectItem>
                                         ))
                                     ) : (
-                                        <p className="p-4 text-center text-sm">No matching students found.</p>
+                                        <div className="p-2 text-muted-foreground text-center text-sm">
+                                            No matching students found.
+                                        </div>
                                     )}
                                 </SelectContent>
                             </Select>

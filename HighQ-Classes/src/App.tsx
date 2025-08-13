@@ -36,7 +36,6 @@ import Recordings from "@/components/dashboard/teacher/Recordings";
 import Batches from "@/components/dashboard/teacher/Batches";
 import Notices from "@/components/dashboard/teacher/Notices";
 import TeacherForm from "@/components/dashboard/teacher/TeacherForm";
-// import BatchForm from "@/components/dashboard/batch/BatchForm";
 import TeacherManagementPage from "./pages/teacher/Teacher-Management";
 import CourseManagementPage from "./pages/course/Course-management";
 import CourseDetail from "@/components/dashboard/courses/CourseDetails";
@@ -49,7 +48,6 @@ import AdminFeeDashboard from "@/modules/fees/AdminFeeDashboard";
 import BatchDetails from "./components/dashboard/batch/BatchDetsils";
 import StudentDashboardTest from "@/components/debug/StudentDashboardTest";
 import ComprehensiveTest from "@/components/debug/ComprehensiveTest";
-import BatchForm from "@/components/dashboard/batch/BatchForm";
 
 // Import Attendance and Assignment Management pages
 import AttendanceManagementPage from "@/pages/AttendanceManagementPage";
@@ -83,6 +81,7 @@ import ScheduleManagement from "@/pages/dashboard/ScheduleManagement";
 import AddStudentsToBatchPage from "./pages/batch/Addstudentpage";
 import CourseForm from "./components/dashboard/courses/CourseForm";
 import PendingApprovalPage from "./pages/admin/PendingApproval";
+import BatchForm from "./components/dashboard/batch/BatchForm";
 
 const queryClient = new QueryClient();
 
@@ -467,15 +466,38 @@ const App: React.FC = () => {
                                     </ProtectedRoute>
                                 }
                             />
-                        <Route 
-    path="/dashboard/courses/add"
-    element={
-        <ProtectedRoute roles={["admin"]}>
-            <CourseForm />
-        </ProtectedRoute>
-    }
-/>
-<Route path="/dashboard/courses/:id/edit" element={<CourseForm />} />
+                            <Route
+                                path="/dashboard/courses/add"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <CourseForm />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/dashboard/courses/:id/edit"
+                                element={<CourseForm />}
+                            />
+                            <Route
+                                path="/dashboard/courses/add"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <CourseForm />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/dashboard/courses/:id/edit"
+                                element={<CourseForm />}
+                            />
+                            <Route
+                                path="/admin/approvals"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <PendingApprovalPage />
+                                    </ProtectedRoute>
+                                }
+                            />
                             <Route
                                 path="/dashboard/courses/manage"
                                 element={
