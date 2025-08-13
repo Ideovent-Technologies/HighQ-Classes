@@ -48,7 +48,6 @@ import AdminFeeDashboard from "@/modules/fees/AdminFeeDashboard";
 import BatchDetails from "./components/dashboard/batch/BatchDetsils";
 import StudentDashboardTest from "@/components/debug/StudentDashboardTest";
 import ComprehensiveTest from "@/components/debug/ComprehensiveTest";
-import BatchForm from "@/components/dashboard/batch/BatchForm";
 
 // Import Attendance and Assignment Management pages
 import AttendanceManagementPage from "@/pages/AttendanceManagementPage";
@@ -477,6 +476,26 @@ const App: React.FC = () => {
                             <Route
                                 path="/dashboard/courses/:id/edit"
                                 element={<CourseForm />}
+                            />
+                            <Route
+                                path="/dashboard/courses/add"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <CourseForm />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/dashboard/courses/:id/edit"
+                                element={<CourseForm />}
+                            />
+                            <Route
+                                path="/admin/approvals"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <PendingApprovalPage />
+                                    </ProtectedRoute>
+                                }
                             />
                             <Route
                                 path="/dashboard/courses/manage"
