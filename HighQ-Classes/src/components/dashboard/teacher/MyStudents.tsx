@@ -53,10 +53,8 @@ const MyStudents = () => {
                                             <span>
                                                 Course:{" "}
                                                 <strong>
-                                                    {/* FIX: Show course name robustly */}
-                                                    {batch.courseId && typeof batch.courseId === "object"
-                                                        ? batch.courseId.courseName || batch.courseId.name || batch.courseId._id || "Unknown Course"
-                                                        : batch.courseId || "Unknown Course"}
+                                                    {/* MODIFICATION: Directly access the 'course' property */}
+                                                    {batch.course || "Unknown Course"}
                                                 </strong>
                                             </span>
                                         </p>
