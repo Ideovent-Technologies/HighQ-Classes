@@ -84,6 +84,7 @@ import PendingApprovalPage from "./pages/admin/PendingApproval";
 import AdminContactMessages from "./pages/admin/AdminContactMessages";
 import AdminStudentTeacherMessages from "./pages/admin/AdminStudentTeacherMessages";
 import BatchForm from "./components/dashboard/batch/BatchForm";
+import ActiveUserPage from "@/pages/admin/ActiveUser";
 
 const queryClient = new QueryClient();
 
@@ -518,6 +519,13 @@ const App: React.FC = () => {
                                     </ProtectedRoute>
                                 }
                             />
+                            <Route
+                                path="/admin/analytics"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <ActiveUserPage />
+                                    </ProtectedRoute>
+                                }/>
                             <Route
                                 path="/dashboard/courses/manage"
                                 element={

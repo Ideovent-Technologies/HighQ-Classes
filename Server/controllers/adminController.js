@@ -412,3 +412,31 @@ export const getPendingApprovals = async (req, res) => {
     });
   }
 };
+
+/**
+ * GET /api/admin/active-users
+ * Returns all students and teachers who have logged in within the past 24 hours.
+ */
+export const getActiveUsers = async (req, res) => {
+  try {
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    const [activeStudents, activeTeachers] = await Promise.all([
+      Student.find({ lastLogin: { $gte: oneDayAgo } }).select('-password'),
+      Teacher.find({ lastLogin: { $gte: oneDayAgo } }).select('-password')
+    ]);
+
+    res.status(200).json({
+      success: true,
+      students: activeStudents,
+      teachers: activeTeachers,
+      total: activeStudents.length + activeTeachers.length
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch active users",
+      error: error.message
+    });
+  }
+};
