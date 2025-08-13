@@ -81,6 +81,7 @@ import ScheduleManagement from "@/pages/dashboard/ScheduleManagement";
 import AddStudentsToBatchPage from "./pages/batch/Addstudentpage";
 import CourseForm from "./components/dashboard/courses/CourseForm";
 import PendingApprovalPage from "./pages/admin/PendingApproval";
+import BatchForm from "./components/dashboard/batch/BatchForm";
 
 const queryClient = new QueryClient();
 
