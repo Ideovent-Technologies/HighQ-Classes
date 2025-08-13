@@ -1,7 +1,7 @@
-import axios from 'axios';
+import api from '../Axios';
 import { AttendanceRecord, AttendanceMarkingData, AttendanceSummary, BatchAttendanceData } from '@/types/attendance.types';
 
-const API_BASE_URL = '/api/attendance';
+const API_BASE_URL = '/attendance';
 
 class AttendanceService {
   // Mark attendance for students
@@ -11,13 +11,25 @@ class AttendanceService {
     data?: AttendanceRecord[];
   }> {
     try {
-      const response = await axios.post(API_BASE_URL, {
-        attendanceRecords: attendanceData
-      }, {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json'
-        }
+      // Extract common data from first record
+      const batchId = attendanceData[0]?.batchId;
+      const date = attendanceData[0]?.date;
+      
+      if (!batchId || !date) {
+        throw new Error('Missing batchId or date in attendance data');
+      }
+
+      // Transform data to match backend expectation
+      const attendance = attendanceData.map(record => ({
+        studentId: record.studentId,
+        status: record.status,
+        notes: record.notes
+      }));
+
+      const response = await api.post(API_BASE_URL, {
+        batchId,
+        date,
+        attendance
       });
 
       return {
@@ -65,9 +77,7 @@ class AttendanceService {
         }
       });
 
-      const response = await axios.get(`${API_BASE_URL}?${params.toString()}`, {
-        withCredentials: true
-      });
+      const response = await api.get(`${API_BASE_URL}/records?${params.toString()}`);
 
       return {
         success: true,
@@ -103,7 +113,7 @@ class AttendanceService {
         }
       });
 
-      const response = await axios.get(`${API_BASE_URL}/summary?${params.toString()}`, {
+      const response = await api.get(`${API_BASE_URL}/summary?${params.toString()}`, {
         withCredentials: true
       });
 
@@ -128,15 +138,19 @@ class AttendanceService {
     data?: BatchAttendanceData;
   }> {
     try {
-      const response = await axios.get(`${API_BASE_URL}/batch/${batchId}`, {
-        params: { date },
+      const response = await api.get(API_BASE_URL, {
+        params: { 
+          batchId: batchId,
+          date: date 
+        },
         withCredentials: true
       });
 
+      // The backend now returns the full structure with students
       return {
         success: true,
         message: 'Batch attendance data retrieved successfully',
-        data: response.data
+        data: response.data.data // response.data.data contains the BatchAttendanceData
       };
     } catch (error: any) {
       console.error('Get batch attendance data error:', error);
@@ -157,7 +171,7 @@ class AttendanceService {
     data?: AttendanceRecord;
   }> {
     try {
-      const response = await axios.put(`${API_BASE_URL}/${recordId}`, updateData, {
+      const response = await api.put(`${API_BASE_URL}/${recordId}`, updateData, {
         withCredentials: true,
         headers: {
           'Content-Type': 'application/json'
@@ -184,7 +198,7 @@ class AttendanceService {
     message: string;
   }> {
     try {
-      await axios.delete(`${API_BASE_URL}/${recordId}`, {
+      await api.delete(`${API_BASE_URL}/${recordId}`, {
         withCredentials: true
       });
 
@@ -219,7 +233,7 @@ class AttendanceService {
         }
       });
 
-      const response = await axios.get(`${API_BASE_URL}/stats?${params.toString()}`, {
+      const response = await api.get(`${API_BASE_URL}/stats?${params.toString()}`, {
         withCredentials: true
       });
 

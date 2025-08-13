@@ -5,7 +5,9 @@ import {
   markAttendance,
   getAttendanceByBatchAndDate,
   getAttendanceSummary,
-  getStudentAttendance
+  getStudentAttendance,
+  getAttendanceRecords,
+  rebuildAttendanceSummaries
 } from "../controllers/attendanceController.js";
 import { protect, authorize } from "../middleware/authMiddleware.js";
 
@@ -30,9 +32,19 @@ router.get("/", protectTeacher, getAttendanceByBatchAndDate);
 // @access  Private (Teacher only)
 router.get("/summary", protectTeacher, getAttendanceSummary);
 
+// @route   GET /api/attendance/records
+// @desc    Get attendance records with pagination and filters
+// @access  Private (Teacher only)
+router.get("/records", protectTeacher, getAttendanceRecords);
+
 // @route   GET /api/attendance/student
 // @desc    Get student's own attendance records
 // @access  Private (Student only)
 router.get("/student", protectStudent, getStudentAttendance);
+
+// @route   POST /api/attendance/rebuild-summaries
+// @desc    Rebuild attendance summaries for all students (utility)
+// @access  Private (Teacher only)
+router.post("/rebuild-summaries", protectTeacher, rebuildAttendanceSummaries);
 
 export default router;

@@ -39,7 +39,7 @@ interface Assignment {
     };
     attachments: string[];
     dueDate: string;
-    maxMarks: number;
+    totalMarks: number;
     instructions: string;
     teacher: {
         _id: string;
@@ -96,28 +96,14 @@ const StudentAssignments: React.FC = () => {
             setLoading(true);
             setError(null);
 
-            // First get dashboard data to get student's batch information
-            const dashboardResponse = await fetch("/api/student/dashboard", {
+            // Directly fetch assignments - the backend filters by authenticated student's batch
+            const token = localStorage.getItem("authToken");
+            const response = await fetch(`/api/assignments`, {
                 method: "GET",
                 credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
-                },
-            });
-
-            const dashboardData = await dashboardResponse.json();
-
-            if (!dashboardData.success) {
-                throw new Error("Failed to get student information");
-            }
-
-            // For now, we'll use a generic endpoint since we don't have batch ID
-            // The backend should filter assignments based on the authenticated student's batch
-            const response = await fetch(`/api/assignments/student`, {
-                method: "GET",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
             });
 
@@ -152,11 +138,15 @@ const StudentAssignments: React.FC = () => {
                 formData.append("remarks", submissionForm.remarks);
             }
 
+            const token = localStorage.getItem("authToken");
             const response = await fetch(
                 `/api/assignments/${submissionModal.assignment._id}/submit`,
                 {
                     method: "POST",
                     credentials: "include",
+                    headers: {
+                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                    },
                     body: formData,
                 }
             );
@@ -380,7 +370,7 @@ const StudentAssignments: React.FC = () => {
                                                     <Clock className="h-4 w-4 mr-2 text-orange-500" />
                                                     <span>
                                                         Max Marks:{" "}
-                                                        {assignment.maxMarks}
+                                                        {assignment.totalMarks}
                                                     </span>
                                                 </div>
                                             </div>
@@ -480,7 +470,7 @@ const StudentAssignments: React.FC = () => {
                                                                 }
                                                                 /
                                                                 {
-                                                                    assignment.maxMarks
+                                                                    assignment.totalMarks
                                                                 }
                                                             </p>
                                                             {studentSubmission.feedback && (

@@ -201,10 +201,21 @@ const batchService = {
      */
     getBatchMaterials: async () => {
         try {
+            console.log("🌐 Making API call to /materials/student");
             const response = await api.get('/materials/student');
-            return response.data.materials || [];
+            console.log("📡 API response received:", response);
+            console.log("📊 Response data:", response.data);
+            console.log("📈 Response status:", response.status);
+            
+            // Backend returns materials directly, not wrapped in a materials property
+            const materials = response.data || [];
+            console.log("✅ Processed materials:", materials);
+            return materials;
         } catch (error: any) {
-            console.error('Get batch materials error:', error);
+            console.error('❌ Get batch materials error:', error);
+            console.error('❌ Error response:', error.response);
+            console.error('❌ Error status:', error.response?.status);
+            console.error('❌ Error data:', error.response?.data);
             throw new Error(error.response?.data?.message || 'Failed to fetch materials');
         }
     },

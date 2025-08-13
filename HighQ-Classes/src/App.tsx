@@ -476,8 +476,6 @@ const App: React.FC = () => {
     }
 />
 <Route path="/dashboard/courses/:id/edit" element={<CourseForm />} />
-
-<Route path="/admin/approvals" element={ <ProtectedRoute roles={["admin"]}><PendingApprovalPage/></ProtectedRoute>}/>
                             <Route
                                 path="/dashboard/courses/manage"
                                 element={

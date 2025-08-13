@@ -17,6 +17,7 @@ import {
     UserCheck,
     Building,
     X,
+    ClipboardCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
@@ -68,7 +69,9 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
                                 : "text-slate-400 group-hover:text-slate-600 mr-3"
                         )}
                     />
-                    <span className={clsx("ml-3", isActive(path) && "text-white")}>
+                    <span
+                        className={clsx("ml-3", isActive(path) && "text-white")}
+                    >
                         {label}
                     </span>
                 </Link>
@@ -87,7 +90,11 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
             User,
             "Profile"
         ),
-       
+        createNavItem(
+            user?.role === "student" ? "/student/notices" : "/dashboard/notices",
+            Bell,
+            "Notices"
+        ),
     ];
 
     const teacherItems = [
@@ -95,7 +102,7 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
         createNavItem("/dashboard/my-students", Users, "My Students"),
         createNavItem("/dashboard/recordings", FileText, "Recordings"),
         createNavItem("/dashboard/schedule", BookOpen, "My Schedule"),
-        createNavItem("/dashboard/attendance", FileText, "Attendance"),
+        createNavItem("/dashboard/attendance", ClipboardCheck, "Attendance"),
         createNavItem("/dashboard/assignments", FileText, "Assignments"),
         createNavItem("/dashboard/settings", Settings, "Contact Admin"),
     ];
@@ -113,20 +120,36 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
 
     const adminItems = [
         createNavItem("/dashboard/all-students", Users, "All Students"),
-        createNavItem("/dashboard/teacher-management", UserCheck, "Manage Teachers"),
-        createNavItem("/dashboard/course-management", GraduationCap, "Manage Courses"),
+        createNavItem(
+            "/dashboard/teacher-management",
+            UserCheck,
+            "Manage Teachers"
+        ),
+        createNavItem(
+            "/dashboard/course-management",
+            GraduationCap,
+            "Manage Courses"
+        ),
         createNavItem("/dashboard/batches/manage", Building, "Manage Batches"),
         createNavItem("/dashboard/batches/add", Building, "Create Batch"),
         createNavItem("/dashboard/manage-notices", Bell, "Manage Notices"),
         createNavItem("/admin/announcements", Megaphone, "Announcements"),
-        createNavItem("/dashboard/fee-management", DollarSign, "Fee Management"),
+        createNavItem(
+            "/dashboard/fee-management",
+            DollarSign,
+            "Fee Management"
+        ),
         createNavItem(
             "/dashboard/schedule-management",
             BookOpen,
             "Schedule Management"
         ),
         createNavItem("/admin/materials", FileText, "Materials Management"),
-        createNavItem("/admin/attendance", FileText, "Attendance Management"),
+        createNavItem(
+            "/admin/attendance",
+            ClipboardCheck,
+            "Attendance Management"
+        ),
         createNavItem("/admin/assignments", FileText, "Assignment Management"),
         createNavItem("/dashboard/settings", Settings, "Customer Support"),
         createNavItem("/dashboard/analytics", FileText, "User Support"),
@@ -166,16 +189,25 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
                         }}
                         className={clsx(
                             "top-0 left-0 bg-white/95 backdrop-blur-lg border-r border-slate-200 flex flex-col shadow-2xl z-50",
-                            isMobile ? "fixed h-full w-64" : "static h-screen w-64"
+                            isMobile
+                                ? "fixed h-full w-64"
+                                : "static h-screen w-64"
                         )}
                     >
                         {/* Brand & Close */}
                         <div className="p-5 border-b border-slate-200 flex items-center justify-between">
-                            <Link to="/" className="text-2xl font-extrabold text-navy-700">
+                            <Link
+                                to="/"
+                                className="text-2xl font-extrabold text-navy-700"
+                            >
                                 <span className="text-teal-500">High</span>Q
                             </Link>
                             {isMobile && (
-                                <Button variant="ghost" size="icon" onClick={onClose}>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={onClose}
+                                >
                                     <X className="h-5 w-5" />
                                 </Button>
                             )}
@@ -210,7 +242,9 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
                                         className="w-full justify-start px-4 py-3 rounded-xl text-red-500 hover:bg-red-50"
                                         onClick={logout}
                                     >
-                                        <LogOut className={iconClass + " mr-3"} />
+                                        <LogOut
+                                            className={iconClass + " mr-3"}
+                                        />
                                         <span>Logout</span>
                                     </Button>
                                 </motion.div>

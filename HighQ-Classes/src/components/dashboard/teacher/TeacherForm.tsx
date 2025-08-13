@@ -5,18 +5,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ChevronLeft, Loader2 } from "lucide-react"; // Added Loader2 for button loading state
-import { TeacherUser, CreateTeacherData, DepartmentType } from "@/types/teacher.types";
+import {
+    TeacherUser,
+    CreateTeacherData,
+    DepartmentType,
+} from "@/types/teacher.types";
 import teacherService from "@/API/services/teacherService";
 import { toast } from "react-hot-toast"; // You might want to switch this to your useToast hook from Shadcn UI for consistency
 
-// UPDATED: Defined TeacherFormProps to include onSubmit and onCancel
+// UPDATED: Defined TeacherFormProps with optional props for backward compatibility
 interface TeacherFormProps {
     teacherToEdit?: TeacherUser;
-    onSubmit: (data: CreateTeacherData | Partial<TeacherUser>) => Promise<void>;
-    onCancel: () => void;
+    onSubmit?: (
+        data: CreateTeacherData | Partial<TeacherUser>
+    ) => Promise<void>;
+    onCancel?: () => void;
 }
 
-const TeacherForm: React.FC<TeacherFormProps> = ({ teacherToEdit, onSubmit, onCancel }) => {
+const TeacherForm: React.FC<TeacherFormProps> = ({
+    teacherToEdit,
+    onSubmit,
+    onCancel,
+}) => {
     // const navigate = useNavigate(); // No longer needed as onCancel handles navigation/hiding
 
     // Define initial state for new teachers
@@ -33,7 +43,9 @@ const TeacherForm: React.FC<TeacherFormProps> = ({ teacherToEdit, onSubmit, onCa
     };
 
     // State to manage form data, can be CreateTeacherData (for new) or Partial<TeacherUser> (for update)
-    const [formData, setFormData] = useState<CreateTeacherData | Partial<TeacherUser>>(initialFormData);
+    const [formData, setFormData] = useState<
+        CreateTeacherData | Partial<TeacherUser>
+    >(initialFormData);
     const [isLoading, setIsLoading] = useState(false); // State for loading indicator
 
     // Populate form data when teacherToEdit changes (for editing an existing teacher)
@@ -64,7 +76,9 @@ const TeacherForm: React.FC<TeacherFormProps> = ({ teacherToEdit, onSubmit, onCa
      * Handles changes to input and select elements, updating the formData state.
      */
     const handleInputChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+        e: React.ChangeEvent<
+            HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+        >
     ) => {
         const { id, value } = e.target;
         setFormData((prev) => ({
@@ -76,13 +90,15 @@ const TeacherForm: React.FC<TeacherFormProps> = ({ teacherToEdit, onSubmit, onCa
     /**
      * Handles changes for select elements that might not have an 'id' directly from event.target.
      */
-    const handleSelectChange = (id: keyof (CreateTeacherData | Partial<TeacherUser>), value: string | number | string[]) => {
+    const handleSelectChange = (
+        id: keyof (CreateTeacherData | Partial<TeacherUser>),
+        value: string | number | string[]
+    ) => {
         setFormData((prev) => ({
             ...prev,
             [id]: value,
         }));
     };
-
 
     /**
      * Handles form submission. Performs validation and calls the onSubmit prop.
@@ -113,20 +129,98 @@ const TeacherForm: React.FC<TeacherFormProps> = ({ teacherToEdit, onSubmit, onCa
         }
 
         // Additional validation for password only if creating a new teacher
-        if (isCreating && (!formData.password || formData.password.length < 6)) {
-            toast.error("Password is required and must be at least 6 characters for a new teacher.");
+        if (
+            isCreating &&
+            (!formData.password || formData.password.length < 6)
+        ) {
+            toast.error(
+                "Password is required and must be at least 6 characters for a new teacher."
+            );
             setIsLoading(false);
             return;
         }
 
         try {
-            // Call the onSubmit prop passed from TeacherManagementPage
-            await onSubmit(formData);
+            if (onSubmit) {
+                // Call the onSubmit prop passed from TeacherManagementPage
+                await onSubmit(formData);
+            } else {
+                // Default behavior when no onSubmit prop is provided
+                const API_BASE_URL = "http://localhost:8080/api";
+
+                if (isCreating) {
+                    // Create a new teacher
+                    const response = await fetch(
+                        `${API_BASE_URL}/admin/teachers/register`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${localStorage.getItem(
+                                    "token"
+                                )}`,
+                            },
+                            body: JSON.stringify(formData),
+                        }
+                    );
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(
+                            error.message || "Failed to create teacher"
+                        );
+                    }
+
+                    toast.success("Teacher created successfully!");
+                } else {
+                    // Update existing teacher
+                    const teacherId =
+                        (formData as Partial<TeacherUser>)._id ||
+                        teacherToEdit?._id;
+                    if (!teacherId) {
+                        throw new Error("Teacher ID is required for updates");
+                    }
+
+                    const response = await fetch(
+                        `${API_BASE_URL}/admin/teachers/${teacherId}`,
+                        {
+                            method: "PUT",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${localStorage.getItem(
+                                    "token"
+                                )}`,
+                            },
+                            body: JSON.stringify(formData),
+                        }
+                    );
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(
+                            error.message || "Failed to update teacher"
+                        );
+                    }
+
+                    toast.success("Teacher updated successfully!");
+                }
+
+                // Navigate back or refresh data if onCancel is not provided
+                if (onCancel) {
+                    onCancel();
+                } else {
+                    window.history.back();
+                }
+            }
         } catch (error) {
             // Error handling is primarily done in TeacherManagementPage's handleFormSubmit,
             // but a generic toast can be added here if needed for unexpected issues.
             console.error("Error during form submission (TeacherForm):", error);
-            toast.error("An unexpected error occurred during submission.");
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : "An unexpected error occurred during submission."
+            );
         } finally {
             setIsLoading(false); // Reset loading state
         }
@@ -134,26 +228,26 @@ const TeacherForm: React.FC<TeacherFormProps> = ({ teacherToEdit, onSubmit, onCa
 
     // Predefined departments for the select input
     const departments: DepartmentType[] = [
-        'Mathematics',
-        'Science',
-        'English',
-        'Hindi',
-        'Social Science',
-        'Computer Science',
-        'Physics',
-        'Chemistry',
-        'Biology',
-        'Other'
+        "Mathematics",
+        "Science",
+        "English",
+        "Hindi",
+        "Social Science",
+        "Computer Science",
+        "Physics",
+        "Chemistry",
+        "Biology",
+        "Other",
     ];
 
     return (
         <div className="space-y-6">
             <div className="flex items-center">
-                {/* Button to go back, using the onCancel prop */}
+                {/* Button to go back, using the onCancel prop or default behavior */}
                 <Button
                     variant="outline"
                     size="sm"
-                    onClick={onCancel}
+                    onClick={onCancel || (() => window.history.back())}
                     className="mr-4"
                 >
                     <ChevronLeft className="h-4 w-4" />
@@ -163,17 +257,34 @@ const TeacherForm: React.FC<TeacherFormProps> = ({ teacherToEdit, onSubmit, onCa
                 </h1>
             </div>
 
-            <Card className="rounded-xl shadow-lg"> {/* Added refined styling to Card */}
-                <CardHeader className="border-b px-6 py-4"> {/* Added border-b and padding */}
+            <Card className="rounded-xl shadow-lg">
+                {" "}
+                {/* Added refined styling to Card */}
+                <CardHeader className="border-b px-6 py-4">
+                    {" "}
+                    {/* Added border-b and padding */}
                     <CardTitle className="text-xl font-semibold">
-                        {teacherToEdit ? "Edit Teacher Details" : "Enter Teacher Details"}
+                        {teacherToEdit
+                            ? "Edit Teacher Details"
+                            : "Enter Teacher Details"}
                     </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6"> {/* Increased padding */}
-                    <form onSubmit={handleSubmit} className="space-y-6"> {/* Increased space between form elements */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> {/* Responsive grid layout */}
+                <CardContent className="p-6">
+                    {" "}
+                    {/* Increased padding */}
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {" "}
+                        {/* Increased space between form elements */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {" "}
+                            {/* Responsive grid layout */}
                             <div>
-                                <Label htmlFor="name" className="text-sm font-medium text-gray-700">Full Name</Label>
+                                <Label
+                                    htmlFor="name"
+                                    className="text-sm font-medium text-gray-700"
+                                >
+                                    Full Name
+                                </Label>
                                 <Input
                                     id="name"
                                     value={formData.name || ""}
@@ -183,7 +294,12 @@ const TeacherForm: React.FC<TeacherFormProps> = ({ teacherToEdit, onSubmit, onCa
                                 />
                             </div>
                             <div>
-                                <Label htmlFor="employeeId" className="text-sm font-medium text-gray-700">Employee ID</Label>
+                                <Label
+                                    htmlFor="employeeId"
+                                    className="text-sm font-medium text-gray-700"
+                                >
+                                    Employee ID
+                                </Label>
                                 <Input
                                     id="employeeId"
                                     value={formData.employeeId || ""}
@@ -194,7 +310,12 @@ const TeacherForm: React.FC<TeacherFormProps> = ({ teacherToEdit, onSubmit, onCa
                                 />
                             </div>
                             <div>
-                                <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
+                                <Label
+                                    htmlFor="email"
+                                    className="text-sm font-medium text-gray-700"
+                                >
+                                    Email
+                                </Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -207,7 +328,12 @@ const TeacherForm: React.FC<TeacherFormProps> = ({ teacherToEdit, onSubmit, onCa
                             {/* Password field only shown for new teachers for security */}
                             {!teacherToEdit && (
                                 <div>
-                                    <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
+                                    <Label
+                                        htmlFor="password"
+                                        className="text-sm font-medium text-gray-700"
+                                    >
+                                        Password
+                                    </Label>
                                     <Input
                                         id="password"
                                         type="password"
@@ -221,7 +347,12 @@ const TeacherForm: React.FC<TeacherFormProps> = ({ teacherToEdit, onSubmit, onCa
                                 </div>
                             )}
                             <div>
-                                <Label htmlFor="mobile" className="text-sm font-medium text-gray-700">Mobile Number</Label>
+                                <Label
+                                    htmlFor="mobile"
+                                    className="text-sm font-medium text-gray-700"
+                                >
+                                    Mobile Number
+                                </Label>
                                 <Input
                                     id="mobile"
                                     value={formData.mobile || ""}
@@ -231,22 +362,37 @@ const TeacherForm: React.FC<TeacherFormProps> = ({ teacherToEdit, onSubmit, onCa
                                 />
                             </div>
                             <div>
-                                <Label htmlFor="department" className="text-sm font-medium text-gray-700">Department</Label>
+                                <Label
+                                    htmlFor="department"
+                                    className="text-sm font-medium text-gray-700"
+                                >
+                                    Department
+                                </Label>
                                 {/* Using a native select for simplicity, apply Shadcn select styling if available */}
                                 <select
                                     id="department"
                                     value={formData.department || "Other"}
-                                    onChange={(e) => handleSelectChange("department", e.target.value)}
+                                    onChange={(e) =>
+                                        handleSelectChange(
+                                            "department",
+                                            e.target.value
+                                        )
+                                    }
                                     required
                                     className="mt-1 block h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50 shadow-sm transition-all duration-200"
                                 >
-                                    {departments.map(dept => (
-                                        <option key={dept} value={dept}>{dept}</option>
+                                    {departments.map((dept) => (
+                                        <option key={dept} value={dept}>
+                                            {dept}
+                                        </option>
                                     ))}
                                 </select>
                             </div>
                             <div>
-                                <Label htmlFor="qualification" className="text-sm font-medium text-gray-700">
+                                <Label
+                                    htmlFor="qualification"
+                                    className="text-sm font-medium text-gray-700"
+                                >
                                     Qualification
                                 </Label>
                                 <Input
@@ -258,7 +404,10 @@ const TeacherForm: React.FC<TeacherFormProps> = ({ teacherToEdit, onSubmit, onCa
                                 />
                             </div>
                             <div>
-                                <Label htmlFor="specialization" className="text-sm font-medium text-gray-700">
+                                <Label
+                                    htmlFor="specialization"
+                                    className="text-sm font-medium text-gray-700"
+                                >
                                     Specialization
                                 </Label>
                                 <Input
@@ -270,13 +419,20 @@ const TeacherForm: React.FC<TeacherFormProps> = ({ teacherToEdit, onSubmit, onCa
                                 />
                             </div>
                             <div>
-                                <Label htmlFor="experience" className="text-sm font-medium text-gray-700">
+                                <Label
+                                    htmlFor="experience"
+                                    className="text-sm font-medium text-gray-700"
+                                >
                                     Experience (Years)
                                 </Label>
                                 <Input
                                     id="experience"
                                     type="number"
-                                    value={formData.experience !== undefined ? formData.experience : ""}
+                                    value={
+                                        formData.experience !== undefined
+                                            ? formData.experience
+                                            : ""
+                                    }
                                     onChange={handleInputChange}
                                     required
                                     min={0}
@@ -328,8 +484,15 @@ const TeacherForm: React.FC<TeacherFormProps> = ({ teacherToEdit, onSubmit, onCa
                             className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg py-2 text-lg font-semibold transition-all duration-300 shadow-lg transform hover:scale-[1.01]" // Enhanced button style
                         >
                             {isLoading ? (
-                                <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Saving...</>
-                            ) : teacherToEdit ? "Update Teacher" : "Add Teacher"}
+                                <>
+                                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />{" "}
+                                    Saving...
+                                </>
+                            ) : teacherToEdit ? (
+                                "Update Teacher"
+                            ) : (
+                                "Add Teacher"
+                            )}
                         </Button>
                     </form>
                 </CardContent>
