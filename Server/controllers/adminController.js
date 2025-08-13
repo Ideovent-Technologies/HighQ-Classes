@@ -347,3 +347,68 @@ export const createAnnouncement = async (req, res) => {
     res.status(500).json({ message: 'Failed to create announcement', error: err.message });
   }
 };
+
+/**
+ * PATCH /api/admin/user/:id/status
+ * Body: { role: "student" | "teacher", status: "active" | ... }
+ */
+export const changeUserStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role, status } = req.body;
+
+    if (!role || !['student', 'teacher'].includes(role)) {
+      return res.status(400).json({ success: false, message: 'Role must be student or teacher' });
+    }
+
+    // Allowed statuses
+    const allowedStatuses = role === 'teacher'
+      ? ['pending', 'active', 'suspended', 'inactive', 'on-leave']
+      : ['pending', 'active', 'suspended', 'inactive'];
+
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status value' });
+    }
+
+    const Model = role === 'student' ? Student : Teacher;
+    const user = await Model.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    ).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: `${role.charAt(0).toUpperCase() + role.slice(1)} not found` });
+    }
+
+    res.json({ success: true, message: `${role.charAt(0).toUpperCase() + role.slice(1)} status updated`, user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error updating status', error: error.message });
+  }
+};
+
+/**
+ * GET /api/admin/pending-approvals
+ * Returns all students and teachers with status 'pending' and their details.
+ */
+export const getPendingApprovals = async (req, res) => {
+  try {
+    const [pendingStudents, pendingTeachers] = await Promise.all([
+      Student.find({ status: 'pending' }).select('-password'),
+      Teacher.find({ status: 'pending' }).select('-password')
+    ]);
+
+    res.status(200).json({
+      success: true,
+      students: pendingStudents,
+      teachers: pendingTeachers,
+      total: pendingStudents.length + pendingTeachers.length
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch pending approvals",
+      error: error.message
+    });
+  }
+};

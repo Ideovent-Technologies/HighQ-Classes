@@ -91,9 +91,7 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
             "Profile"
         ),
         createNavItem(
-            user?.role === "student"
-                ? "/student/notices"
-                : "/dashboard/notices",
+            user?.role === "student" ? "/student/notices" : "/dashboard/notices",
             Bell,
             "Notices"
         ),

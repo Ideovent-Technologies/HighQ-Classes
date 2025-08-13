@@ -102,12 +102,11 @@ const BatchForm: React.FC<BatchFormProps> = ({
         const fetchData = async () => {
             setIsLoadingResources(true); // Set loading for resources
             try {
-                const [coursesData, teachersData, studentsData] =
-                    await Promise.all([
-                        courseService.getAllCourses(),
-                        teacherService.getAllTeachers(),
-                        AdminService.getAllStudents(),
-                    ]);
+                const [coursesData, teachersData, studentsData] = await Promise.all([
+                    courseService.getAllCourses(),
+                    teacherService.getAllTeachers(),
+                    AdminService.getAllStudents(),
+                ]);
 
                 setCourses(coursesData.courses || []);
                 setTeachers(teachersData.teachers || []);
@@ -484,9 +483,7 @@ const BatchForm: React.FC<BatchFormProps> = ({
                                         />
                                     </div>
                                     {isLoadingResources ? (
-                                        <SelectItem value="loading" disabled>
-                                            Loading students...
-                                        </SelectItem>
+                                        <SelectItem value="" disabled>Loading students...</SelectItem>
                                     ) : filteredStudents.length > 0 ? (
                                         filteredStudents.map((student) => (
                                             <SelectItem
@@ -497,9 +494,7 @@ const BatchForm: React.FC<BatchFormProps> = ({
                                             </SelectItem>
                                         ))
                                     ) : (
-                                        <p className="p-4 text-center text-sm">
-                                            No matching students found.
-                                        </p>
+                                        <p className="p-4 text-center text-sm">No matching students found.</p>
                                     )}
                                 </SelectContent>
                             </Select>
