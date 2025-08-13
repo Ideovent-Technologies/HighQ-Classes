@@ -5,8 +5,8 @@ import api from '../Axios';
 interface Batch {
     _id: string;
     name: string;
-    courseId: string; // ✅ match backend
-    teacherId: string; // ✅ match backend
+    courseId: string; //  match backend
+    teacherId: string; //  match backend
     students: string[];
     startDate: Date;
     endDate: Date;
@@ -68,9 +68,9 @@ export interface StudentBatchInfo {
 
 interface CreateBatchData {
     name: string;
-    courseId: string;  // ✅ match backend
-    teacherId: string; // ✅ match backend
-    students: string[]; // ✅ added
+    courseId: string;  //  match backend
+    teacherId: string; //  match backend
+    students: string[]; //  added
     startDate: Date;
     endDate: Date;
     schedule: {
@@ -209,7 +209,7 @@ const batchService = {
             
             // Backend returns materials directly, not wrapped in a materials property
             const materials = response.data || [];
-            console.log("✅ Processed materials:", materials);
+            console.log(" Processed materials:", materials);
             return materials;
         } catch (error: any) {
             console.error('❌ Get batch materials error:', error);

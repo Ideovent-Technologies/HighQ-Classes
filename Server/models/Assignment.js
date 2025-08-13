@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const submissionSchema = new mongoose.Schema({
   student: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Student', // ✅ Changed from 'User' to 'Student'
+    ref: 'Student', //  Changed from 'User' to 'Student'
     required: true
   },
   submittedOn: {
@@ -51,7 +51,7 @@ const assignmentSchema = new mongoose.Schema({
   },
   teacher: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Teacher', // ✅ Changed from 'User' to 'Teacher'
+    ref: 'Teacher', //  Changed from 'User' to 'Teacher'
     required: true
   },
   dueDate: {

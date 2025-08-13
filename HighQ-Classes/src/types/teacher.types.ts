@@ -80,7 +80,7 @@ export interface TeacherPermissions {
   canCreateAssignment: boolean;
 }
 
-// ✅ Main Teacher Interface
+//  Main Teacher Interface
 export interface TeacherUser extends BaseUser {
   role: 'teacher';
   employeeId?: string;

@@ -173,7 +173,7 @@ const AttendanceManagementPage: React.FC<AttendanceManagementPageProps> = ({
                   }))
                 : [];
 
-            // console.log("✅ Normalized students:", normalizedStudents);
+            // console.log(" Normalized students:", normalizedStudents);
 
             const normalized: BatchAttendanceData = {
                 batchId: payload?.batchId ?? batchId,

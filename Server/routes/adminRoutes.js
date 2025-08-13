@@ -33,7 +33,7 @@ router.get("/dashboard", getAdminDashboard);
 router.get("/profile", getAdminProfile);
 
 // Users
-router.post("/user", validateAdminCreateUser, CreateUser); // ✅ new
+router.post("/user", validateAdminCreateUser, CreateUser); //  new
 router.put("/user/:id", updateUser);
 router.patch('/user/:id/status', changeUserStatus);
 router.delete("/user/:id", deleteUser);

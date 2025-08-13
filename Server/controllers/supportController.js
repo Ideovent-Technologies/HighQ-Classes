@@ -4,7 +4,7 @@ import configureCloudinary from "../config/cloudinary.js";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
-// ✅ Configure Cloudinary (if environment variables exist)
+//  Configure Cloudinary (if environment variables exist)
 try {
   configureCloudinary();
 } catch (e) {
@@ -35,7 +35,7 @@ export const createSupportTicket = async (req, res) => {
     let fileUrl = undefined;
     let fileName = undefined;
 
-    // ✅ Handle file upload if provided
+    //  Handle file upload if provided
     if (req.file) {
       if (process.env.CLOUDINARY_CLOUD_NAME) {
         // Upload to Cloudinary
@@ -46,7 +46,7 @@ export const createSupportTicket = async (req, res) => {
         fileName = req.file.originalname;
 
         // Remove local file
-        fs.unlink(req.file.path, () => {});
+        fs.unlink(req.file.path, () => { });
       } else {
         // Store locally
         fileUrl = `/uploads/${req.file.filename}`;
@@ -58,7 +58,7 @@ export const createSupportTicket = async (req, res) => {
       fileName = req.body.fileName || "";
     }
 
-    // ✅ Save ticket in database
+    //  Save ticket in database
     const ticket = await SupportTicket.create({
       userId: user._id,
       name: user.name || req.body.name || "Unknown",

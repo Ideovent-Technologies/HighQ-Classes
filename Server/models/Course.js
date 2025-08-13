@@ -19,7 +19,7 @@ const courseSchema = new mongoose.Schema({
   duration: { type: String, required: true },
   fee: { type: Number, required: true, min: 0 },
 
-  batches: [batchSchema] // ✅ Now this will match your populate call
+  batches: [batchSchema] //  Now this will match your populate call
 }, { timestamps: true });
 const Course = mongoose.model('Course', courseSchema);
 export default Course;

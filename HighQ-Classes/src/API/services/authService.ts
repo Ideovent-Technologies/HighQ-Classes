@@ -101,7 +101,7 @@ class AuthService {
       if (authResponse.success && authResponse.token && authResponse.user) {
         localStorage.setItem('authToken', authResponse.token);
         localStorage.setItem('user', JSON.stringify(authResponse.user));
-        console.log('✅ AuthService: Login successful, user role:', authResponse.user.role);
+        console.log(' AuthService: Login successful, user role:', authResponse.user.role);
       }
       
       return authResponse;

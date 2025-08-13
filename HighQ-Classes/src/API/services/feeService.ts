@@ -2,7 +2,7 @@
 import { FeeRecord, Payment } from "@/types/fee.types";
 import useAxiosPrivate from "@/hooks/useAxiosPrivate";
 
-// ✅ Hook-based service — you call `useFeeService()` inside React components
+//  Hook-based service — you call `useFeeService()` inside React components
 export const useFeeService = () => {
   const axiosPrivate = useAxiosPrivate();
 

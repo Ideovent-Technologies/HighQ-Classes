@@ -21,14 +21,14 @@ export const useSupportTickets = () => {
   const [progress, setProgress] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ Form state
+  //  Form state
   const [form, setForm] = useState({
     subject: "",
     message: "",
     file: null as File | null,
   });
 
-  // ✅ New state for status messages
+  //  New state for status messages
   const [statusMsg, setStatusMsg] = useState("");
 
   // Fetch user's tickets
@@ -77,7 +77,7 @@ export const useSupportTickets = () => {
     }
   }, []);
 
-  // ✅ This is the function your component expects
+  //  This is the function your component expects
   const sendTicket = async () => {
     if (!form.subject || !form.message) {
       const msg = "Please fill in subject and message.";

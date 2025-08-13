@@ -4,7 +4,7 @@ import Student from "../models/Student.js";
 import Course from "../models/Course.js";
 import Teacher from "../models/Teacher.js";
 
-// ✅ Admin: Create a new batch
+//  Admin: Create a new batch
 export const CreateBatch = async (req, res) => {
   const { name, courseId, teacherId, students = [], schedule, startDate, endDate } = req.body;
   try {
@@ -72,7 +72,7 @@ export const CreateBatch = async (req, res) => {
   }
 };
 
-// ✅ Admin: Get all batches
+//  Admin: Get all batches
 export const GetAllBatch = async (req, res) => {
   try {
     const batches = await Batch.find()
@@ -86,7 +86,7 @@ export const GetAllBatch = async (req, res) => {
   }
 };
 
-// ✅ Admin: Update batch
+//  Admin: Update batch
 export const UpdateBatch = async (req, res) => {
   try {
     const { batchId } = req.params;
@@ -236,7 +236,7 @@ export const getBatchById = async (req, res) => {
   }
 };
 
-// ✅ Admin: Delete batch
+//  Admin: Delete batch
 export const deleteBatch = async (req, res) => {
   try {
     const { batchId } = req.params;
@@ -285,10 +285,10 @@ export const deleteBatch = async (req, res) => {
   }
 };
 
-// ✅ Admin: Assign student to batch
+//  Admin: Assign student to batch
 export const assignStudentToBatch = async (req, res) => {
   const { studentId } = req.body;
-  const { batchId } = req.params;  // ✅ Extract from URL path
+  const { batchId } = req.params;  //  Extract from URL path
 
   if (!batchId || !studentId) {
     return res.status(400).json({ message: "Batch ID and Student ID are required." });
@@ -317,7 +317,7 @@ export const assignStudentToBatch = async (req, res) => {
   }
 };
 
-// ✅ Admin: Get batches by course
+//  Admin: Get batches by course
 export const getBatchesByCourse = async (req, res) => {
   const { courseId } = req.params;
   try {

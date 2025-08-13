@@ -368,7 +368,7 @@ const updateStudentAttendanceSummaries = async (studentIds) => {
         { new: true }
       );
     }
-    console.log(`✅ Updated attendance summaries for ${studentIds.length} students`);
+    console.log(` Updated attendance summaries for ${studentIds.length} students`);
   } catch (error) {
     console.error("❌ Error updating student attendance summaries:", error);
   }
