@@ -137,7 +137,7 @@ const AttendanceManagementPage: React.FC<AttendanceManagementPageProps> = ({
                 ? format(date, "yyyy-MM-dd")
                 : format(selectedDate, "yyyy-MM-dd");
 
-            console.log("🔍 Fetching attendance for:", { batchId, date: day });
+            // console.log("🔍 Fetching attendance for:", { batchId, date: day });
 
             // Get the response from our updated service
             const response = await AttendanceService.getBatchAttendanceData(
@@ -145,7 +145,7 @@ const AttendanceManagementPage: React.FC<AttendanceManagementPageProps> = ({
                 day
             );
 
-            console.log("📥 Raw API response:", response);
+            // console.log("📥 Raw API response:", response);
 
             if (!response.success) {
                 throw new Error(
@@ -154,11 +154,11 @@ const AttendanceManagementPage: React.FC<AttendanceManagementPageProps> = ({
             }
 
             const payload = response.data;
-            console.log("📦 Payload data:", payload);
+            // console.log("📦 Payload data:", payload);
 
             // The backend now returns a structured response with students array
             const studentsSrc = payload?.students || [];
-            console.log("👥 Students found:", studentsSrc.length);
+            // console.log("👥 Students found:", studentsSrc.length);
 
             // normalize students using the new backend structure
             const normalizedStudents = Array.isArray(studentsSrc)
@@ -173,7 +173,7 @@ const AttendanceManagementPage: React.FC<AttendanceManagementPageProps> = ({
                   }))
                 : [];
 
-            console.log("✅ Normalized students:", normalizedStudents);
+            // console.log("✅ Normalized students:", normalizedStudents);
 
             const normalized: BatchAttendanceData = {
                 batchId: payload?.batchId ?? batchId,
@@ -184,7 +184,7 @@ const AttendanceManagementPage: React.FC<AttendanceManagementPageProps> = ({
 
             setBatchAttendance(normalized);
         } catch (err) {
-            console.error("❌ Error fetching batch attendance data:", err);
+            // console.error("❌ Error fetching batch attendance data:", err);
             setBatchAttendance(null);
             setMessage({
                 type: "error",
@@ -217,7 +217,7 @@ const AttendanceManagementPage: React.FC<AttendanceManagementPageProps> = ({
                 raw?.data?.records ?? raw?.data ?? raw?.records ?? raw ?? [];
             setAttendanceRecords(Array.isArray(records) ? records : []);
         } catch (error) {
-            console.error("Error fetching attendance records:", error);
+            // console.error("Error fetching attendance records:", error);
             setAttendanceRecords([]);
             setMessage({
                 type: "error",
@@ -272,20 +272,20 @@ const AttendanceManagementPage: React.FC<AttendanceManagementPageProps> = ({
                     notes: student.notes || "",
                 }));
 
-            console.log("📝 Attendance data being sent:", attendanceData);
-            console.log(
-                "🎯 Batch:",
-                selectedBatch,
-                "Date:",
-                format(selectedDate, "yyyy-MM-dd")
-            );
-            console.log("👥 Students count:", batchAttendance.students.length);
+            // console.log("📝 Attendance data being sent:", attendanceData);
+            // console.log(
+            //     "🎯 Batch:",
+            //     selectedBatch,
+            //     "Date:",
+            //     format(selectedDate, "yyyy-MM-dd")
+            // );
+            // console.log("👥 Students count:", batchAttendance.students.length);
 
             const raw: any = await AttendanceService.markAttendance(
                 attendanceData
             );
 
-            console.log("📤 markAttendance result:", raw);
+            // console.log("📤 markAttendance result:", raw);
 
             // Accept multiple possible success shapes
             const ok =
@@ -302,14 +302,14 @@ const AttendanceManagementPage: React.FC<AttendanceManagementPageProps> = ({
                 // Only refresh the batch attendance data, no need for records
                 await fetchBatchAttendanceData(selectedBatch, selectedDate);
             } else {
-                console.error("markAttendance result:", raw);
+                // console.error("markAttendance result:", raw);
                 setMessage({
                     type: "error",
                     text: raw?.message || "Failed to mark attendance",
                 });
             }
         } catch (err) {
-            console.error("Error marking attendance:", err);
+            // console.error("Error marking attendance:", err);
             setMessage({ type: "error", text: "Failed to mark attendance" });
         } finally {
             setSaving(false);
