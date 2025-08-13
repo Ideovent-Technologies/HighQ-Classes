@@ -1,27 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import {
-    BookOpen,
-    Clock,
-    Users,
-    Bell,
-    FileText,
-    Video,
-    ClipboardCheck,
-} from "lucide-react";
+import { BookOpen, Clock, Users, Bell, FileText, Video } from "lucide-react";
 import { useTeacherDashboard } from "@/hooks/useTeacherDashboard";
 import { cn } from "@/lib/utils";
-
-// Framer Motion variants for the card animations
-const cardVariants: Variants = {
-    initial: { scale: 0.95, y: 20, opacity: 0 },
-    animate: { scale: 1, y: 0, opacity: 1 },
-    hover: {
-        scale: 1.05,
-        y: -5,
-        boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
-    },
-};
 
 const StatCard = ({
     icon,
@@ -40,72 +21,58 @@ const StatCard = ({
 }) => {
     const Wrapper = to ? Link : "div";
     return (
-        <motion.div
-            variants={cardVariants}
-            initial="initial"
-            animate="animate"
-            whileHover="hover"
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="w-full"
+        <Wrapper
+            to={to || ""}
+            className={cn(
+                "rounded-3xl shadow-2xl transform transition-all hover:scale-[1.03] duration-500",
+                "bg-white/70 backdrop-blur-md border border-slate-200 hover:shadow-3xl hover:bg-white/90",
+                "flex flex-col items-start justify-between p-8 group cursor-pointer relative overflow-hidden h-64",
+                "before:absolute before:inset-0 before:opacity-0 before:bg-white/10 before:transition-opacity before:duration-500 group-hover:before:opacity-100"
+            )}
+            style={{
+                backgroundImage: gradient,
+                backgroundSize: "cover",
+                backgroundBlendMode: "overlay",
+            }}
         >
-            <Wrapper
-                to={to || ""}
-                className={cn(
-                    "relative flex flex-col justify-between p-8 rounded-3xl overflow-hidden text-navy-800",
-                    "border border-slate-200 dark:border-slate-700 backdrop-filter backdrop-blur-3xl",
-                    "transform transition-all duration-300 group cursor-pointer h-full"
-                )}
-                style={{
-                    background: `linear-gradient(135deg, ${gradient}, rgba(255, 255, 255, 0.4))`,
-                    boxShadow: "0 10px 20px rgba(0,0,0,0.1)",
-                }}
-            >
-                {/* Subtle visual elements for depth */}
-                <div className="absolute inset-0 bg-white/20 mix-blend-overlay rounded-3xl group-hover:bg-white/30 transition-colors" />
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/30 rounded-full transform translate-x-1/2 -translate-y-1/2 blur-2xl opacity-50 group-hover:opacity-75 transition-opacity" />
-
-                <div className="flex flex-col space-y-2 z-10">
-                    <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-200">
-                        {title}
-                    </h3>
-                    <p className="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-slate-50 drop-shadow-sm">
-                        {value}
-                    </p>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 italic font-medium">
-                        {subtitle}
-                    </p>
+            <div className="absolute -top-16 -right-16 w-40 h-40 bg-gradient-to-tr from-white/40 to-transparent rounded-full blur-2xl opacity-40 group-hover:opacity-60 transition-opacity duration-500" />
+            <div className="flex justify-between w-full z-10">
+                <div className="p-4 bg-white/90 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-500 z-10">
+                    {icon}
                 </div>
-                <div className="flex justify-end mt-4 z-10">
-                    <div className="p-4 bg-white/70 rounded-full shadow-lg text-slate-700 dark:text-slate-300 group-hover:scale-110 transition-transform duration-300 backdrop-blur-md">
-                        {icon}
-                    </div>
-                </div>
-            </Wrapper>
-        </motion.div>
+            </div>
+            <div className="flex flex-col space-y-2 z-10 mt-auto">
+                <h3 className="text-xl font-semibold text-gray-900 tracking-wide">
+                    {title}
+                </h3>
+                <p className="text-5xl font-extrabold text-navy-900 drop-shadow-sm leading-tight">
+                    {value}
+                </p>
+                <p className="text-sm text-slate-700 italic font-medium">
+                    {subtitle}
+                </p>
+            </div>
+        </Wrapper>
     );
 };
 
 const TeacherDashboard = () => {
     const { data, loading, error } = useTeacherDashboard();
 
-    if (loading) {
+    if (loading)
         return (
-            <div className="flex items-center justify-center min-h-[calc(100vh-80px)] bg-gray-50 dark:bg-gray-900">
-                <div className="p-6 text-lg text-center font-medium text-gray-600 dark:text-gray-400 animate-pulse">
-                    <GraduationCap className="h-16 w-16 mx-auto mb-4 text-indigo-500" />
-                    Loading your dashboard...
+            <div className="flex items-center justify-center min-h-screen bg-gray-50">
+                <div className="p-10 rounded-xl bg-white shadow-xl text-xl text-center font-medium text-gray-700 animate-pulse">
+                    Loading your personalized dashboard... 🚀
                 </div>
             </div>
         );
-    }
-
-    if (error) {
+    if (error)
         return (
-            <div className="p-6 text-red-500 text-center bg-gray-50 dark:bg-gray-900 min-h-screen">
-                <p>Error: {error}</p>
+            <div className="p-10 text-red-600 text-center text-lg font-bold bg-white rounded-xl shadow-xl m-8">
+                🚨 Error: Failed to load dashboard data. Please try again later.
             </div>
         );
-    }
 
     const {
         todaySchedule = [],
@@ -116,7 +83,7 @@ const TeacherDashboard = () => {
         assignedBatches = [],
     } = data || {};
 
-    const totalStudents: number = (
+    const totalStudents = (
         Object.values(assignedStudents) as Array<
             { _id: string; name: string; email: string }[]
         >
@@ -126,93 +93,75 @@ const TeacherDashboard = () => {
         {
             title: "Total Students",
             value: totalStudents,
-            subtitle: `${Object.keys(assignedStudents).length} batches assigned`,
+            subtitle: `${
+                Object.keys(assignedStudents).length
+            } batches assigned`,
             to: "/dashboard/my-students",
-            icon: <Users className="h-7 w-7" />,
-            gradient: "#e0e7ff",
+            icon: <Users className="h-7 w-7 text-indigo-600" />,
+            gradient: "linear-gradient(135deg, #eef2ff, #c7d2fe)",
         },
         {
             title: "Classes Today",
             value: todaySchedule.length,
-            subtitle: todaySchedule.length > 0 ? `Next: ${todaySchedule[0]?.courseId?.name}` : "No classes scheduled",
+            subtitle:
+                todaySchedule.length > 0
+                    ? `Next: ${todaySchedule[0]?.courseId?.name || "Scheduled class"}`
+                    : "No classes scheduled",
             to: "/dashboard/schedule",
-            icon: <Clock className="h-7 w-7" />,
-            gradient: "#d1fae5",
+            icon: <Clock className="h-7 w-7 text-green-600" />,
+            gradient: "linear-gradient(135deg, #f0fdf4, #dcfce7)",
         },
         {
             title: "Study Materials",
             value: materialsSummary?.totalUploaded ?? 0,
-            subtitle: "Uploaded by you",
+            subtitle: "Total files uploaded by you",
             to: "/dashboard/materials",
-            icon: <FileText className="h-7 w-7" />,
-            gradient: "#fef9c3",
+            icon: <FileText className="h-7 w-7 text-yellow-600" />,
+            gradient: "linear-gradient(135deg, #fefce8, #fef08a)",
         },
         {
             title: "Recordings",
             value: recordingsSummary?.totalActive ?? 0,
-            subtitle: "Currently active",
+            subtitle: "Archived & accessible recordings",
             to: "/dashboard/recordings",
-            icon: <Video className="h-7 w-7" />,
-            gradient: "#c7d2fe",
+            icon: <Video className="h-7 w-7 text-blue-600" />,
+            gradient: "linear-gradient(135deg, #eff6ff, #dbeafe)",
         },
         {
             title: "Notices",
             value: recentNotices?.length ?? 0,
-            subtitle: "Recent notices posted",
+            subtitle: "Recent notices posted by admin",
             to: "/dashboard/notices",
-            icon: <Bell className="h-7 w-7" />,
-            gradient: "#fecaca",
+            icon: <Bell className="h-7 w-7 text-red-600" />,
+            gradient: "linear-gradient(135deg, #fff1f2, #fecaca)",
         },
         {
             title: "Batches Assigned",
             value: assignedBatches?.length ?? 0,
-            subtitle: "Managed by you",
+            subtitle: "Batches managed by you",
             to: "/dashboard/batches",
-            icon: <BookOpen className="h-7 w-7" />,
-            gradient: "#dbeafe",
-        },
-        {
-            title: "Attendance",
-            value: "Manage",
-            subtitle: "Mark & track attendance",
-            to: "/dashboard/attendance",
-            icon: <ClipboardCheck className="h-6 w-6 text-navy-500" />,
-            gradient: "linear-gradient(135deg, #ecfdf5, #d1fae5)",
+            icon: <BookOpen className="h-7 w-7 text-purple-600" />,
+            gradient: "linear-gradient(135deg, #f5f3ff, #e9d5ff)",
         },
     ];
 
     return (
-        <motion.div
-            className="p-8 sm:p-12 space-y-10 max-w-8xl mx-auto min-h-screen bg-gray-50 dark:bg-gray-900 text-slate-800 dark:text-slate-200"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", stiffness: 200, damping: 20 }}
-        >
-            <header className="pb-6 border-b-4 border-indigo-200 dark:border-indigo-800 rounded-b-xl flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <LayoutDashboard className="h-10 w-10 text-indigo-600" />
-                    <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tighter">
-                        Welcome, Teacher!
-                    </h1>
-                </div>
-            </header>
+        <div className="p-10 space-y-12 max-w-7xl mx-auto font-sans bg-gray-50 min-h-screen">
+            <div className="flex justify-between items-center pb-6 border-b border-gray-200">
+                <h1 className="text-5xl font-extrabold text-gray-900 leading-tight tracking-tight drop-shadow-sm flex items-center gap-4">
+                    <span role="img" aria-label="waving hand">
+                        👋
+                    </span>{" "}
+                    Welcome Back, Teacher!
+                </h1>
+            </div>
 
-            <section>
-                <h2 className="text-2xl font-bold text-slate-700 dark:text-slate-300 mb-6">
-                    Your Key Metrics
-                </h2>
-                <motion.div
-                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
-                    initial="initial"
-                    animate="animate"
-                    variants={{ animate: { transition: { staggerChildren: 0.1 } } }}
-                >
-                    {statCards.map((card, index) => (
-                        <StatCard key={index} {...card} />
-                    ))}
-                </motion.div>
-            </section>
-        </motion.div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-10">
+                {statCards.map((card) => (
+                    <StatCard key={card.title} {...card} />
+                ))}
+            </div>
+        </div>
     );
 };
 
