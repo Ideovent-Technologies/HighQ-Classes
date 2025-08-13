@@ -165,8 +165,12 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
             UserCog,
             "Student/Teacher Messages"
         ),
-        createNavItem("/dashboard/settings", Settings, "Customer Support"),
-        createNavItem("/dashboard/analytics", FileText, "User Support"),
+        createNavItem(
+            "/dashboard/CustomerSupport",
+            Settings,
+            "Customer Support"
+        ),
+        createNavItem("/dashboard/UserSupport", FileText, "User Support"),
     ];
 
     let roleBasedItems: JSX.Element[] = [];

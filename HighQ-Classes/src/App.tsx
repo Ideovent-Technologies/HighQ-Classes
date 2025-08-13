@@ -162,6 +162,13 @@ const BatchForm = React.lazy(
 );
 const ActiveUserPage = React.lazy(() => import("@/pages/admin/ActiveUser"));
 
+const CustomerSupport = React.lazy(
+    () => import("@/components/dashboard/admin/CustomerSupport")
+);
+
+const UserSupport = React.lazy(
+    () => import("@/components/dashboard/admin/UserSupport")
+);
 const queryClient = new QueryClient();
 
 const App: React.FC = () => {
@@ -666,6 +673,22 @@ const App: React.FC = () => {
                                     element={
                                         <ProtectedRoute roles={["student"]}>
                                             <StudentAssignments />
+                                        </ProtectedRoute>
+                                    }
+                                />
+                                <Route
+                                    path="/dashboard/CustomerSupport"
+                                    element={
+                                        <ProtectedRoute roles={["admin"]}>
+                                            <CustomerSupport />
+                                        </ProtectedRoute>
+                                    }
+                                />
+                                <Route
+                                    path="/dashboard/UserSupport"
+                                    element={
+                                        <ProtectedRoute roles={["admin"]}>
+                                            <UserSupport />
                                         </ProtectedRoute>
                                     }
                                 />
