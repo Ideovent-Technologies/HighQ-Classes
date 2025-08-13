@@ -49,6 +49,7 @@ import AdminFeeDashboard from "@/modules/fees/AdminFeeDashboard";
 import BatchDetails from "./components/dashboard/batch/BatchDetsils";
 import StudentDashboardTest from "@/components/debug/StudentDashboardTest";
 import ComprehensiveTest from "@/components/debug/ComprehensiveTest";
+import BatchForm from "@/components/dashboard/batch/BatchForm";
 
 // Import Attendance and Assignment Management pages
 import AttendanceManagementPage from "@/pages/AttendanceManagementPage";
@@ -81,6 +82,7 @@ import FeeManagement from "@/pages/dashboard/FeeManagement";
 import ScheduleManagement from "@/pages/dashboard/ScheduleManagement";
 import AddStudentsToBatchPage from "./pages/batch/Addstudentpage";
 import CourseForm from "./components/dashboard/courses/CourseForm";
+import PendingApprovalPage from "./pages/admin/PendingApproval";
 
 const queryClient = new QueryClient();
 

@@ -33,18 +33,22 @@ interface Material {
     _id: string;
     title: string;
     description?: string;
-    type: "pdf" | "image" | "video" | "document" | "presentation" | "other";
+    type?: "pdf" | "image" | "video" | "document" | "presentation" | "other";
+    fileType?: string; // Backend field name
     fileUrl: string;
-    fileName: string;
-    fileSize: number;
+    fileName?: string;
+    originalFileName?: string; // Backend field name
+    fileSize?: number;
     uploadedBy: {
         _id: string;
         name: string;
         role: string;
     };
-    uploadedAt: string;
+    uploadedAt?: string;
+    createdAt?: string; // Backend might use this instead
     courseId: string;
     batchId?: string;
+    batchIds?: string[]; // Backend uses this
     isViewed?: boolean;
     viewedAt?: string;
     tags?: string[];
@@ -77,10 +81,30 @@ const StudentMaterials: React.FC = () => {
             setLoading(true);
             setError(null);
 
+            console.log("🔍 Fetching materials for student...");
+            console.log("Batch info:", batchInfo);
+            console.log("Is assigned:", isAssigned);
+
             const materialsData = await batchService.getBatchMaterials();
+            console.log("📚 Materials received:", materialsData);
+            console.log("Materials count:", materialsData?.length || 0);
+
+            // Log the structure of the first material
+            if (materialsData && materialsData.length > 0) {
+                console.log(
+                    "🔍 First material structure:",
+                    JSON.stringify(materialsData[0], null, 2)
+                );
+            }
+
             setMaterials(materialsData);
         } catch (err: any) {
-            console.error("Error fetching materials:", err);
+            console.error("❌ Error fetching materials:", err);
+            console.error("Error details:", {
+                message: err.message,
+                response: err.response?.data,
+                status: err.response?.status,
+            });
             setError(err.message || "Failed to load materials");
         } finally {
             setLoading(false);
@@ -88,6 +112,11 @@ const StudentMaterials: React.FC = () => {
     };
 
     const filterMaterials = () => {
+        console.log("🔍 Filtering materials...");
+        console.log("Original materials count:", materials.length);
+        console.log("Search term:", searchTerm);
+        console.log("Type filter:", typeFilter);
+
         let filtered = [...materials];
 
         // Filter by search term
@@ -95,24 +124,28 @@ const StudentMaterials: React.FC = () => {
             filtered = filtered.filter(
                 (material) =>
                     material.title
-                        .toLowerCase()
+                        ?.toLowerCase()
                         .includes(searchTerm.toLowerCase()) ||
                     material.description
                         ?.toLowerCase()
                         .includes(searchTerm.toLowerCase()) ||
-                    material.fileName
-                        .toLowerCase()
+                    (material.fileName || material.originalFileName)
+                        ?.toLowerCase()
                         .includes(searchTerm.toLowerCase())
             );
+            console.log("After search filter:", filtered.length);
         }
 
         // Filter by type
         if (typeFilter !== "all") {
             filtered = filtered.filter(
-                (material) => material.type === typeFilter
+                (material) =>
+                    (material.type || material.fileType) === typeFilter
             );
+            console.log("After type filter:", filtered.length);
         }
 
+        console.log("Final filtered materials count:", filtered.length);
         setFilteredMaterials(filtered);
     };
 
@@ -135,9 +168,13 @@ const StudentMaterials: React.FC = () => {
             );
 
             // Open material based on type
-            if (material.type === "video") {
+            const materialType = material.type || material.fileType;
+            if (materialType === "video") {
                 navigate(`/student/materials/video/${material._id}`);
-            } else if (material.type === "pdf") {
+            } else if (
+                materialType === "pdf" ||
+                materialType === "application/pdf"
+            ) {
                 window.open(material.fileUrl, "_blank");
             } else {
                 window.open(material.fileUrl, "_blank");
@@ -323,13 +360,19 @@ const StudentMaterials: React.FC = () => {
                             <CardHeader className="pb-3">
                                 <div className="flex items-start justify-between">
                                     <div className="flex items-center gap-3">
-                                        {getFileIcon(material.type)}
+                                        {getFileIcon(
+                                            material.type ||
+                                                material.fileType ||
+                                                "document"
+                                        )}
                                         <div className="flex-1 min-w-0">
                                             <CardTitle className="text-base font-medium truncate">
                                                 {material.title}
                                             </CardTitle>
                                             <p className="text-sm text-gray-500 capitalize">
-                                                {material.type}
+                                                {material.type ||
+                                                    material.fileType ||
+                                                    "document"}
                                             </p>
                                         </div>
                                     </div>
@@ -355,13 +398,18 @@ const StudentMaterials: React.FC = () => {
                                     <div className="flex items-center gap-2">
                                         <File className="h-3 w-3" />
                                         <span className="truncate">
-                                            {material.fileName}
+                                            {material.fileName ||
+                                                material.originalFileName ||
+                                                "File"}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Calendar className="h-3 w-3" />
                                         <span>
-                                            {formatDate(material.uploadedAt)}
+                                            {formatDate(
+                                                material.uploadedAt ||
+                                                    material.createdAt
+                                            )}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -370,7 +418,9 @@ const StudentMaterials: React.FC = () => {
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <span>
-                                            {formatFileSize(material.fileSize)}
+                                            {formatFileSize(
+                                                material.fileSize || 0
+                                            )}
                                         </span>
                                         {material.viewedAt && (
                                             <span className="text-green-600">

@@ -150,6 +150,7 @@ const AdminDashboard: React.FC = () => {
                 const response = await AdminService.getAdminData();
                 if (response.success) {
                     setData(response.data);
+                    console.log("Dashboard data fetched successfully:", response.data);
                 } else {
                     setError(
                         response.message || "Failed to fetch dashboard data."

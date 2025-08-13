@@ -1,7 +1,14 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { motion, Variants } from "framer-motion";
-import { BookOpen, Clock, Users, Bell, FileText, Video, GraduationCap, LayoutDashboard } from "lucide-react";
+import {
+    BookOpen,
+    Clock,
+    Users,
+    Bell,
+    FileText,
+    Video,
+    ClipboardCheck,
+} from "lucide-react";
 import { useTeacherDashboard } from "@/hooks/useTeacherDashboard";
 import { cn } from "@/lib/utils";
 
@@ -163,6 +170,14 @@ const TeacherDashboard = () => {
             to: "/dashboard/batches",
             icon: <BookOpen className="h-7 w-7" />,
             gradient: "#dbeafe",
+        },
+        {
+            title: "Attendance",
+            value: "Manage",
+            subtitle: "Mark & track attendance",
+            to: "/dashboard/attendance",
+            icon: <ClipboardCheck className="h-6 w-6 text-navy-500" />,
+            gradient: "linear-gradient(135deg, #ecfdf5, #d1fae5)",
         },
     ];
 

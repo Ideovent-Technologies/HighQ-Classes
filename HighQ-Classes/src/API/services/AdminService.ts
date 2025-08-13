@@ -374,6 +374,57 @@ class AdminService {
       };
     }
   }
+
+  // GET /api/admin/pending-approvals - Get all pending students and teachers with details
+  async getPendingApprovals(): Promise<{
+    success: boolean;
+    students?: StudentUser[];
+    teachers?: TeacherUser[];
+    total?: number;
+    message?: string;
+  }> {
+    try {
+      const response = await api.get('/admin/pending-approvals');
+      return {
+        success: true,
+        students: response.data.students,
+        teachers: response.data.teachers,
+        total: response.data.total,
+      };
+    } catch (error: any) {
+      console.error('Get pending approvals error:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch pending approvals',
+      };
+    }
+  }
+
+  // PATCH /api/admin/user/:id/status - Change user (student/teacher) status
+  async changeUserStatus(
+    id: string,
+    role: "student" | "teacher",
+    status: string
+  ): Promise<{
+    success: boolean;
+    user?: StudentUser | TeacherUser;
+    message?: string;
+  }> {
+    try {
+      const response = await api.patch(`/admin/user/${id}/status`, { role, status });
+      return {
+        success: true,
+        user: response.data.user,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error('Change user status error:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to change user status',
+      };
+    }
+  }
 }
 
 // ✅ Correct export after closing the class

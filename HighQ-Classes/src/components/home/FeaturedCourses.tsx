@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
-import { ChevronRight, BookOpen, Clock, DollarSign } from "lucide-react";
+import {
+    ChevronRight,
+    BookOpen,
+    Clock,
+    // DollarSign,
+    IndianRupee,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import "swiper/css";
 
@@ -161,8 +167,9 @@ const FeaturedCourses = () => {
                                             Featured
                                         </span>
                                         <div className="absolute bottom-3 right-3 bg-white/90 text-orange-600 text-xs font-bold px-2 py-1 rounded-full shadow-md flex items-center">
-                                            <DollarSign className="w-3 h-3 mr-1" />
-                                            {formatFee(course.fee)}
+                                            <IndianRupee className="w-3 h-3 mr-1" />
+                                            {/* {formatFee(course.fee)} */}
+                                            {course.fee}
                                         </div>
                                     </div>
 
