@@ -18,8 +18,12 @@ const attendanceSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["present", "absent", "leave"],
+      enum: ["present", "absent", "late"],
       default: "present",
+    },
+    notes: {
+      type: String,
+      default: "",
     },
     markedBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -30,7 +34,7 @@ const attendanceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Prevent duplicate attendance records for same student and date
-attendanceSchema.index({ studentId: 1, date: 1 }, { unique: true });
+// Prevent duplicate attendance records for same student, batch and date
+attendanceSchema.index({ studentId: 1, batchId: 1, date: 1 }, { unique: true });
 
 export default mongoose.model("Attendance", attendanceSchema);

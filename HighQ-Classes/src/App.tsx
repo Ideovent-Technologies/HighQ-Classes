@@ -465,15 +465,18 @@ const App: React.FC = () => {
                                     </ProtectedRoute>
                                 }
                             />
-                        <Route 
-    path="/dashboard/courses/add"
-    element={
-        <ProtectedRoute roles={["admin"]}>
-            <CourseForm />
-        </ProtectedRoute>
-    }
-/>
-<Route path="/dashboard/courses/:id/edit" element={<CourseForm />} />
+                            <Route
+                                path="/dashboard/courses/add"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <CourseForm />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/dashboard/courses/:id/edit"
+                                element={<CourseForm />}
+                            />
                             <Route
                                 path="/dashboard/courses/manage"
                                 element={

@@ -95,11 +95,13 @@ const StudentAttendance: React.FC = () => {
                 endDate: format(dateRange.endDate, "yyyy-MM-dd"),
             });
 
+            const token = localStorage.getItem("authToken");
             const response = await fetch(`/api/attendance/student?${params}`, {
                 method: "GET",
                 credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
             });
 
