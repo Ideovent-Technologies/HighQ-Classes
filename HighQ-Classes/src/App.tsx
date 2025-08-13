@@ -82,6 +82,7 @@ import AddStudentsToBatchPage from "./pages/batch/Addstudentpage";
 import CourseForm from "./components/dashboard/courses/CourseForm";
 import PendingApprovalPage from "./pages/admin/PendingApproval";
 import BatchForm from "./components/dashboard/batch/BatchForm";
+import ActiveUserPage from "@/pages/admin/ActiveUser";
 
 const queryClient = new QueryClient();
 
@@ -498,6 +499,13 @@ const App: React.FC = () => {
                                     </ProtectedRoute>
                                 }
                             />
+                            <Route
+                                path="/admin/analytics"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <ActiveUserPage />
+                                    </ProtectedRoute>
+                                }/>
                             <Route
                                 path="/dashboard/courses/manage"
                                 element={

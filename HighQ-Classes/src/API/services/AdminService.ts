@@ -425,7 +425,34 @@ class AdminService {
       };
     }
   }
+
+  // GET /api/admin/active-users - Get all students and teachers active in the last 24 hours
+  async getActiveUsers(): Promise<{
+    success: boolean;
+    students?: StudentUser[];
+    teachers?: TeacherUser[];
+    total?: number;
+    message?: string;
+  }> {
+    try {
+      const response = await api.get('/admin/active-users');
+      return {
+        success: true,
+        students: response.data.students,
+        teachers: response.data.teachers,
+        total: response.data.total,
+      };
+    } catch (error: any) {
+      console.error('Get active users error:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch active users',
+      };
+    }
+  }
 }
+
+
 
 // ✅ Correct export after closing the class
 export default new AdminService();
