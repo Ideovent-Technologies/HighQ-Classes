@@ -22,6 +22,11 @@ const ForgotPassword = React.lazy(() => import("@/pages/auth/ForgotPassword"));
 const ResetPassword = React.lazy(() => import("@/pages/auth/ResetPassword"));
 const NotFound = React.lazy(() => import("@/pages/NotFound"));
 const About = React.lazy(() => import("./pages/About"));
+const TicketList = React.lazy(
+    () => import("@/components/dashboard/ticket/TicketList")  );
+
+    const TicketDetails = React.lazy(
+    () => import("@/components/dashboard/ticket/TicketDetails"));
 
 // Lazy load dashboard pages
 const Dashboard = React.lazy(() => import("@/pages/dashboard/Dashboard"));
@@ -169,6 +174,7 @@ const CustomerSupport = React.lazy(
 const UserSupport = React.lazy(
     () => import("@/components/dashboard/admin/UserSupport")
 );
+
 const queryClient = new QueryClient();
 
 const App: React.FC = () => {
@@ -293,6 +299,14 @@ const App: React.FC = () => {
                                             <StudentProfile />
                                         </ProtectedRoute>
                                     }
+                                />
+                                <Route 
+                                path="/dashboard/UserSupport"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <TicketList/>
+                                    </ProtectedRoute>
+                                }
                                 />
                                 <Route
                                     path="/student/batch"
@@ -452,6 +466,13 @@ const App: React.FC = () => {
                                         </ProtectedRoute>
                                     }
                                 />
+                                <Route
+                                    path="/admin/tickets/:id"
+                                    element={
+                                        <ProtectedRoute roles={["admin"]}>
+                                            <TicketDetails/>
+                                        </ProtectedRoute>
+                                    }/>
                                 <Route
                                     path="/dashboard/manage-notices"
                                     element={
