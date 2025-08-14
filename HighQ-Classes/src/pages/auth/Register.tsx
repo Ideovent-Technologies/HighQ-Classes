@@ -4,7 +4,14 @@ import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import axios from "axios";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import authService from "@/API/services/authService";
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -32,27 +39,100 @@ const Register = () => {
     const handleSubmit = async (e: any) => {
         e.preventDefault();
         setLoading(true);
-        try {
-            const res = await axios.post("/api/auth/register", formData);
-            toast({ title: "Registered Successfully " });
-            setFormData({
-                name: "",
-                email: "",
-                password: "",
-                mobile: "",
-                gender: "",
-                dateOfBirth: "",
-                parentName: "",
-                parentContact: "",
-                grade: "",
-                schoolName: "",
-                address: "",
-                role: "student",
+
+        // Basic validation
+        if (
+            !formData.name.trim() ||
+            !formData.email.trim() ||
+            !formData.password.trim() ||
+            !formData.mobile.trim()
+        ) {
+            toast({
+                title: "Validation Error",
+                description:
+                    "Please fill in all required fields (name, email, password, mobile)",
+                variant: "destructive",
             });
+            setLoading(false);
+            return;
+        }
+
+        // For student role, validate parent info
+        if (formData.role === "student") {
+            if (
+                !formData.parentName.trim() ||
+                !formData.parentContact.trim() ||
+                !formData.grade.trim() ||
+                !formData.schoolName.trim()
+            ) {
+                toast({
+                    title: "Validation Error",
+                    description:
+                        "Please fill in all required student fields (parent name, parent contact, grade, school)",
+                    variant: "destructive",
+                });
+                setLoading(false);
+                return;
+            }
+        }
+
+        console.log("Submitting registration with data:", formData);
+
+        try {
+            // Convert form data to authService RegisterData format
+            const registerData = {
+                name: formData.name,
+                email: formData.email,
+                password: formData.password,
+                mobile: formData.mobile,
+                role: formData.role as "student" | "teacher" | "admin",
+                gender: formData.gender || undefined,
+                dateOfBirth: formData.dateOfBirth || undefined,
+                parentName: formData.parentName || undefined,
+                parentContact: formData.parentContact || undefined,
+                grade: formData.grade || undefined,
+                schoolName: formData.schoolName || undefined,
+                address: formData.address?.trim()
+                    ? { street: formData.address.trim() }
+                    : undefined,
+            };
+
+            const response = await authService.register(registerData);
+
+            if (response.success) {
+                console.log("Registration successful:", response);
+                toast({
+                    title: "Registered Successfully ✅",
+                    description:
+                        response.message ||
+                        "Please wait for admin approval to access your account.",
+                });
+                setFormData({
+                    name: "",
+                    email: "",
+                    password: "",
+                    mobile: "",
+                    gender: "",
+                    dateOfBirth: "",
+                    parentName: "",
+                    parentContact: "",
+                    grade: "",
+                    schoolName: "",
+                    address: "",
+                    role: "student",
+                });
+            } else {
+                throw new Error(response.message);
+            }
         } catch (err: any) {
+            console.error("Registration error:", err);
+
+            const errorMessage =
+                err.message || "Registration failed. Please try again.";
+
             toast({
                 title: "Registration Failed ❌",
-                description: err?.response?.data?.message || "Server error.",
+                description: errorMessage,
                 variant: "destructive",
             });
         } finally {
@@ -140,12 +220,23 @@ const Register = () => {
                         />
 
                         <div className="flex gap-2">
-                            <Input
-                                name="gender"
-                                placeholder="Gender (optional)"
+                            <Select
                                 value={formData.gender}
-                                onChange={handleChange}
-                            />
+                                onValueChange={(value) =>
+                                    setFormData({ ...formData, gender: value })
+                                }
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select Gender" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="male">Male</SelectItem>
+                                    <SelectItem value="female">
+                                        Female
+                                    </SelectItem>
+                                    <SelectItem value="other">Other</SelectItem>
+                                </SelectContent>
+                            </Select>
                             <Input
                                 name="dateOfBirth"
                                 type="date"
@@ -184,7 +275,7 @@ const Register = () => {
                         />
                         <Input
                             name="address"
-                            placeholder="Address (optional)"
+                            placeholder="Address"
                             value={formData.address}
                             onChange={handleChange}
                         />

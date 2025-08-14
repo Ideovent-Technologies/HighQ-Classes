@@ -11,8 +11,12 @@ import emailService from '../utils/emailService.js';
  */
 export const register = async (req, res, next) => {
     try {
+        console.log('Registration request received:', req.body);
+
         const { name, email, password, mobile, role, ...additionalData } = req.body;
         const userRole = role || 'student';
+
+        console.log('Parsed data:', { name, email, mobile, userRole, additionalData });
 
         // Check if email already exists across all models
         const existingEmail = await Promise.all([
@@ -22,6 +26,7 @@ export const register = async (req, res, next) => {
         ]);
 
         if (existingEmail.some(user => user !== null)) {
+            console.log('Email already exists:', email);
             return res.status(409).json({
                 success: false,
                 message: 'Email is already registered'
@@ -36,6 +41,7 @@ export const register = async (req, res, next) => {
         ]);
 
         if (existingMobile.some(user => user !== null)) {
+            console.log('Mobile already exists:', mobile);
             return res.status(409).json({
                 success: false,
                 message: 'Mobile number is already registered'
@@ -51,17 +57,26 @@ export const register = async (req, res, next) => {
             status: userRole === 'admin' ? 'active' : 'pending'
         };
 
+        console.log('Common data:', commonData);
+
         // Create user based on role
         switch (userRole) {
             case 'student':
-                newUser = new Student({
+                const studentData = {
                     ...commonData,
                     parentName: additionalData.parentName || 'Parent Name',
                     parentContact: additionalData.parentContact || '0000000000',
                     grade: additionalData.grade || '10th',
                     schoolName: additionalData.schoolName || 'School Name',
-                    ...additionalData
-                });
+                    gender: additionalData.gender,
+                    dateOfBirth: additionalData.dateOfBirth,
+                    // Handle address properly - convert string to object if needed
+                    address: typeof additionalData.address === 'string' && additionalData.address.trim()
+                        ? { street: additionalData.address }
+                        : additionalData.address
+                };
+                console.log('Creating student with data:', studentData);
+                newUser = new Student(studentData);
                 break;
 
             case 'teacher':
@@ -93,7 +108,9 @@ export const register = async (req, res, next) => {
                 });
         }
 
+        console.log('Attempting to save user...');
         await newUser.save();
+        console.log('User saved successfully:', newUser._id);
 
         res.status(201).json({
             success: true,
@@ -108,9 +125,30 @@ export const register = async (req, res, next) => {
         });
     } catch (error) {
         console.error('Registration error:', error);
+
+        // Handle validation errors specifically
+        if (error.name === 'ValidationError') {
+            const validationErrors = Object.values(error.errors).map(err => err.message);
+            return res.status(400).json({
+                success: false,
+                message: 'Validation failed',
+                errors: validationErrors
+            });
+        }
+
+        // Handle duplicate key errors
+        if (error.code === 11000) {
+            const field = Object.keys(error.keyValue)[0];
+            return res.status(409).json({
+                success: false,
+                message: `${field.charAt(0).toUpperCase() + field.slice(1)} is already registered`
+            });
+        }
+
         res.status(500).json({
             success: false,
-            message: 'Server error during registration'
+            message: 'Server error during registration',
+            error: error.message
         });
     }
 };
