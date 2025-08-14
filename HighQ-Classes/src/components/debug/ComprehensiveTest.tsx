@@ -168,7 +168,7 @@ const ComprehensiveTest: React.FC = () => {
                                         }`}
                                     >
                                         {result.status === "success"
-                                            ? "✅ PASS"
+                                            ? " PASS"
                                             : "❌ FAIL"}
                                     </span>
                                 </div>

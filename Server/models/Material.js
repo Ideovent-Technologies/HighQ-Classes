@@ -42,7 +42,7 @@ const materialSchema = new Schema(
       required: true,
     },
 
-    // ✅ NEW FIELD: Track who has viewed the material
+    //  NEW FIELD: Track who has viewed the material
     viewedBy: [
       {
         user: {

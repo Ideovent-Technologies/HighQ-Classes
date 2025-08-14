@@ -188,7 +188,7 @@ export const getTeacherDashboard = async (req, res) => {
       endDate: batch.endDate,
     }));
 
-    // ✅ Final Response
+    //  Final Response
     res.json({
       todaySchedule,
       recentNotices,

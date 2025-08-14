@@ -5,11 +5,11 @@ import {
   getAllMaterials,
   searchMaterials,
   deleteMaterial,
-  studentViewMaterial, // ✅ NEW: Import view tracker
+  studentViewMaterial, //  NEW: Import view tracker
 } from '../controllers/materialController.js';
 
 import { protect, authorize } from '../middleware/authMiddleware.js';
-import { fileUpload } from '../middleware/fileUpload.js'; // ✅ Correct import
+import { fileUpload } from '../middleware/fileUpload.js'; //  Correct import
 
 const router = express.Router();
 
@@ -22,7 +22,7 @@ router.post(
   '/',
   protect,
   authorize('teacher'),
-  fileUpload, // ✅ Use express-fileupload middleware
+  fileUpload, //  Use express-fileupload middleware
   uploadMaterial
 );
 
@@ -46,7 +46,7 @@ router.get(
 router.get(
   '/',
   protect,
-  authorize('teacher', 'admin'),
+  authorize(['teacher', 'admin']),
   getAllMaterials
 );
 
@@ -69,12 +69,13 @@ router.get(
 router.delete(
   '/:materialId',
   protect,
-  authorize('teacher', 'admin'),
+  // authorize('teacher', 'admin'),
+  authorize(['teacher', 'admin']),
   deleteMaterial
 );
 
 /**
- * ✅ NEW ROUTE
+ *  NEW ROUTE
  * @route   POST /api/materials/view/:materialId
  * @desc    Track when a student views a material
  * @access  Private (Students only)

@@ -80,7 +80,7 @@ const getResourceType = (mimetype) => {
     } else if (mimetype.startsWith('video/')) {
         return 'video';
     } else {
-        return 'raw'; // ✅ FIXED: Always use 'raw' for PDFs, DOCX, etc.
+        return 'raw'; //  FIXED: Always use 'raw' for PDFs, DOCX, etc.
     }
 };
 

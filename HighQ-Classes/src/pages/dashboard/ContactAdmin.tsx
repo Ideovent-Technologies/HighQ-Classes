@@ -1,212 +1,291 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Send, User, CheckCircle2 } from "lucide-react";
+import { Send, User, CheckCircle2, Mail, Phone, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { useSupportTickets } from "@/hooks/useSupportTickets";
+import { useContact } from "@/hooks/useContact";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const ContactAdmin: React.FC = () => {
-  const { user } = useAuth();
+    const { user } = useAuth();
+    const { sendStudentTeacherMessage, loading, error, clearError } =
+        useContact();
 
-  const { createTicket, loading, progress, error, setError } = useSupportTickets();
+    const [subject, setSubject] = useState("");
+    const [message, setMessage] = useState("");
+    const [successMsg, setSuccessMsg] = useState("");
 
-  const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState("");
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        clearError();
+        setSuccessMsg("");
 
-  useEffect(() => {
-    if (!file) {
-      setPreview(null);
-      return;
-    }
-    if (file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onload = () => setPreview(String(reader.result));
-      reader.readAsDataURL(file);
-    } else {
-      setPreview(null);
-    }
-  }, [file]);
+        if (!subject.trim() || !message.trim()) {
+            return;
+        }
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0] || null;
-    setFile(f);
-  };
+        try {
+            const response = await sendStudentTeacherMessage({
+                subject,
+                message,
+            });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccessMsg("");
+            if (response.success) {
+                setSubject("");
+                setMessage("");
+                setSuccessMsg(
+                    "Your message has been sent successfully! We'll get back to you soon."
+                );
+            }
+        } catch (err) {
+            // Error is handled by the hook
+            console.error("Contact form error:", err);
+        }
+    };
 
-    const fd = new FormData();
-    fd.append("subject", subject);
-    fd.append("message", message);
-    fd.append("name", user?.name || "");
-    fd.append("email", user?.email || "");
-    fd.append("role", user?.role || "");
-    if (file) fd.append("file", file, file.name);
+    return (
+        <div className="container mx-auto px-4 py-8 max-w-6xl">
+            <div className="text-center mb-8">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                    Contact Admin
+                </h1>
+                <p className="text-gray-600 max-w-2xl mx-auto">
+                    Have a question, suggestion, or need assistance? Get in
+                    touch with our admin team. We're here to help and will
+                    respond as soon as possible.
+                </p>
+            </div>
 
-    const res = await createTicket(fd);
+            <div className="grid md:grid-cols-2 gap-8">
+                {/* Contact Form */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Send className="h-5 w-5" />
+                            Send Message
+                        </CardTitle>
+                        <CardDescription>
+                            Fill out the form below and we'll get back to you
+                            within 24-48 hours.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            {/* User Info (Read-only) */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="name">Name</Label>
+                                    <Input
+                                        id="name"
+                                        type="text"
+                                        value={user?.name || ""}
+                                        readOnly
+                                        className="bg-gray-50"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="email">Email</Label>
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        value={user?.email || ""}
+                                        readOnly
+                                        className="bg-gray-50"
+                                    />
+                                </div>
+                            </div>
 
-    if (res.success) {
-      setSubject("");
-      setMessage("");
-      setFile(null);
-      setSuccessMsg("Your message has been received. We'll get back to you soon!");
-    }
-  };
+                            {/* Role Badge */}
+                            <div className="flex items-center gap-2">
+                                <User className="h-4 w-4" />
+                                <span
+                                    className={`inline-block px-3 py-1 text-xs rounded-full font-medium ${
+                                        user?.role === "teacher"
+                                            ? "bg-green-100 text-green-700"
+                                            : user?.role === "admin"
+                                            ? "bg-purple-100 text-purple-700"
+                                            : "bg-blue-100 text-blue-700"
+                                    }`}
+                                >
+                                    {String(user?.role || "USER").toUpperCase()}
+                                </span>
+                            </div>
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-pink-50 to-purple-100 flex items-center justify-center p-6">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="bg-white rounded-3xl shadow-xl p-8 w-full max-w-2xl border border-gray-100"
-      >
-        <div className="flex items-center gap-3 mb-6">
-          <User className="w-8 h-8 text-blue-500" />
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-800">Contact Admin</h2>
-            <p className="text-sm text-gray-500">
-              Submit account or classroom issues — we'll respond ASAP.
-            </p>
-          </div>
+                            {/* Subject */}
+                            <div className="space-y-2">
+                                <Label htmlFor="subject">Subject *</Label>
+                                <Input
+                                    id="subject"
+                                    value={subject}
+                                    onChange={(e) => setSubject(e.target.value)}
+                                    placeholder="Brief description of your inquiry"
+                                    required
+                                />
+                            </div>
+
+                            {/* Message */}
+                            <div className="space-y-2">
+                                <Label htmlFor="message">Message *</Label>
+                                <Textarea
+                                    id="message"
+                                    value={message}
+                                    onChange={(e) => setMessage(e.target.value)}
+                                    rows={6}
+                                    placeholder="Describe your question, concern, or feedback in detail..."
+                                    required
+                                />
+                            </div>
+
+                            {/* Error Alert */}
+                            {error && (
+                                <Alert className="border-red-200 bg-red-50">
+                                    <AlertDescription className="text-red-700">
+                                        {error}
+                                    </AlertDescription>
+                                </Alert>
+                            )}
+
+                            {/* Submit Button */}
+                            <Button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full"
+                            >
+                                {loading ? (
+                                    <>
+                                        <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                        Sending Message...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Send className="h-4 w-4 mr-2" />
+                                        Send Message
+                                    </>
+                                )}
+                            </Button>
+                        </form>
+                    </CardContent>
+                </Card>
+
+                {/* Contact Information & Success Message */}
+                <div className="space-y-6">
+                    {/* Success Message */}
+                    <AnimatePresence>
+                        {successMsg && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                transition={{ duration: 0.3 }}
+                            >
+                                <Alert className="border-green-200 bg-green-50">
+                                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                    <AlertDescription className="text-green-700">
+                                        {successMsg}
+                                    </AlertDescription>
+                                </Alert>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Contact Information */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Get in Touch</CardTitle>
+                            <CardDescription>
+                                Alternative ways to reach us
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex items-start gap-3">
+                                <Mail className="h-5 w-5 text-blue-600 mt-0.5" />
+                                <div>
+                                    <p className="font-medium">Email</p>
+                                    <p className="text-gray-600">
+                                        admin@highqclasses.com
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                        We respond within 24-48 hours
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-3">
+                                <Phone className="h-5 w-5 text-green-600 mt-0.5" />
+                                <div>
+                                    <p className="font-medium">Phone</p>
+                                    <p className="text-gray-600">
+                                        +1 (555) 123-4567
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                        Mon-Fri, 9:00 AM - 6:00 PM
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-3">
+                                <MapPin className="h-5 w-5 text-red-600 mt-0.5" />
+                                <div>
+                                    <p className="font-medium">Address</p>
+                                    <p className="text-gray-600">
+                                        123 Education Street
+                                        <br />
+                                        Learning City, LC 12345
+                                    </p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* FAQ */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Frequently Asked Questions</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <div>
+                                <p className="font-medium text-sm">
+                                    How quickly will I receive a response?
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                    We typically respond within 24-48 hours
+                                    during business days.
+                                </p>
+                            </div>
+                            <div>
+                                <p className="font-medium text-sm">
+                                    What information should I include?
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                    Please provide as much detail as possible
+                                    about your question or issue.
+                                </p>
+                            </div>
+                            <div>
+                                <p className="font-medium text-sm">
+                                    Is there a phone number for urgent matters?
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                    Yes, you can call us at +1 (555) 123-4567
+                                    during business hours.
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Name */}
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">Name</label>
-            <input
-              type="text"
-              value={user?.name || ""}
-              readOnly
-              className="w-full p-2 rounded-lg border bg-gray-50"
-            />
-            <span
-              className={`inline-block mt-2 px-3 py-1 text-xs rounded-full ${
-                user?.role === "teacher"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-blue-100 text-blue-700"
-              }`}
-            >
-              {String(user?.role || "USER").toUpperCase()}
-            </span>
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">Email</label>
-            <input
-              type="email"
-              value={user?.email || ""}
-              readOnly
-              className="w-full p-2 rounded-lg border bg-gray-50"
-            />
-          </div>
-
-          {/* Subject */}
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">Subject</label>
-            <input
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              required
-              placeholder="Short subject"
-              className="w-full p-2 rounded-lg border focus:ring-2 focus:ring-blue-200"
-            />
-          </div>
-
-          {/* Message */}
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">Message</label>
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              rows={5}
-              required
-              placeholder="Explain the issue"
-              className="w-full p-3 rounded-lg border focus:ring-2 focus:ring-blue-200"
-            />
-          </div>
-
-          {/* File Upload */}
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">
-              Attachment (optional)
-            </label>
-            <div className="flex items-center gap-3">
-              <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg border hover:bg-blue-100 transition">
-                <Upload className="w-4 h-4 text-blue-600" />
-                <span className="text-sm text-blue-600">Choose file</span>
-                <input
-                  type="file"
-                  accept="image/*,application/pdf"
-                  onChange={handleFile}
-                  className="hidden"
-                />
-              </label>
-              {file && (
-                <span className="text-sm text-gray-600 truncate max-w-[200px]">
-                  {file.name}
-                </span>
-              )}
-            </div>
-            {preview && (
-              <img
-                src={preview}
-                alt="preview"
-                className="mt-3 max-h-40 rounded-md border"
-              />
-            )}
-          </div>
-
-          {/* Upload Progress */}
-          {loading && (
-            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                className="h-full bg-gradient-to-r from-blue-500 to-purple-400"
-              />
-            </div>
-          )}
-
-          {/* Submit Button */}
-          <div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              <Send className="w-4 h-4 mr-2" />
-              {loading ? "Sending..." : "Send Message"}
-            </Button>
-          </div>
-
-          {/* Error Message */}
-          {error && (
-            <p className="text-center text-sm mt-2 text-red-500">{error}</p>
-          )}
-        </form>
-
-        {/* Success Alert */}
-        <AnimatePresence>
-          {successMsg && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className="mt-6 p-4 rounded-lg bg-green-50 border border-green-200 flex items-center gap-3"
-            >
-              <CheckCircle2 className="text-green-500 w-5 h-5" />
-              <p className="text-green-700 text-sm">{successMsg}</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-    </div>
-  );
+    );
 };
 
 export default ContactAdmin;

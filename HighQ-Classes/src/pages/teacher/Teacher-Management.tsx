@@ -416,7 +416,7 @@ const TeacherManagementPage: React.FC = () => {
                                                 )}
                                                 {teacher.experience !== undefined && <p className="text-xs text-muted-foreground mt-1">🗓️ Exp: {teacher.experience} years</p>}
                                                 {teacher.department && <p className="text-xs text-muted-foreground mt-1">🏢 Dept: {teacher.department}</p>}
-                                                {teacher.status && <p className="text-xs text-muted-foreground mt-1">✅ Status: {teacher.status}</p>}
+                                                {teacher.status && <p className="text-xs text-muted-foreground mt-1"> Status: {teacher.status}</p>}
                                             </CardContent>
                                             {/* Action buttons on hover */}
                                             <div className="absolute top-3 right-3 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"> {/* Added z-10 */}

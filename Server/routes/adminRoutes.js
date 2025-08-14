@@ -18,7 +18,8 @@ import {
     getAdminProfile,
     syncRelations, // <-- added
     changeUserStatus,
-    getPendingApprovals // <-- added
+    getPendingApprovals, // <-- added
+    getActiveUsers
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -32,10 +33,12 @@ router.get("/dashboard", getAdminDashboard);
 router.get("/profile", getAdminProfile);
 
 // Users
-router.post("/user", validateAdminCreateUser, CreateUser); // ✅ new
+router.post("/user", validateAdminCreateUser, CreateUser); //  new
 router.put("/user/:id", updateUser);
 router.patch('/user/:id/status', changeUserStatus);
 router.delete("/user/:id", deleteUser);
+// Active users
+router.get("/active-users", getActiveUsers);
 
 // Students
 router.get("/students", getAllStudents);

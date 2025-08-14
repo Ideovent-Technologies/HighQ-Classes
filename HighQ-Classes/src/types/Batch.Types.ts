@@ -1,4 +1,4 @@
-// ✅ batch.types.ts
+//  batch.types.ts
 
 export interface CourseRef {
   _id: string;
@@ -16,7 +16,7 @@ export interface StudentRef {
   email?: string;
 }
 
-// ✅ Main Batch Interface
+//  Main Batch Interface
 export interface Batch {
   _id: string;
   name: string;
@@ -37,7 +37,7 @@ export interface Batch {
   description?: string;
 }
 
-// ✅ Interface for creating/updating batches
+//  Interface for creating/updating batches
 export interface CreateBatchData {
   name: string;
   courseId: string;

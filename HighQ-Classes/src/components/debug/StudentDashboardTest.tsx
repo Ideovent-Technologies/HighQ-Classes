@@ -16,7 +16,7 @@ const StudentDashboardTest: React.FC = () => {
         try {
             console.log("🔍 Testing student dashboard API...");
             const data = await studentService.getDashboard();
-            console.log("✅ API Response:", data);
+            console.log("API Response:", data);
             setResult(data);
         } catch (err: any) {
             console.error("❌ API Error:", err);
