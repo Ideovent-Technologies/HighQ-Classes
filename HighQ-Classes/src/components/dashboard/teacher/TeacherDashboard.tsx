@@ -222,14 +222,6 @@ const TeacherDashboard = () => {
                         iconColor="text-red-300"
                         emptyMessage="No recent notices from the administration."
                     />
-                    <ListCard
-                        title="Recent Materials"
-                        items={materialsSummary?.recentMaterials || []}
-                        to="/dashboard/materials"
-                        icon={FileUp}
-                        iconColor="text-yellow-300"
-                        emptyMessage="No recent study materials have been uploaded."
-                    />
                 </div>
             </div>
         </div>
