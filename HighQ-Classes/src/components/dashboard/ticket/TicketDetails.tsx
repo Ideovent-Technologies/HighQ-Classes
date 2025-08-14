@@ -3,7 +3,7 @@ import { SupportTicket } from "@/types/SupportTicket";
 import SupportTicketService from "@/API/services/SupportTicket";
 import { useParams, useNavigate } from "react-router-dom";
 
-const TicketCard: React.FC = () => {
+const TicketDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [ticket, setTicket] = useState<SupportTicket | null>(null);
@@ -62,7 +62,7 @@ const TicketCard: React.FC = () => {
         </select>
       </div>
       <button
-        onClick={() => navigate("/admin/tickets")}
+        onClick={() => navigate("/dashboard/UserSupport")}
         className="mt-4 px-4 py-2 bg-gray-500 text-white rounded"
       >
         Back to List
@@ -71,4 +71,4 @@ const TicketCard: React.FC = () => {
   );
 };
 
-export default TicketCard;
+export default TicketDetail;
