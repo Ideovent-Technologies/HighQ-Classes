@@ -231,14 +231,15 @@ export default function Recordings() {
                   <p className="text-xs text-gray-600 mt-1">
                     <span className="font-semibold">{rec.subject}</span>
                   </p>
-                  <div className="text-xs text-gray-500 mt-2 space-y-1">
-                    <p>
-                      <span className="font-medium">Batch:</span> {rec.batch.name}
-                    </p>
-                    <p>
-                      <span className="font-medium">Course:</span> {rec.course.name}
-                    </p>
-                  </div>
+                 
+<div className="text-xs text-gray-500 mt-2 space-y-1">
+  <p>
+    <span className="font-medium">Batch:</span> {rec.batch?.name || "N/A"}
+  </p>
+  <p>
+    <span className="font-medium">Course:</span> {rec.course?.name || "N/A"}
+  </p>
+</div>
                   <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-200">
                     <span className="text-xs text-gray-500">
                       {new Date(rec.createdAt).toLocaleDateString()}
