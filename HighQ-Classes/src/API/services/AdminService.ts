@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import api from "../Axios";
 import { DashboardData } from "../../types/admin.types";
-import { StudentUser } from "../../types/student.types";
+import { StudentUser, CreateStudentData  } from "../../types/student.types";
 import { TeacherUser } from "../../types/teacher.types";
 import { AdminUser } from "../../types/admin.types";
 
@@ -174,7 +174,7 @@ class AdminService {
   // POST /api/admin/students - Add student
   async addStudent(studentData: any): Promise<{
     success: boolean;
-    student?: StudentUser;
+    student?: CreateStudentData ;
     message?: string;
   }> {
     try {
