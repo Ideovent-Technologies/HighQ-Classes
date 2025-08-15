@@ -4,6 +4,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import {
     Search,
     Filter,
@@ -212,7 +213,15 @@ const AllStudents = () => {
     const fullyPaidStudents = students.filter(s => (s.feeStatus?.pendingAmount || 0) === 0).length;
     const pendingPaymentStudents = students.filter(s => (s.feeStatus?.pendingAmount || 0) > 0).length;
     const unpaidStudents = students.filter(s => (s.feeStatus?.paidAmount || 0) === 0).length;
+    const navigate = useNavigate();
 
+
+    const handleClick = () => {
+        // Navigate to the Add Student page
+        navigate("/dashboard/students/add");
+        console.log("Navigating to Add Student page");
+    }
+    
 
     return (
         <DashboardLayout>
@@ -226,7 +235,7 @@ const AllStudents = () => {
                         </p>
                     </div>
                     {/* Button to add new student */}
-                    <Button className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all duration-200 ease-in-out transform hover:scale-105 rounded-lg px-6 py-3">
+                    <Button onClick={handleClick} className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all duration-200 ease-in-out transform hover:scale-105 rounded-lg px-6 py-3">
                         <User className="h-5 w-5 mr-2" />
                         Add New Student
                     </Button>
