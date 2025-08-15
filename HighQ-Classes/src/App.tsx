@@ -120,6 +120,8 @@ const StudentNotices = React.lazy(
 const StudentAssignments = React.lazy(
     () => import("@/pages/student/StudentAssignments")
 );
+const AddStudentForm = React.lazy(
+    () => import("./components/dashboard/student/StudentForm"));
 const StudentAttendance = React.lazy(
     () => import("@/pages/student/StudentAttendance")
 );
@@ -662,6 +664,13 @@ const App: React.FC = () => {
                                         </ProtectedRoute>
                                     }
                                 />
+                                <Route 
+                                path="/dashboard/students/add"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <AddStudentForm />
+                                    </ProtectedRoute>
+                                }/>
                                 <Route
                                     path="/admin/attendance"
                                     element={
