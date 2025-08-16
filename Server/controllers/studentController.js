@@ -1,258 +1,196 @@
+import mongoose from 'mongoose';
 import Student from '../models/Student.js';
 import bcrypt from 'bcryptjs';
 import { v2 as cloudinary } from 'cloudinary';
 import configureCloudinary from '../config/cloudinary.js';
 
-// Initialize Cloudinary configuration
 configureCloudinary();
 
-// GET /api/student/:id/profile
+/**
+ * GET /api/student/:id/profile
+ */
 export const getProfile = async (req, res) => {
   try {
-    const studentId = req.params.id;
+    const studentId = new mongoose.Types.ObjectId(req.params.id);
 
-    // Find student by their own ID (not user reference)
-    const student = await Student.findById(studentId)
-      .select('-password -passwordResetToken -emailVerificationToken')
-      .populate('batch', 'name startDate endDate schedule')
-      .populate('courses', 'name description duration instructor')
-      .populate('enrolledCourses.course', 'name description instructor');
+    const result = await Student.aggregate([
+      { $match: { _id: studentId } },
 
-    if (!student) {
-      return res.status(404).json({
-        success: false,
-        message: 'Student not found'
-      });
-    }
-
-    // Calculate dynamic data
-    const attendancePercentage = student.attendance?.percentage || 0;
-    const totalCourses = student.enrolledCourses?.length || 0;
-    const activeCourses = student.enrolledCourses?.filter(course => course.status === 'active').length || 0;
-
-    // Prepare profile response
-    const profileData = {
-      // Basic Information
-      id: student._id,
-      name: student.name,
-      email: student.email,
-      mobile: student.mobile,
-      profilePicture: student.profilePicture,
-
-      // Personal Details
-      gender: student.gender,
-      dateOfBirth: student.dateOfBirth,
-      address: student.address,
-
-      // Family Information
-      parentName: student.parentName,
-      parentContact: student.parentContact,
-
-      // Academic Information
-      grade: student.grade,
-      schoolName: student.schoolName,
-      batch: student.batch,
-      joinDate: student.joinDate,
-
-      // Course Information
-      courses: student.courses,
-      enrolledCourses: student.enrolledCourses,
-      totalCourses,
-      activeCourses,
-
-      // Attendance Data
-      attendance: {
-        percentage: attendancePercentage,
-        totalClasses: student.attendance?.totalClasses || 0,
-        attendedClasses: student.attendance?.attendedClasses || 0,
-        records: student.attendance?.records || []
+      // Lookup all enrolled course details
+      {
+        $lookup: {
+          from: 'courses',
+          localField: 'enrolledCourses.course',
+          foreignField: '_id',
+          as: 'enrolledCoursesData'
+        }
       },
 
-      // Academic Performance
-      examHistory: student.examHistory || [],
+      // Add course & batch details into enrolledCourses array
+      {
+        $addFields: {
+          enrolledCourses: {
+            $map: {
+              input: '$enrolledCourses',
+              as: 'ec',
+              in: {
+                $mergeObjects: [
+                  '$$ec',
+                  {
+                    course: {
+                      $arrayElemAt: [
+                        {
+                          $filter: {
+                            input: '$enrolledCoursesData',
+                            as: 'cd',
+                            cond: { $eq: ['$$cd._id', '$$ec.course'] }
+                          }
+                        },
+                        0
+                      ]
+                    },
+                    batch: {
+                      $arrayElemAt: [
+                        {
+                          $filter: {
+                            input: {
+                              $arrayElemAt: [
+                                {
+                                  $filter: {
+                                    input: '$enrolledCoursesData',
+                                    as: 'cd',
+                                    cond: { $eq: ['$$cd._id', '$$ec.course'] }
+                                  }
+                                },
+                                0
+                              ]
+                            }.batches,
+                            as: 'b',
+                            cond: { $eq: ['$$b._id', '$$ec.batch'] }
+                          }
+                        },
+                        0
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
 
-      // Account Information
-      status: student.status,
-      role: student.role,
-      lastLogin: student.lastLogin,
-      emailVerified: student.emailVerified,
+      // Remove temp data
+      { $project: { enrolledCoursesData: 0, password: 0, passwordResetToken: 0, emailVerificationToken: 0 } }
+    ]);
 
-      // Preferences
-      preferences: student.preferences,
+    if (!result.length) {
+      return res.status(404).json({ success: false, message: 'Student not found' });
+    }
 
-      // Resources
-      resources: student.resources,
-      paymentHistory: student.paymentHistory,
-
-      // Timestamps
-      createdAt: student.createdAt,
-      updatedAt: student.updatedAt
-    };
+    const student = result[0];
+    const attendancePercentage = student.attendance?.percentage || 0;
+    const totalCourses = student.enrolledCourses?.length || 0;
+    const activeCourses = student.enrolledCourses?.filter(c => c.status === 'active').length || 0;
 
     res.status(200).json({
       success: true,
       message: 'Profile retrieved successfully',
-      data: profileData
+      data: {
+        ...student,
+        totalCourses,
+        activeCourses,
+        attendance: {
+          percentage: attendancePercentage,
+          totalClasses: student.attendance?.totalClasses || 0,
+          attendedClasses: student.attendance?.attendedClasses || 0,
+          records: student.attendance?.records || []
+        }
+      }
     });
 
   } catch (error) {
     console.error('Get profile error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while retrieving profile'
-    });
+    res.status(500).json({ success: false, message: 'Server error while retrieving profile' });
   }
 };
 
-// PATCH /api/student/:id/profile
+/**
+ * PATCH /api/student/:id/profile
+ */
 export const updateProfile = async (req, res) => {
   try {
     const studentId = req.params.id;
-    const {
-      name,
-      email,
-      mobile,
-      gender,
-      dateOfBirth,
-      parentName,
-      parentContact,
-      address,
-      grade,
-      schoolName,
-      preferences
-    } = req.body;
+    const allowedFields = [
+      'name', 'email', 'mobile', 'gender', 'dateOfBirth',
+      'parentName', 'parentContact', 'address', 'grade',
+      'schoolName', 'preferences'
+    ];
 
-    // Build updates object with only provided fields
     const updates = {};
-
-    if (name) updates.name = name;
-    if (email) updates.email = email;
-    if (mobile) updates.mobile = mobile;
-    if (gender) updates.gender = gender;
-    if (dateOfBirth) updates.dateOfBirth = dateOfBirth;
-    if (parentName) updates.parentName = parentName;
-    if (parentContact) updates.parentContact = parentContact;
-    if (address) updates.address = address;
-    if (grade) updates.grade = grade;
-    if (schoolName) updates.schoolName = schoolName;
-    if (preferences) updates.preferences = preferences;
-
-    // Check if there's anything to update
-    if (Object.keys(updates).length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "No valid fields provided for update"
-      });
+    for (const field of allowedFields) {
+      if (req.body[field]) updates[field] = req.body[field];
     }
 
-    // Check for duplicate email/mobile if updating these fields
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ success: false, message: "No valid fields provided for update" });
+    }
+
+    // Duplicate check for email/mobile
     if (updates.email || updates.mobile) {
       const existingStudent = await Student.findOne({
         $and: [
           { _id: { $ne: studentId } },
-          {
-            $or: [
-              { email: updates.email },
-              { mobile: updates.mobile }
-            ]
-          }
+          { $or: [{ email: updates.email }, { mobile: updates.mobile }] }
         ]
       });
-
       if (existingStudent) {
-        return res.status(409).json({
-          success: false,
-          message: 'Email or mobile number already exists'
-        });
+        return res.status(409).json({ success: false, message: 'Email or mobile number already exists' });
       }
     }
 
-    // Update student profile
-    const student = await Student.findByIdAndUpdate(
-      studentId,
-      { $set: updates },
-      {
-        new: true,
-        runValidators: true
-      }
-    ).select('-password -passwordResetToken -emailVerificationToken');
+    const student = await Student.findByIdAndUpdate(studentId, { $set: updates }, { new: true, runValidators: true })
+      .select('-password -passwordResetToken -emailVerificationToken');
 
-    if (!student) {
-      return res.status(404).json({
-        success: false,
-        message: "Student not found"
-      });
-    }
+    if (!student) return res.status(404).json({ success: false, message: "Student not found" });
 
-    res.status(200).json({
-      success: true,
-      message: 'Profile updated successfully',
-      data: student
-    });
+    res.status(200).json({ success: true, message: 'Profile updated successfully', data: student });
 
   } catch (error) {
     console.error('Update profile error:', error);
-
-    // Handle validation errors
     if (error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map(err => err.message);
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: validationErrors
-      });
+      return res.status(400).json({ success: false, message: 'Validation failed', errors: Object.values(error.errors).map(err => err.message) });
     }
-
-    // Handle duplicate key errors
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
-      return res.status(409).json({
-        success: false,
-        message: `${field} already exists`
-      });
+      return res.status(409).json({ success: false, message: `${field} already exists` });
     }
-
-    res.status(500).json({
-      success: false,
-      message: 'Server error while updating profile'
-    });
+    res.status(500).json({ success: false, message: 'Server error while updating profile' });
   }
 };
 
-// POST /api/student/:id/profile-picture
+/**
+ * POST /api/student/:id/profile-picture
+ */
 export const uploadProfilePicture = async (req, res) => {
   try {
     const studentId = req.params.id;
 
-    // Check if file is uploaded
     if (!req.files || !req.files.profilePic) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please upload a profile picture'
-      });
+      return res.status(400).json({ success: false, message: 'Please upload a profile picture' });
     }
 
     const profilePic = req.files.profilePic;
-
-    // Validate file type
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+
     if (!allowedTypes.includes(profilePic.mimetype)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Only image files (JPEG, PNG, GIF) are allowed'
-      });
+      return res.status(400).json({ success: false, message: 'Only image files (JPEG, PNG, GIF) are allowed' });
     }
 
-    // Validate file size (5MB limit)
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (profilePic.size > maxSize) {
-      return res.status(400).json({
-        success: false,
-        message: 'File size should not exceed 5MB'
-      });
+    if (profilePic.size > 5 * 1024 * 1024) {
+      return res.status(400).json({ success: false, message: 'File size should not exceed 5MB' });
     }
 
-    // Upload to Cloudinary
     const uploadResult = await cloudinary.uploader.upload(profilePic.tempFilePath, {
       folder: 'profile-pictures/students',
       width: 300,
@@ -263,100 +201,141 @@ export const uploadProfilePicture = async (req, res) => {
       fetch_format: 'auto'
     });
 
-    // Update student profile picture
-    const student = await Student.findByIdAndUpdate(
-      studentId,
-      { $set: { profilePicture: uploadResult.secure_url } },
-      { new: true }
-    ).select('-password -passwordResetToken -emailVerificationToken');
+    const student = await Student.findByIdAndUpdate(studentId, { $set: { profilePicture: uploadResult.secure_url } }, { new: true })
+      .select('-password -passwordResetToken -emailVerificationToken');
 
-    if (!student) {
-      return res.status(404).json({
-        success: false,
-        message: "Student not found"
-      });
-    }
+    if (!student) return res.status(404).json({ success: false, message: "Student not found" });
 
-    res.status(200).json({
-      success: true,
-      message: 'Profile picture updated successfully',
-      data: {
-        profilePicture: student.profilePicture,
-        cloudinaryId: uploadResult.public_id
-      }
-    });
+    res.status(200).json({ success: true, message: 'Profile picture updated successfully', data: { profilePicture: student.profilePicture, cloudinaryId: uploadResult.public_id } });
 
   } catch (error) {
     console.error('Upload profile picture error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while uploading profile picture'
-    });
+    res.status(500).json({ success: false, message: 'Server error while uploading profile picture' });
   }
 };
 
-// PATCH /api/student/:id/change-password
+/**
+ * PATCH /api/student/:id/change-password
+ */
 export const changePassword = async (req, res) => {
   try {
     const studentId = req.params.id;
     const { oldPassword, newPassword } = req.body;
 
-    // Validate input
     if (!oldPassword || !newPassword) {
-      return res.status(400).json({
-        success: false,
-        message: "Both old and new passwords are required"
-      });
+      return res.status(400).json({ success: false, message: "Both old and new passwords are required" });
     }
 
-    // Validate new password strength
     if (newPassword.length < 6) {
-      return res.status(400).json({
-        success: false,
-        message: "New password must be at least 6 characters long"
-      });
+      return res.status(400).json({ success: false, message: "New password must be at least 6 characters long" });
     }
 
-    // Find student with password field included
     const student = await Student.findById(studentId).select('+password');
+    if (!student) return res.status(404).json({ success: false, message: "Student not found" });
 
-    if (!student) {
-      return res.status(404).json({
-        success: false,
-        message: "Student not found"
-      });
-    }
-
-    // Verify old password
     const isMatch = await bcrypt.compare(oldPassword, student.password);
-    if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Old password is incorrect"
-      });
-    }
+    if (!isMatch) return res.status(401).json({ success: false, message: "Old password is incorrect" });
 
-    // Hash new password
     const salt = await bcrypt.genSalt(12);
-    const hashedNewPassword = await bcrypt.hash(newPassword, salt);
-
-    // Update password
-    student.password = hashedNewPassword;
+    student.password = await bcrypt.hash(newPassword, salt);
     student.passwordResetToken = undefined;
     student.passwordResetExpires = undefined;
 
     await student.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Password updated successfully"
-    });
+    res.status(200).json({ success: true, message: "Password updated successfully" });
 
   } catch (error) {
     console.error("Change password error:", error);
+    res.status(500).json({ success: false, message: "Server error while changing password" });
+  }
+};
+
+// GET /api/student/batch
+export const getStudentBatch = async (req, res) => {
+  try {
+    const studentId = req.user.id; // Get from authenticated user
+
+    // Find student and populate batch with detailed information
+    const student = await Student.findById(studentId)
+      .populate({
+        path: 'batch',
+        populate: [
+          {
+            path: 'courseId',
+            select: 'name description duration instructor topics'
+          },
+          {
+            path: 'teacherId',
+            select: 'name email employeeId qualification specialization profilePicture'
+          },
+          {
+            path: 'students',
+            select: 'name email grade profilePicture'
+          }
+        ]
+      });
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student not found'
+      });
+    }
+
+    if (!student.batch) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student is not assigned to any batch'
+      });
+    }
+
+    const batch = student.batch;
+
+    // Format the response
+    const batchInfo = {
+      _id: batch._id,
+      name: batch.name,
+      course: {
+        _id: batch.courseId._id,
+        name: batch.courseId.name,
+        description: batch.courseId.description,
+        duration: batch.courseId.duration,
+        instructor: batch.courseId.instructor,
+        topics: batch.courseId.topics || []
+      },
+      teacher: {
+        _id: batch.teacherId._id,
+        name: batch.teacherId.name,
+        email: batch.teacherId.email,
+        employeeId: batch.teacherId.employeeId,
+        qualification: batch.teacherId.qualification,
+        specialization: batch.teacherId.specialization,
+        profilePicture: batch.teacherId.profilePicture
+      },
+      students: batch.students.map(student => ({
+        _id: student._id,
+        name: student.name,
+        email: student.email,
+        grade: student.grade,
+        profilePicture: student.profilePicture
+      })),
+      schedule: batch.schedule,
+      startDate: batch.startDate,
+      endDate: batch.endDate,
+      totalStudents: batch.students.length,
+      isActive: batch.status === 'active'
+    };
+
+    res.status(200).json({
+      success: true,
+      batch: batchInfo
+    });
+
+  } catch (error) {
+    console.error("Get student batch error:", error);
     res.status(500).json({
       success: false,
-      message: "Server error while changing password"
+      message: "Server error while fetching batch information"
     });
   }
 };

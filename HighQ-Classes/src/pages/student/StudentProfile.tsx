@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
     User,
     Mail,
@@ -24,38 +25,168 @@ import {
     Edit,
     Save,
     X,
+    Upload,
+    AlertCircle,
+    CheckCircle,
+    Loader2,
+    Lock,
 } from "lucide-react";
 import { StudentUser } from "@/types/student.types";
+import { studentService } from "@/API/services/studentService";
 
 const StudentProfile: React.FC = () => {
-    const { state } = useAuth();
-    const user = state.user as StudentUser;
+    const { state, updateProfile: authUpdateProfile } = useAuth();
+    // Safe type conversion for student user
+    const user =
+        state.user && state.user.role === "student"
+            ? (state.user as unknown as StudentUser)
+            : null;
     const [isEditing, setIsEditing] = useState(false);
     const [profileData, setProfileData] = useState<Partial<StudentUser>>({});
     const [isLoading, setIsLoading] = useState(false);
+    const [uploadingPicture, setUploadingPicture] = useState(false);
+    const [message, setMessage] = useState<{
+        type: "success" | "error";
+        text: string;
+    } | null>(null);
+    const [passwordData, setPasswordData] = useState({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+    });
+    const [showPasswordChange, setShowPasswordChange] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
-        if (user) {
-            setProfileData(user);
+   useEffect(() => {
+    const fetchProfile = async () => {
+        if (!user?._id) return;
+
+        try {
+            const profile = await studentService.getProfile(user._id);
+            console.log("Full Profile Data:", profile);
+            console.log("Enrolled Courses:", profile.enrolledCourses);
+            console.log("Batch Info:", profile.batch);
+
+            // Optionally set this to state if you want to use it in UI
+            setProfileData(profile);
+        } catch (error) {
+            console.error("Error fetching profile:", error);
         }
-    }, [user]);
+    };
 
-    const handleSave = async () => {
+    fetchProfile();
+}, []);
+
+
+    const showMessage = (type: "success" | "error", text: string) => {
+        setMessage({ type, text });
+        setTimeout(() => setMessage(null), 5000);
+    };
+
+    const handleProfileUpdate = async () => {
+        if (!user?._id) return;
+
         setIsLoading(true);
         try {
-            // TODO: Implement API call to update profile
-            // await authService.updateProfile(profileData);
-            console.log("Saving profile:", profileData);
+            const updatedUser = await studentService.updateProfile(user._id, {
+                email: profileData.email,
+                phone: profileData.mobile,
+                address: profileData.address?.street,
+                dateOfBirth: profileData.dateOfBirth,
+                emergencyContact: profileData.parentContact,
+            });
+
+            // Update auth context with new user data
+            await authUpdateProfile({
+                name: updatedUser.name,
+                mobile: updatedUser.mobile,
+            });
             setIsEditing(false);
-        } catch (error) {
-            console.error("Error updating profile:", error);
+            showMessage("success", "Profile updated successfully!");
+        } catch (error: any) {
+            showMessage("error", error.message || "Failed to update profile");
         } finally {
             setIsLoading(false);
         }
     };
 
+    const handlePasswordChange = async () => {
+        if (!user?._id) return;
+
+        if (passwordData.newPassword !== passwordData.confirmPassword) {
+            showMessage("error", "New passwords do not match");
+            return;
+        }
+
+        if (passwordData.newPassword.length < 6) {
+            showMessage("error", "Password must be at least 6 characters long");
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            await studentService.changePassword(user._id, passwordData);
+            setPasswordData({
+                currentPassword: "",
+                newPassword: "",
+                confirmPassword: "",
+            });
+            setShowPasswordChange(false);
+            showMessage("success", "Password changed successfully!");
+        } catch (error: any) {
+            showMessage("error", error.message || "Failed to change password");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+
+    const handleProfilePictureUpload = async (file: File) => {
+        if (!user?._id) return;
+
+        // Validate file type and size
+        if (!file.type.startsWith("image/")) {
+            showMessage("error", "Please select a valid image file");
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            // 5MB limit
+            showMessage("error", "Image size should be less than 5MB");
+            return;
+        }
+
+        setUploadingPicture(true);
+        try {
+            const updatedUser = await studentService.uploadProfilePicture(
+                user._id,
+                file
+            );
+            // Update local profile data
+            setProfileData((prev) => ({
+                ...prev,
+                profilePicture: updatedUser.profilePicture,
+            }));
+            showMessage("success", "Profile picture updated successfully!");
+        } catch (error: any) {
+            showMessage(
+                "error",
+                error.message || "Failed to upload profile picture"
+            );
+        } finally {
+            setUploadingPicture(false);
+        }
+    };
+
+    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            handleProfilePictureUpload(file);
+        }
+    };
+
     const handleCancel = () => {
-        setProfileData(user);
+        setProfileData(user || {});
         setIsEditing(false);
     };
 
@@ -82,7 +213,20 @@ const StudentProfile: React.FC = () => {
     if (!user) {
         return (
             <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+                <Card className="p-6">
+                    <CardContent>
+                        <div className="text-center">
+                            <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                Please Login
+                            </h3>
+                            <p className="text-gray-600">
+                                You need to be logged in as a student to view
+                                your profile.
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         );
     }
@@ -101,7 +245,10 @@ const StudentProfile: React.FC = () => {
                 <div className="flex space-x-2">
                     {isEditing ? (
                         <>
-                            <Button onClick={handleSave} disabled={isLoading}>
+                            <Button
+                                onClick={handleProfileUpdate}
+                                disabled={isLoading}
+                            >
                                 <Save className="mr-2 h-4 w-4" />
                                 Save Changes
                             </Button>

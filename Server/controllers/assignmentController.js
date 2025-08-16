@@ -1,5 +1,6 @@
 // controllers/assignmentController.js
 import Assignment from '../models/Assignment.js';
+import Submission from '../models/Submission.js';
 import mongoose from 'mongoose';
 import { v2 as cloudinary } from 'cloudinary';
 import streamifier from 'streamifier';
@@ -56,18 +57,22 @@ export const createAssignment = async (req, res) => {
 
         await assignment.save();
 
+        // After saving, re-fetch and populate the assignment
+        const populatedAssignment = await Assignment.findById(assignment._id)
+            .populate('course', 'name')
+            .populate('batch', 'name')
+            .populate('teacher', 'name');
+
         res.status(201).json({
             success: true,
-            message: 'Assignment created successfully',
-            assignment
+            assignment: populatedAssignment
         });
 
     } catch (error) {
-        console.error('Assignment creation error:', error);
+        console.error('Create assignment error:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to create assignment',
-            error: error.message
+            message: 'Server error while creating assignment'
         });
     }
 };
@@ -79,33 +84,32 @@ export const createAssignment = async (req, res) => {
  */
 export const getAssignments = async (req, res) => {
     try {
-        const { courseId, batchId, status } = req.query;
-
-        // Build filter object based on query params
-        const filter = {};
-
-        if (courseId) filter.course = courseId;
-        if (batchId) filter.batch = batchId;
-        if (status) filter.status = status;
-
-        // For teachers, only show their assignments
-        if (req.user.role === 'teacher') {
-            filter.teacher = req.user._id;
-        }
+        let filter = {};
 
         // For students, only show assignments for their batches
         if (req.user.role === 'student') {
-            // Get student's batch from their profile
-            const student = await Student.findOne({ user: req.user._id });
-
-            if (student && student.batch) {
-                filter.batch = student.batch;
+            // Get student's batch directly from user (student document)
+            if (req.user.batch) {
+                filter.batch = req.user.batch;
             } else {
                 return res.status(400).json({
                     success: false,
                     message: 'Student not assigned to any batch'
                 });
             }
+        }
+
+        // For teachers, only show their assignments
+        if (req.user.role === 'teacher') {
+            filter.teacher = req.user._id;
+        }
+
+        // Optional filters from query params
+        if (req.query.course) {
+            filter.course = req.query.course;
+        }
+        if (req.query.batch) {
+            filter.batch = req.query.batch;
         }
 
         const assignments = await Assignment.find(filter)
@@ -124,8 +128,7 @@ export const getAssignments = async (req, res) => {
         console.error('Get assignments error:', error);
         res.status(500).json({
             success: false,
-            message: 'Error fetching assignments',
-            error: error.message
+            message: 'Server error while fetching assignments'
         });
     }
 };
@@ -137,11 +140,17 @@ export const getAssignments = async (req, res) => {
  */
 export const getAssignment = async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid assignment ID'
+            });
+        }
+
         const assignment = await Assignment.findById(req.params.id)
             .populate('course', 'name')
             .populate('batch', 'name')
-            .populate('teacher', 'name')
-            .populate('submissions.student', 'name email');
+            .populate('teacher', 'name');
 
         if (!assignment) {
             return res.status(404).json({
@@ -150,24 +159,23 @@ export const getAssignment = async (req, res) => {
             });
         }
 
-        // For students, check if they belong to the batch
+        // Check permissions
         if (req.user.role === 'student') {
-            const student = await Student.findOne({ user: req.user._id });
-
-            if (!student || !student.batch || student.batch.toString() !== assignment.batch.toString()) {
+            // Students can only view assignments for their batch
+            if (!req.user.batch || assignment.batch._id.toString() !== req.user.batch.toString()) {
                 return res.status(403).json({
                     success: false,
-                    message: 'You do not have access to this assignment'
+                    message: 'Access denied - assignment not for your batch'
                 });
             }
-
-            // Check if student has already submitted
-            const submission = assignment.submissions.find(
-                sub => sub.student.toString() === req.user._id.toString()
-            );
-
-            assignment._doc.hasSubmitted = !!submission;
-            assignment._doc.submission = submission || null;
+        } else if (req.user.role === 'teacher') {
+            // Teachers can only view their own assignments
+            if (assignment.teacher._id.toString() !== req.user._id.toString()) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Access denied - not your assignment'
+                });
+            }
         }
 
         res.status(200).json({
@@ -179,8 +187,7 @@ export const getAssignment = async (req, res) => {
         console.error('Get assignment error:', error);
         res.status(500).json({
             success: false,
-            message: 'Error fetching assignment',
-            error: error.message
+            message: 'Server error while fetching assignment'
         });
     }
 };
@@ -192,9 +199,14 @@ export const getAssignment = async (req, res) => {
  */
 export const updateAssignment = async (req, res) => {
     try {
-        const { title, description, dueDate, totalMarks, status } = req.body;
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid assignment ID'
+            });
+        }
 
-        let assignment = await Assignment.findById(req.params.id);
+        const assignment = await Assignment.findById(req.params.id);
 
         if (!assignment) {
             return res.status(404).json({
@@ -203,33 +215,36 @@ export const updateAssignment = async (req, res) => {
             });
         }
 
-        // Check if teacher owns this assignment
-        if (req.user.role === 'teacher' && assignment.teacher.toString() !== req.user._id.toString()) {
+        // Check if user is the teacher who created this assignment
+        if (assignment.teacher.toString() !== req.user._id.toString()) {
             return res.status(403).json({
                 success: false,
-                message: 'Not authorized to update this assignment'
+                message: 'Access denied - not your assignment'
             });
         }
 
-        // Update fields
-        assignment.title = title || assignment.title;
-        assignment.description = description || assignment.description;
-        assignment.dueDate = dueDate ? new Date(dueDate) : assignment.dueDate;
-        assignment.totalMarks = totalMarks || assignment.totalMarks;
-        assignment.status = status || assignment.status;
+        const { title, description, courseId, batchId, dueDate, totalMarks } = req.body;
 
-        // Handle file upload
+        // Update fields
+        if (title) assignment.title = title;
+        if (description) assignment.description = description;
+        if (courseId) assignment.course = courseId;
+        if (batchId) assignment.batch = batchId;
+        if (dueDate) assignment.dueDate = new Date(dueDate);
+        if (totalMarks) assignment.totalMarks = totalMarks;
+
+        // Handle file upload if new file provided
         if (req.file) {
-            // Delete existing file from Cloudinary if present
+            // Delete old file from Cloudinary if exists
             if (assignment.fileUrl) {
                 const publicId = assignment.fileUrl.split('/').pop().split('.')[0];
-                await cloudinary.uploader.destroy(publicId);
+                await cloudinary.v2.uploader.destroy(`assignments/${publicId}`);
             }
 
             // Upload new file
             const streamUpload = () => {
                 return new Promise((resolve, reject) => {
-                    const stream = cloudinary.uploader.upload_stream({
+                    const stream = cloudinary.v2.uploader.upload_stream({
                         folder: 'assignments',
                         resource_type: 'auto'
                     }, (error, result) => {
@@ -244,26 +259,28 @@ export const updateAssignment = async (req, res) => {
             };
 
             const uploadResult = await streamUpload();
-
-            // Update file data
             assignment.fileUrl = uploadResult.secure_url;
             assignment.fileName = req.file.originalname;
         }
 
         await assignment.save();
 
+        // Re-fetch and populate
+        const updatedAssignment = await Assignment.findById(assignment._id)
+            .populate('course', 'name')
+            .populate('batch', 'name')
+            .populate('teacher', 'name');
+
         res.status(200).json({
             success: true,
-            message: 'Assignment updated successfully',
-            assignment
+            assignment: updatedAssignment
         });
 
     } catch (error) {
         console.error('Update assignment error:', error);
         res.status(500).json({
             success: false,
-            message: 'Error updating assignment',
-            error: error.message
+            message: 'Server error while updating assignment'
         });
     }
 };
@@ -275,6 +292,13 @@ export const updateAssignment = async (req, res) => {
  */
 export const deleteAssignment = async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid assignment ID'
+            });
+        }
+
         const assignment = await Assignment.findById(req.params.id);
 
         if (!assignment) {
@@ -284,29 +308,29 @@ export const deleteAssignment = async (req, res) => {
             });
         }
 
-        // Check if teacher owns this assignment
-        if (req.user.role === 'teacher' && assignment.teacher.toString() !== req.user._id.toString()) {
+        // Check if user is the teacher who created this assignment
+        if (assignment.teacher.toString() !== req.user._id.toString()) {
             return res.status(403).json({
                 success: false,
-                message: 'Not authorized to delete this assignment'
+                message: 'Access denied - not your assignment'
             });
         }
 
-        // Delete file from Cloudinary if present
+        // Delete file from Cloudinary if exists
         if (assignment.fileUrl) {
-            const publicId = assignment.fileUrl.split('/').pop().split('.')[0];
-            await cloudinary.uploader.destroy(publicId);
-        }
-
-        // Delete all submission files
-        for (const submission of assignment.submissions) {
-            if (submission.fileUrl) {
-                const publicId = submission.fileUrl.split('/').pop().split('.')[0];
-                await cloudinary.uploader.destroy(publicId);
+            try {
+                const publicId = assignment.fileUrl.split('/').pop().split('.')[0];
+                await cloudinary.v2.uploader.destroy(`assignments/${publicId}`);
+            } catch (cloudinaryError) {
+                console.warn('Failed to delete file from Cloudinary:', cloudinaryError);
             }
         }
 
-        await assignment.remove();
+        // Delete all submissions for this assignment
+        await Submission.deleteMany({ assignment: req.params.id });
+
+        // Delete the assignment
+        await Assignment.findByIdAndDelete(req.params.id);
 
         res.status(200).json({
             success: true,
@@ -317,8 +341,7 @@ export const deleteAssignment = async (req, res) => {
         console.error('Delete assignment error:', error);
         res.status(500).json({
             success: false,
-            message: 'Error deleting assignment',
-            error: error.message
+            message: 'Server error while deleting assignment'
         });
     }
 };
@@ -330,6 +353,13 @@ export const deleteAssignment = async (req, res) => {
  */
 export const submitAssignment = async (req, res) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid assignment ID'
+            });
+        }
+
         const assignment = await Assignment.findById(req.params.id);
 
         if (!assignment) {
@@ -339,83 +369,88 @@ export const submitAssignment = async (req, res) => {
             });
         }
 
-        // Check if student is in the batch
-        const student = await Student.findOne({ user: req.user._id });
-
-        if (!student || !student.batch || student.batch.toString() !== assignment.batch.toString()) {
+        // Check if assignment is for student's batch
+        if (!req.user.batch || assignment.batch.toString() !== req.user.batch.toString()) {
             return res.status(403).json({
                 success: false,
-                message: 'You do not have access to this assignment'
+                message: 'Access denied - assignment not for your batch'
             });
         }
 
-        // Check if submission deadline has passed
-        const now = new Date();
-        const isLate = now > assignment.dueDate;
+        // Check if assignment is still open
+        if (new Date() > assignment.dueDate) {
+            return res.status(400).json({
+                success: false,
+                message: 'Assignment deadline has passed'
+            });
+        }
 
         // Check if student has already submitted
-        const existingSubmission = assignment.submissions.find(
-            sub => sub.student.toString() === req.user._id.toString()
-        );
+        const existingSubmission = await Submission.findOne({
+            assignment: req.params.id,
+            student: req.user._id
+        });
 
         if (existingSubmission) {
             return res.status(400).json({
                 success: false,
-                message: 'You have already submitted this assignment'
+                message: 'Assignment already submitted'
             });
         }
 
-        if (!req.file) {
-            return res.status(400).json({
-                success: false,
-                message: 'Please upload a file'
-            });
-        }
-
-        // Upload file to Cloudinary
-        const streamUpload = () => {
-            return new Promise((resolve, reject) => {
-                const stream = cloudinary.uploader.upload_stream({
-                    folder: 'assignment-submissions',
-                    resource_type: 'auto'
-                }, (error, result) => {
-                    if (result) {
-                        resolve(result);
-                    } else {
-                        reject(error);
-                    }
-                });
-                streamifier.createReadStream(req.file.buffer).pipe(stream);
-            });
-        };
-
-        const uploadResult = await streamUpload();
-
-        // Create submission object
-        const submission = {
+        // Create submission
+        const submission = new Submission({
+            assignment: req.params.id,
             student: req.user._id,
-            submittedOn: now,
-            fileUrl: uploadResult.secure_url,
-            fileName: req.file.originalname,
-            status: isLate ? 'late' : 'submitted'
-        };
+            submittedAt: new Date(),
+            status: 'submitted'
+        });
 
-        // Add submission to assignment
-        assignment.submissions.push(submission);
-        await assignment.save();
+        // Handle file upload
+        if (req.file) {
+            const streamUpload = () => {
+                return new Promise((resolve, reject) => {
+                    const stream = cloudinary.v2.uploader.upload_stream({
+                        folder: 'submissions',
+                        resource_type: 'auto'
+                    }, (error, result) => {
+                        if (result) {
+                            resolve(result);
+                        } else {
+                            reject(error);
+                        }
+                    });
+                    streamifier.createReadStream(req.file.buffer).pipe(stream);
+                });
+            };
+
+            const uploadResult = await streamUpload();
+            submission.fileUrl = uploadResult.secure_url;
+            submission.fileName = req.file.originalname;
+        }
+
+        // Add text submission if provided
+        if (req.body.textSubmission) {
+            submission.textSubmission = req.body.textSubmission;
+        }
+
+        await submission.save();
+
+        // Populate and return the submission
+        const populatedSubmission = await Submission.findById(submission._id)
+            .populate('assignment', 'title dueDate totalMarks')
+            .populate('student', 'name email');
 
         res.status(201).json({
             success: true,
-            message: isLate ? 'Assignment submitted late' : 'Assignment submitted successfully',
-            submission
+            submission: populatedSubmission
         });
 
     } catch (error) {
         console.error('Submit assignment error:', error);
         res.status(500).json({
             success: false,
-            message: 'Error submitting assignment',
-            error: error.message
+            message: 'Server error while submitting assignment'
         });
     }
 };
@@ -427,12 +462,11 @@ export const submitAssignment = async (req, res) => {
  */
 export const gradeSubmission = async (req, res) => {
     try {
-        const { grade, feedback } = req.body;
-
-        if (!grade || grade < 0 || grade > 100) {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id) || 
+            !mongoose.Types.ObjectId.isValid(req.params.submissionId)) {
             return res.status(400).json({
                 success: false,
-                message: 'Please provide a valid grade between 0 and 100'
+                message: 'Invalid assignment or submission ID'
             });
         }
 
@@ -445,45 +479,66 @@ export const gradeSubmission = async (req, res) => {
             });
         }
 
-        // Check if teacher owns this assignment
-        if (req.user.role === 'teacher' && assignment.teacher.toString() !== req.user._id.toString()) {
+        // Check if user is the teacher who created this assignment
+        if (assignment.teacher.toString() !== req.user._id.toString()) {
             return res.status(403).json({
                 success: false,
-                message: 'Not authorized to grade this assignment'
+                message: 'Access denied - not your assignment'
             });
         }
 
-        // Find submission
-        const submissionIndex = assignment.submissions.findIndex(
-            sub => sub._id.toString() === req.params.submissionId
-        );
+        const submission = await Submission.findById(req.params.submissionId);
 
-        if (submissionIndex === -1) {
+        if (!submission) {
             return res.status(404).json({
                 success: false,
                 message: 'Submission not found'
             });
         }
 
-        // Update submission
-        assignment.submissions[submissionIndex].grade = grade;
-        assignment.submissions[submissionIndex].feedback = feedback;
-        assignment.submissions[submissionIndex].status = 'graded';
+        // Check if submission belongs to this assignment
+        if (submission.assignment.toString() !== req.params.id) {
+            return res.status(400).json({
+                success: false,
+                message: 'Submission does not belong to this assignment'
+            });
+        }
 
-        await assignment.save();
+        const { marks, feedback } = req.body;
+
+        // Validate marks
+        if (marks < 0 || marks > assignment.totalMarks) {
+            return res.status(400).json({
+                success: false,
+                message: `Marks must be between 0 and ${assignment.totalMarks}`
+            });
+        }
+
+        // Update submission
+        submission.marks = marks;
+        submission.feedback = feedback;
+        submission.status = 'graded';
+        submission.gradedAt = new Date();
+        submission.gradedBy = req.user._id;
+
+        await submission.save();
+
+        // Populate and return the graded submission
+        const gradedSubmission = await Submission.findById(submission._id)
+            .populate('assignment', 'title totalMarks')
+            .populate('student', 'name email')
+            .populate('gradedBy', 'name');
 
         res.status(200).json({
             success: true,
-            message: 'Submission graded successfully',
-            submission: assignment.submissions[submissionIndex]
+            submission: gradedSubmission
         });
 
     } catch (error) {
         console.error('Grade submission error:', error);
         res.status(500).json({
             success: false,
-            message: 'Error grading submission',
-            error: error.message
+            message: 'Server error while grading submission'
         });
     }
 };
@@ -495,8 +550,14 @@ export const gradeSubmission = async (req, res) => {
  */
 export const getSubmissions = async (req, res) => {
     try {
-        const assignment = await Assignment.findById(req.params.id)
-            .populate('submissions.student', 'name email');
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid assignment ID'
+            });
+        }
+
+        const assignment = await Assignment.findById(req.params.id);
 
         if (!assignment) {
             return res.status(404).json({
@@ -505,26 +566,30 @@ export const getSubmissions = async (req, res) => {
             });
         }
 
-        // Check if teacher owns this assignment
-        if (req.user.role === 'teacher' && assignment.teacher.toString() !== req.user._id.toString()) {
+        // Check if user is the teacher who created this assignment
+        if (assignment.teacher.toString() !== req.user._id.toString()) {
             return res.status(403).json({
                 success: false,
-                message: 'Not authorized to view these submissions'
+                message: 'Access denied - not your assignment'
             });
         }
 
+        const submissions = await Submission.find({ assignment: req.params.id })
+            .populate('student', 'name email')
+            .populate('gradedBy', 'name')
+            .sort({ submittedAt: -1 });
+
         res.status(200).json({
             success: true,
-            count: assignment.submissions.length,
-            submissions: assignment.submissions
+            count: submissions.length,
+            submissions
         });
 
     } catch (error) {
         console.error('Get submissions error:', error);
         res.status(500).json({
             success: false,
-            message: 'Error fetching submissions',
-            error: error.message
+            message: 'Server error while fetching submissions'
         });
     }
 };

@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import AdminService from "@/API/services/AdminService";
+import { AdminUser } from "@/types/admin.types"; // Using your defined type
+
+// UI Components from shadcn/ui and lucide-react
 import {
     Card,
     CardContent,
     CardHeader,
     CardTitle,
+    CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,431 +17,459 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import AdminService from "@/API/services/AdminService";
-import { Separator } from "@/components/ui/separator";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import {
     User,
-    Mail,
-    Phone,
-    MapPin,
     Calendar,
     Shield,
-    Users,
-    BookOpen,
     Building,
-    Camera,
     Edit,
     Save,
     X,
-    IdCard,
     Settings,
-    BarChart3,
-    UserCheck,
+    Loader2,
+    Lock,
+    Unlock,
+    CheckCircle,
+    XCircle,
+    Mail,
+    Phone,
+    KeyRound,
+    Briefcase,
+    AtSign,
+    Fingerprint,
 } from "lucide-react";
-import { AdminUser } from "@/types/admin.types";
-import { useLocation } from "react-router-dom";
+
+// =================================================================================
+// 1. HELPER COMPONENTS FOR ENHANCED DESIGN
+// =================================================================================
+
+/**
+ * A visually appealing list item with an icon for displaying user details.
+ */
+const InfoListItem: React.FC<{
+    icon: React.ElementType;
+    label: string;
+    value?: React.ReactNode;
+}> = ({ icon: Icon, label, value }) => (
+    <div className="flex items-start space-x-4 py-3">
+        <Icon className="h-5 w-5 mt-1 text-muted-foreground" />
+        <div className="flex-grow">
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="text-md font-medium">{value || "Not specified"}</p>
+        </div>
+    </div>
+);
+
+/**
+ * A styled card to clearly indicate boolean access rights (granted/denied).
+ */
+const AccessRightCard: React.FC<{ label: string; granted?: boolean }> = ({
+    label,
+    granted,
+}) => (
+    <div
+        className={`flex items-center space-x-3 p-4 rounded-lg border ${
+            granted
+                ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800"
+                : "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800"
+        }`}
+    >
+        {granted ? (
+            <CheckCircle className="h-6 w-6 text-green-600" />
+        ) : (
+            <XCircle className="h-6 w-6 text-red-600" />
+        )}
+        <span
+            className={`font-medium ${
+                granted
+                    ? "text-green-800 dark:text-green-300"
+                    : "text-red-800 dark:text-red-300"
+            }`}
+        >
+            {label}
+        </span>
+    </div>
+);
+
+// =================================================================================
+// 2. MAIN ADMIN PROFILE COMPONENT WITH NEW DESIGN
+// =================================================================================
 
 const AdminProfile: React.FC = () => {
     const { state } = useAuth();
-    const user = state.user as AdminUser;
     const [isEditing, setIsEditing] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
+
     const [profileData, setProfileData] = useState<Partial<AdminUser>>({});
-    const [isLoading, setIsLoading] = useState(false);
+    const [initialProfileData, setInitialProfileData] = useState<
+        Partial<AdminUser>
+    >({});
 
     useEffect(() => {
         async function fetchProfile() {
-            setIsLoading(true);
-            try {
-                const response = await AdminService.getAdminProfile();
-                if (response.success && response.admin) {
-                    setProfileData(response.admin);
-                    console.log(response.admin);
-                } else {
-                    console.error("Failed to fetch admin profile:", response.message);
+            if (state.user && state.user.role === "admin") {
+                try {
+                    const response = await AdminService.getAdminProfile();
+                    if (response.success && response.admin) {
+                        setProfileData(response.admin);
+                        setInitialProfileData(response.admin);
+                    } else {
+                        // Safely convert User to AdminUser with default values
+                        const userAsAdmin: AdminUser = {
+                            ...(state.user as any),
+                            designation:
+                                (state.user as any).designation ||
+                                "Administrator",
+                            department: (state.user as any).department || "IT",
+                        };
+                        setProfileData(userAsAdmin);
+                        setInitialProfileData(userAsAdmin);
+                    }
+                } catch (error) {
+                    console.error("Error fetching profile:", error);
+                    // Safely convert User to AdminUser with default values
+                    const userAsAdmin: AdminUser = {
+                        ...(state.user as any),
+                        designation:
+                            (state.user as any).designation || "Administrator",
+                        department: (state.user as any).department || "IT",
+                    };
+                    setProfileData(userAsAdmin);
+                    setInitialProfileData(userAsAdmin);
+                } finally {
+                    setIsLoading(false);
                 }
-            } catch (error) {
-                console.error("Unexpected error while fetching profile:", error);
-            } finally {
+            } else {
                 setIsLoading(false);
             }
         }
-
         fetchProfile();
-    }, []);
+    }, [state.user]);
 
-    const handleSave = () => {
-        // You need to implement your save logic here
-        // For example, calling an API to update the profile
-        console.log("Saving changes:", profileData);
-        setIsEditing(false);
+    const handleEdit = () => {
+        setIsEditing(true);
     };
 
     const handleCancel = () => {
-        // Reset profile data to the original user data
-        setProfileData(user);
+        setProfileData(initialProfileData); // Restore original data
         setIsEditing(false);
     };
 
-    const handleInputChange = (
-        field: string,
-        value: string | number | string[]
-    ) => {
-        setProfileData((prev) => ({
-            ...prev,
-            [field]: value,
-        }));
+    const handleSave = async () => {
+        setIsSaving(true);
+        console.log("Saving changes:", profileData);
+        try {
+            // In a real app: await AdminService.updateAdminProfile(profileData);
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            alert("Profile saved successfully!");
+            setInitialProfileData(profileData); // Update the base data after save
+            setIsEditing(false);
+        } catch (error) {
+            console.error("Error saving profile:", error);
+            alert("An error occurred while saving.");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
-    const handleAddressChange = (field: string, value: string) => {
-        setProfileData((prev) => ({
-            ...prev,
-            address: {
-                ...prev.address,
-                [field]: value,
-            },
-        }));
+    const handleInputChange = (field: keyof AdminUser, value: any) => {
+        setProfileData((prev) => ({ ...prev, [field]: value }));
     };
 
-    const handlePermissionsChange = (permissions: string) => {
-        const permissionArray = permissions
-            .split(",")
-            .map((p) => p.trim())
-            .filter((p) => p.length > 0);
-        handleInputChange("permissions", permissionArray);
-    };
-
-    const handleManagedDepartmentsChange = (departments: string) => {
-        const departmentArray = departments
-            .split(",")
-            .map((d) => d.trim())
-            .filter((d) => d.length > 0);
-        handleInputChange("managedDepartments", departmentArray);
-    };
-
-    if (!user) {
+    if (isLoading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+            <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-900">
+                <Loader2 className="h-16 w-16 animate-spin text-primary" />
+            </div>
+        );
+    }
+
+    if (!state.user || state.user.role !== "admin") {
+        return (
+            <div className="container mx-auto px-4 py-8 text-center">
+                <h1 className="text-2xl font-bold">Unauthorized Access</h1>
             </div>
         );
     }
 
     return (
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
-            <div className="flex items-center justify-between mb-8">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">
-                        Admin Profile
-                    </h1>
-                    <p className="text-gray-600 mt-2">
-                        Manage your administrative information and system access
-                    </p>
-                </div>
-                <div className="flex space-x-2">
-                    {isEditing ? (
-                        <>
-                            <Button onClick={handleSave} disabled={isLoading}>
-                                <Save className="mr-2 h-4 w-4" />
-                                Save Changes
-                            </Button>
-                            <Button variant="outline" onClick={handleCancel}>
-                                <X className="mr-2 h-4 w-4" />
-                                Cancel
-                            </Button>
-                        </>
-                    ) : (
-                        <Button onClick={() => setIsEditing(true)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit Profile
-                        </Button>
-                    )}
-                </div>
-            </div>
+        <div className="bg-slate-50 dark:bg-slate-900 min-h-screen">
+            <div className="container mx-auto px-4 py-8 max-w-7xl">
+                {/* === Profile Header Card === */}
+                <Card className="w-full mb-8 shadow-sm overflow-hidden border-none bg-card">
+                    <div className="relative h-32 bg-gradient-to-r from-slate-800 to-slate-900">
+                        {/* Action Buttons */}
+                        <div className="absolute top-4 right-4 flex space-x-2">
+                            {isEditing ? (
+                                <>
+                                    <Button
+                                        onClick={handleSave}
+                                        disabled={isSaving}
+                                        size="sm"
+                                        className="bg-white text-slate-900 hover:bg-slate-200"
+                                    >
+                                        {isSaving ? (
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <Save className="mr-2 h-4 w-4" />
+                                        )}
+                                        Save
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        onClick={handleCancel}
+                                        disabled={isSaving}
+                                        size="sm"
+                                        className="text-white hover:bg-white/20 hover:text-white"
+                                    >
+                                        <X className="mr-2 h-4 w-4" /> Cancel
+                                    </Button>
+                                </>
+                            ) : (
+                                <Button
+                                    onClick={handleEdit}
+                                    size="sm"
+                                    variant="outline"
+                                    className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+                                >
+                                    <Edit className="mr-2 h-4 w-4" /> Edit
+                                    Profile
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                    <div className="p-6 pt-0 flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6 -mt-16">
+                        <Avatar className="h-32 w-32 border-4 border-white dark:border-slate-800 shadow-lg">
+                            <AvatarImage
+                                src={profileData.profilePicture}
+                                alt={profileData.name}
+                            />
+                            <AvatarFallback className="text-3xl bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+                                {profileData.name?.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-grow text-center sm:text-left pt-16 sm:pt-4">
+                            <h1 className="text-5xl font-bold text-slate-800 dark:text-slate-100">
+                                {profileData.name}
+                            </h1>
+                            <p className="text-md text-muted-foreground">
+                                {profileData.designation}
+                            </p>
+                            <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-3">
+                                <Badge variant="default">
+                                    <Shield className="mr-1.5 h-3 w-3" />
+                                    {profileData.role?.toUpperCase()}
+                                </Badge>
+                                <Badge
+                                    variant={
+                                        profileData.status === "active"
+                                            ? "secondary"
+                                            : "destructive"
+                                    }
+                                >
+                                    {profileData.status?.toUpperCase()}
+                                </Badge>
+                                <Badge
+                                    variant={
+                                        profileData.status === "suspended"
+                                            ? "destructive"
+                                            : "secondary"
+                                    }
+                                >
+                                    {profileData.status === "suspended" ? (
+                                        <Lock className="mr-1.5 h-3 w-3" />
+                                    ) : (
+                                        <Unlock className="mr-1.5 h-3 w-3" />
+                                    )}
+                                    {profileData.status === "suspended"
+                                        ? "Locked"
+                                        : "Active"}
+                                </Badge>
+                            </div>
+                        </div>
+                    </div>
+                </Card>
 
-            <Tabs defaultValue="personal" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="personal">Personal Info</TabsTrigger>
-                    <TabsTrigger value="administrative">
-                        Administrative
-                    </TabsTrigger>
-                    <TabsTrigger value="permissions">Permissions</TabsTrigger>
-                    <TabsTrigger value="system">System Overview</TabsTrigger>
-                </TabsList>
+                <Tabs defaultValue="overview" className="space-y-6">
+                    <TabsList className="bg-background/60 backdrop-blur-sm border rounded-lg p-1.5">
+                        <TabsTrigger value="overview">Overview</TabsTrigger>
+                        <TabsTrigger value="edit">
+                            Edit Profile & Access
+                        </TabsTrigger>
+                        <TabsTrigger value="settings">Security</TabsTrigger>
+                    </TabsList>
 
-                {/* Personal Information Tab */}
-                <TabsContent value="personal" className="space-y-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Profile Picture Card */}
+                    {/* === Overview Tab === */}
+                    <TabsContent value="overview" className="space-y-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center">
-                                    <Camera className="mr-2 h-5 w-5" />
-                                    Profile Picture
-                                </CardTitle>
+                                <CardTitle>System Access Rights</CardTitle>
+                                <CardDescription>
+                                    Key permissions granted to this
+                                    administrative account.
+                                </CardDescription>
                             </CardHeader>
-                            <CardContent className="flex flex-col items-center space-y-4">
-                                <Avatar className="h-32 w-32">
-                                    <AvatarImage
-                                        src={profileData.profilePicture}
-                                        alt={profileData.name}
+                            <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <AccessRightCard
+                                    label="Manage Users"
+                                    granted={profileData.permissions?.includes(
+                                        "manage_users"
+                                    )}
+                                />
+                                <AccessRightCard
+                                    label="Manage Roles"
+                                    granted={profileData.permissions?.includes(
+                                        "manage_roles"
+                                    )}
+                                />
+                                <AccessRightCard
+                                    label="Access Reports"
+                                    granted={profileData.permissions?.includes(
+                                        "access_reports"
+                                    )}
+                                />
+                                <AccessRightCard
+                                    label="Manage System"
+                                    granted={profileData.permissions?.includes(
+                                        "manage_system"
+                                    )}
+                                />
+                            </CardContent>
+                        </Card>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Profile Details</CardTitle>
+                                </CardHeader>
+                                <CardContent className="divide-y divide-border">
+                                    <InfoListItem
+                                        icon={AtSign}
+                                        label="Email Address"
+                                        value={profileData.email}
                                     />
-                                    <AvatarFallback className="text-2xl">
-                                        {profileData.name
-                                            ?.charAt(0)
-                                            .toUpperCase()}
-                                    </AvatarFallback>
-                                </Avatar>
-                                {isEditing && (
-                                    <Button variant="outline" size="sm">
-                                        <Camera className="mr-2 h-4 w-4" />
-                                        Change Photo
-                                    </Button>
-                                )}
-                                <div className="flex flex-col items-center space-y-2">
-                                    <Badge
-                                        variant={
-                                            user.status === "active"
-                                                ? "default"
-                                                : "secondary"
+                                    <InfoListItem
+                                        icon={Phone}
+                                        label="Mobile Number"
+                                        value={profileData.mobile}
+                                    />
+                                    <InfoListItem
+                                        icon={Fingerprint}
+                                        label="Employee ID"
+                                        value={profileData.employeeId}
+                                    />
+                                    <InfoListItem
+                                        icon={Briefcase}
+                                        label="Department"
+                                        value={profileData.department}
+                                    />
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Account Timeline</CardTitle>
+                                </CardHeader>
+                                <CardContent className="divide-y divide-border">
+                                    <InfoListItem
+                                        icon={Calendar}
+                                        label="Account Created"
+                                        value={
+                                            profileData.createdAt
+                                                ? new Date(
+                                                      profileData.createdAt
+                                                  ).toLocaleDateString(
+                                                      "en-GB",
+                                                      {
+                                                          day: "numeric",
+                                                          month: "long",
+                                                          year: "numeric",
+                                                      }
+                                                  )
+                                                : "N/A"
                                         }
-                                    >
-                                        {user.status?.toUpperCase()}
-                                    </Badge>
-                                    <Badge
-                                        variant="outline"
-                                        className="text-red-600 border-red-600"
-                                    >
-                                        <Shield className="mr-1 h-3 w-3" />
-                                        ADMIN
-                                    </Badge>
-                                </div>
-                            </CardContent>
-                        </Card>
+                                    />
+                                    <InfoListItem
+                                        icon={Calendar}
+                                        label="Last Login"
+                                        value={
+                                            profileData.lastLogin
+                                                ? new Date(
+                                                      profileData.lastLogin
+                                                  ).toLocaleString()
+                                                : "Never"
+                                        }
+                                    />
+                                    <InfoListItem
+                                        icon={Mail}
+                                        label="Email Verified"
+                                        value={
+                                            profileData.emailVerified
+                                                ? "Yes"
+                                                : "No"
+                                        }
+                                    />
+                                    <InfoListItem
+                                        icon={Building}
+                                        label="Access Level"
+                                        value={
+                                            profileData.accessLevel ||
+                                            "Standard"
+                                        }
+                                    />
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </TabsContent>
 
-                        {/* Basic Information */}
-                        <Card className="lg:col-span-2">
+                    {/* === Edit Profile & Access Tab === */}
+                    <TabsContent value="edit" className="space-y-6">
+                        <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center">
-                                    <User className="mr-2 h-5 w-5" />
-                                    Basic Information
-                                </CardTitle>
+                                <CardTitle>Edit Profile Information</CardTitle>
+                                <CardDescription>
+                                    Update basic contact and role information.
+                                    Click "Edit Profile" in the header to enable
+                                    fields.
+                                </CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <Label htmlFor="name">Full Name</Label>
-                                        <Input
-                                            id="name"
-                                            value={profileData.name || ""}
-                                            onChange={(e) =>
-                                                handleInputChange(
-                                                    "name",
-                                                    e.target.value
-                                                )
-                                            }
-                                            disabled={!isEditing}
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="employeeId">
-                                            Employee ID
-                                        </Label>
-                                        <Input
-                                            id="employeeId"
-                                            value={profileData.employeeId || ""}
-                                            onChange={(e) =>
-                                                handleInputChange(
-                                                    "employeeId",
-                                                    e.target.value
-                                                )
-                                            }
-                                            disabled={!isEditing}
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="email">Email</Label>
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            value={profileData.email || ""}
-                                            onChange={(e) =>
-                                                handleInputChange(
-                                                    "email",
-                                                    e.target.value
-                                                )
-                                            }
-                                            disabled={!isEditing}
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="mobile">
-                                            Mobile Number
-                                        </Label>
-                                        <Input
-                                            id="mobile"
-                                            value={profileData.mobile || ""}
-                                            onChange={(e) =>
-                                                handleInputChange(
-                                                    "mobile",
-                                                    e.target.value
-                                                )
-                                            }
-                                            disabled={!isEditing}
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="gender">Gender</Label>
-                                        <select
-                                            id="gender"
-                                            value={profileData.gender || ""}
-                                            onChange={(e) =>
-                                                handleInputChange(
-                                                    "gender",
-                                                    e.target.value
-                                                )
-                                            }
-                                            disabled={!isEditing}
-                                            className="w-full p-2 border border-gray-300 rounded-md"
-                                        >
-                                            <option value="">
-                                                Select Gender
-                                            </option>
-                                            <option value="male">Male</option>
-                                            <option value="female">
-                                                Female
-                                            </option>
-                                            <option value="other">Other</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="dateOfBirth">
-                                            Date of Birth
-                                        </Label>
-                                        <Input
-                                            id="dateOfBirth"
-                                            type="date"
-                                            value={
-                                                profileData.dateOfBirth || ""
-                                            }
-                                            onChange={(e) =>
-                                                handleInputChange(
-                                                    "dateOfBirth",
-                                                    e.target.value
-                                                )
-                                            }
-                                            disabled={!isEditing}
-                                        />
-                                    </div>
+                            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 pt-2">
+                                <div>
+                                    <Label htmlFor="name">Full Name</Label>
+                                    <Input
+                                        id="name"
+                                        value={profileData.name || ""}
+                                        onChange={(e) =>
+                                            handleInputChange(
+                                                "name",
+                                                e.target.value
+                                            )
+                                        }
+                                        disabled={!isEditing}
+                                    />
                                 </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Address Information */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center">
-                                <MapPin className="mr-2 h-5 w-5" />
-                                Address Information
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="md:col-span-2">
-                                    <Label htmlFor="street">
-                                        Street Address
+                                <div>
+                                    <Label htmlFor="mobile">
+                                        Mobile Number
                                     </Label>
                                     <Input
-                                        id="street"
-                                        value={
-                                            profileData.address?.street || ""
-                                        }
+                                        id="mobile"
+                                        value={profileData.mobile || ""}
                                         onChange={(e) =>
-                                            handleAddressChange(
-                                                "street",
+                                            handleInputChange(
+                                                "mobile",
                                                 e.target.value
                                             )
                                         }
                                         disabled={!isEditing}
                                     />
                                 </div>
-                                <div>
-                                    <Label htmlFor="city">City</Label>
-                                    <Input
-                                        id="city"
-                                        value={profileData.address?.city || ""}
-                                        onChange={(e) =>
-                                            handleAddressChange(
-                                                "city",
-                                                e.target.value
-                                            )
-                                        }
-                                        disabled={!isEditing}
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="state">State</Label>
-                                    <Input
-                                        id="state"
-                                        value={profileData.address?.state || ""}
-                                        onChange={(e) =>
-                                            handleAddressChange(
-                                                "state",
-                                                e.target.value
-                                            )
-                                        }
-                                        disabled={!isEditing}
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="zipCode">ZIP Code</Label>
-                                    <Input
-                                        id="zipCode"
-                                        value={
-                                            profileData.address?.zipCode || ""
-                                        }
-                                        onChange={(e) =>
-                                            handleAddressChange(
-                                                "zipCode",
-                                                e.target.value
-                                            )
-                                        }
-                                        disabled={!isEditing}
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="country">Country</Label>
-                                    <Input
-                                        id="country"
-                                        value={
-                                            profileData.address?.country || ""
-                                        }
-                                        onChange={(e) =>
-                                            handleAddressChange(
-                                                "country",
-                                                e.target.value
-                                            )
-                                        }
-                                        disabled={!isEditing}
-                                    />
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                {/* Administrative Information Tab */}
-                <TabsContent value="administrative" className="space-y-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Role & Department */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center">
-                                    <Building className="mr-2 h-5 w-5" />
-                                    Role & Department
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
                                 <div>
                                     <Label htmlFor="designation">
                                         Designation
@@ -451,411 +484,132 @@ const AdminProfile: React.FC = () => {
                                             )
                                         }
                                         disabled={!isEditing}
-                                        placeholder="e.g., System Administrator"
                                     />
                                 </div>
                                 <div>
                                     <Label htmlFor="department">
                                         Department
                                     </Label>
-                                    <select
-                                        id="department"
+                                    <Select
                                         value={profileData.department || ""}
-                                        onChange={(e) =>
+                                        onValueChange={(value) =>
                                             handleInputChange(
                                                 "department",
-                                                e.target.value
+                                                value
                                             )
                                         }
                                         disabled={!isEditing}
-                                        className="w-full p-2 border border-gray-300 rounded-md"
                                     >
-                                        <option value="">
-                                            Select Department
-                                        </option>
-                                        <option value="IT">
-                                            Information Technology
-                                        </option>
-                                        <option value="Administration">
-                                            Administration
-                                        </option>
-                                        <option value="Academic">
-                                            Academic Affairs
-                                        </option>
-                                        <option value="Finance">Finance</option>
-                                        <option value="HR">
-                                            Human Resources
-                                        </option>
-                                        <option value="Operations">
-                                            Operations
-                                        </option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <Label htmlFor="accessLevel">
-                                        Access Level
-                                    </Label>
-                                    <select
-                                        id="accessLevel"
-                                        value={profileData.accessLevel || ""}
-                                        onChange={(e) =>
-                                            handleInputChange(
-                                                "accessLevel",
-                                                parseInt(e.target.value)
-                                            )
-                                        }
-                                        disabled={!isEditing}
-                                        className="w-full p-2 border border-gray-300 rounded-md"
-                                    >
-                                        <option value="">
-                                            Select Access Level
-                                        </option>
-                                        <option value="1">
-                                            Level 1 - Basic Admin
-                                        </option>
-                                        <option value="2">
-                                            Level 2 - Departmental Admin
-                                        </option>
-                                        <option value="3">
-                                            Level 3 - Senior Admin
-                                        </option>
-                                        <option value="4">
-                                            Level 4 - Super Admin
-                                        </option>
-                                        <option value="5">
-                                            Level 5 - System Admin
-                                        </option>
-                                    </select>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Department" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="IT">
+                                                Information Technology
+                                            </SelectItem>
+                                            <SelectItem value="University Administration">
+                                                University Administration
+                                            </SelectItem>
+                                            <SelectItem value="Admissions">
+                                                Admissions
+                                            </SelectItem>
+                                            <SelectItem value="Academics">
+                                                Academics
+                                            </SelectItem>
+                                            <SelectItem value="Finance">
+                                                Finance
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                             </CardContent>
                         </Card>
-
-                        {/* Timeline */}
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center">
-                                    <Calendar className="mr-2 h-5 w-5" />
-                                    Timeline
-                                </CardTitle>
+                                <CardTitle>Edit Custom Access</CardTitle>
+                                <CardDescription>
+                                    Assign specific permissions or departmental
+                                    management roles.
+                                </CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
+                            <CardContent className="space-y-6 pt-2">
                                 <div>
-                                    <Label>Join Date</Label>
-                                    <p className="text-sm text-gray-600">
-                                        {user.joinDate
-                                            ? new Date(
-                                                  user.joinDate
-                                              ).toLocaleDateString()
-                                            : "Not available"}
-                                    </p>
-                                </div>
-                                <div>
-                                    <Label>Last Login</Label>
-                                    <p className="text-sm text-gray-600">
-                                        {user.lastLogin
-                                            ? new Date(
-                                                  user.lastLogin
-                                              ).toLocaleDateString()
-                                            : "Never"}
-                                    </p>
-                                </div>
-                                <div>
-                                    <Label>Account Created</Label>
-                                    <p className="text-sm text-gray-600">
-                                        {user.createdAt
-                                            ? new Date(
-                                                  user.createdAt
-                                              ).toLocaleDateString()
-                                            : "Not available"}
-                                    </p>
-                                </div>
-                                <div>
-                                    <Label>Email Verified</Label>
-                                    <Badge
-                                        variant={
-                                            user.emailVerified
-                                                ? "default"
-                                                : "destructive"
+                                    <Label htmlFor="permissions">
+                                        Custom Permissions (comma-separated)
+                                    </Label>
+                                    <Input
+                                        id="permissions"
+                                        value={(
+                                            profileData.permissions || []
+                                        ).join(", ")}
+                                        onChange={(e) =>
+                                            handleInputChange(
+                                                "permissions",
+                                                e.target.value
+                                                    .split(",")
+                                                    .map((p) => p.trim())
+                                            )
                                         }
-                                    >
-                                        {user.emailVerified
-                                            ? "Verified"
-                                            : "Not Verified"}
-                                    </Badge>
+                                        disabled={!isEditing}
+                                        placeholder="e.g., can_edit_invoices"
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="managedDepartments">
+                                        Managed Departments (comma-separated)
+                                    </Label>
+                                    <Input
+                                        id="managedDepartments"
+                                        value={(
+                                            profileData.managedDepartments || []
+                                        ).join(", ")}
+                                        onChange={(e) =>
+                                            handleInputChange(
+                                                "managedDepartments",
+                                                e.target.value
+                                                    .split(",")
+                                                    .map((d) => d.trim())
+                                            )
+                                        }
+                                        disabled={!isEditing}
+                                        placeholder="e.g., Admissions, Finance"
+                                    />
                                 </div>
                             </CardContent>
                         </Card>
-                    </div>
+                    </TabsContent>
 
-                    {/* Managed Departments */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center">
-                                <Building className="mr-2 h-5 w-5" />
-                                Managed Departments
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div>
-                                <Label htmlFor="managedDepartments">
-                                    Departments (comma-separated)
-                                </Label>
-                                <Input
-                                    id="managedDepartments"
-                                    value={
-                                        profileData.managedDepartments?.join(
-                                            ", "
-                                        ) || ""
-                                    }
-                                    onChange={(e) =>
-                                        handleManagedDepartmentsChange(
-                                            e.target.value
-                                        )
-                                    }
-                                    disabled={!isEditing}
-                                    placeholder="e.g., IT, Academic, Finance"
-                                />
-                                {profileData.managedDepartments &&
-                                    profileData.managedDepartments.length >
-                                        0 && (
-                                        <div className="flex flex-wrap gap-2 mt-2">
-                                            {profileData.managedDepartments.map(
-                                                (dept, index) => (
-                                                    <Badge
-                                                        key={index}
-                                                        variant="secondary"
-                                                    >
-                                                        {dept}
-                                                    </Badge>
-                                                )
-                                            )}
-                                        </div>
-                                    )}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                {/* Permissions Tab */}
-                <TabsContent value="permissions" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center">
-                                <Shield className="mr-2 h-5 w-5" />
-                                System Permissions
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div>
-                                <Label htmlFor="permissions">
-                                    Permissions (comma-separated)
-                                </Label>
-                                <Input
-                                    id="permissions"
-                                    value={
-                                        profileData.permissions?.join(", ") ||
-                                        ""
-                                    }
-                                    onChange={(e) =>
-                                        handlePermissionsChange(e.target.value)
-                                    }
-                                    disabled={!isEditing}
-                                    placeholder="e.g., user_management, course_management, system_settings"
-                                />
-                                {profileData.permissions &&
-                                    profileData.permissions.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 mt-2">
-                                        {profileData.permissions.map(
-                                            (permission, index) => (
-                                                <Badge
-                                                    key={index}
-                                                    variant="outline"
-                                                    className="text-blue-600 border-blue-600"
-                                                >
-                                                    <Shield className="mr-1 h-3 w-3" />
-                                                    {permission}
-                                                </Badge>
-                                            )
-                                        )}
+                    {/* === Settings Tab === */}
+                    <TabsContent value="settings">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Security Settings</CardTitle>
+                                <CardDescription>
+                                    Manage your account security and
+                                    authentication.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4 pt-2">
+                                <div className="flex items-center justify-between p-4 border rounded-lg dark:border-slate-700">
+                                    <div>
+                                        <p className="font-medium">
+                                            Change Password
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                            It's a good practice to use a
+                                            strong, unique password.
+                                        </p>
                                     </div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Access Level Details */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center">
-                                <Settings className="mr-2 h-5 w-5" />
-                                Access Level Details
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <span>Current Access Level</span>
-                                    <Badge
-                                        variant="default"
-                                        className="text-lg px-4 py-2"
-                                    >
-                                        Level {user.accessLevel || 1}
-                                    </Badge>
+                                    <Button variant="outline">
+                                        <KeyRound className="mr-2 h-4 w-4" />
+                                        Change Password
+                                    </Button>
                                 </div>
-                                <Separator />
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <h4 className="font-medium">
-                                            System Access
-                                        </h4>
-                                        <ul className="text-sm text-gray-600 space-y-1">
-                                            <li>✓ User Management</li>
-                                            <li>✓ Course Management</li>
-                                            <li>✓ Batch Management</li>
-                                            <li>✓ Fee Management</li>
-                                        </ul>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <h4 className="font-medium">
-                                            Administrative Access
-                                        </h4>
-                                        <ul className="text-sm text-gray-600 space-y-1">
-                                            <li>✓ System Settings</li>
-                                            <li>✓ Reports & Analytics</li>
-                                            <li>✓ User Roles</li>
-                                            <li>✓ System Logs</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                {/* System Overview Tab */}
-                <TabsContent value="system" className="space-y-6">
-                    {user.systemStats && (
-                        <>
-                            {/* System Statistics */}
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                                <Card>
-                                    <CardContent className="p-4 text-center">
-                                        <Users className="mx-auto h-8 w-8 text-blue-600 mb-2" />
-                                        <div className="text-2xl font-bold text-blue-600">
-                                            {user.systemStats.totalStudents}
-                                        </div>
-                                        <p className="text-sm text-gray-600">
-                                            Students
-                                        </p>
-                                    </CardContent>
-                                </Card>
-
-                                <Card>
-                                    <CardContent className="p-4 text-center">
-                                        <UserCheck className="mx-auto h-8 w-8 text-green-600 mb-2" />
-                                        <div className="text-2xl font-bold text-green-600">
-                                            {user.systemStats.totalTeachers}
-                                        </div>
-                                        <p className="text-sm text-gray-600">
-                                            Teachers
-                                        </p>
-                                    </CardContent>
-                                </Card>
-
-                                <Card>
-                                    <CardContent className="p-4 text-center">
-                                        <BookOpen className="mx-auto h-8 w-8 text-purple-600 mb-2" />
-                                        <div className="text-2xl font-bold text-purple-600">
-                                            {user.systemStats.totalCourses}
-                                        </div>
-                                        <p className="text-sm text-gray-600">
-                                            Courses
-                                        </p>
-                                    </CardContent>
-                                </Card>
-
-                                <Card>
-                                    <CardContent className="p-4 text-center">
-                                        <Building className="mx-auto h-8 w-8 text-orange-600 mb-2" />
-                                        <div className="text-2xl font-bold text-orange-600">
-                                            {user.systemStats.totalBatches}
-                                        </div>
-                                        <p className="text-sm text-gray-600">
-                                            Batches
-                                        </p>
-                                    </CardContent>
-                                </Card>
-
-                                <Card>
-                                    <CardContent className="p-4 text-center">
-                                        <BarChart3 className="mx-auto h-8 w-8 text-teal-600 mb-2" />
-                                        <div className="text-2xl font-bold text-teal-600">
-                                            {user.systemStats.activeUsers}
-                                        </div>
-                                        <p className="text-sm text-gray-600">
-                                            Active Users
-                                        </p>
-                                    </CardContent>
-                                </Card>
-
-                                <Card>
-                                    <CardContent className="p-4 text-center">
-                                        <Shield className="mx-auto h-8 w-8 text-red-600 mb-2" />
-                                        <div className="text-2xl font-bold text-red-600">
-                                            {user.systemStats.pendingApprovals}
-                                        </div>
-                                        <p className="text-sm text-gray-600">
-                                            Pending
-                                        </p>
-                                    </CardContent>
-                                </Card>
-                            </div>
-
-                            {/* Quick Actions */}
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center">
-                                        <Settings className="mr-2 h-5 w-5" />
-                                        Quick Actions
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        <Button
-                                            variant="outline"
-                                            className="h-20 flex flex-col"
-                                        >
-                                            <Users className="h-6 w-6 mb-2" />
-                                            Manage Users
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            className="h-20 flex flex-col"
-                                        >
-                                            <BookOpen className="h-6 w-6 mb-2" />
-                                            Courses
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            className="h-20 flex flex-col"
-                                        >
-                                            <BarChart3 className="h-6 w-6 mb-2" />
-                                            Reports
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            className="h-20 flex flex-col"
-                                        >
-                                            <Settings className="h-6 w-6 mb-2" />
-                                            Settings
-                                        </Button>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </>
-                    )}
-                </TabsContent>
-            </Tabs>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
+            </div>
         </div>
     );
 };

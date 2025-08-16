@@ -42,6 +42,9 @@ import feeRouter from "./routes/feeRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
 import studentDashboardRoutes from "./routes/studentDashboardRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
+import contactRoutes from './routes/contactRoutes.js';
+import supportRoutes from "./routes/supportRoutes.js";
+import submissionRoutes from "./routes/submissionRoutes.js";
 
 
 const app = express();
@@ -52,7 +55,7 @@ app.use(helmet()); // Set security HTTP headers
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 500, // limit each IP to 100 requests per windowMs
   message: 'Too many requests from this IP, please try again after 10 minutes'
 });
 
@@ -84,6 +87,9 @@ app.use("/api/assignments", assignmentRoutes);        // Assignment routes
 app.use("/api/admin", adminRoutes);
 app.use("/api/batches", batchRouter);
 app.use("/api/fee", feeRouter);
+app.use('/api', contactRoutes); // your contact route
+app.use("/api/support", supportRoutes);
+app.use("/api/submissions", submissionRoutes);
 
 
 // Home route

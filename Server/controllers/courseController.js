@@ -21,6 +21,19 @@ export const createCourse = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+// get course by ID
+export const getCourseById = async (req, res) => {
+  try {
+    const courseId = req.params.id;
+    const course = await Course.findById(courseId);
+
+    if (!course) return res.status(404).json({ error: 'Course not found' });
+
+    res.json(course);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
 // Get all courses
 export const getAllCourses = async (req, res) => {

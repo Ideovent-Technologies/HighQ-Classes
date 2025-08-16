@@ -25,10 +25,10 @@ const Footer = () => {
           <div>
             <Link to="/" className="flex items-center mb-6">
               <span className="text-3xl font-bold font-poppins text-[#3533cd]">
-                Bloom
+                High
               </span>
               <span className="text-3xl font-bold font-poppins text-navy-900">
-                Scholar
+                Q
               </span>
             </Link>
             <p className="text-gray-600 leading-relaxed mb-6">
@@ -94,7 +94,7 @@ const Footer = () => {
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="h-5 w-5 text-[#3533cd]" />
-                info@bloomscholar.com
+                info@HighQ.com
               </li>
             </ul>
           </div>
@@ -102,7 +102,7 @@ const Footer = () => {
 
         {/* Copyright */}
         <div className="mt-12 border-t border-gray-200 pt-6 text-center text-sm text-gray-500">
-          <p>&copy; {currentYear} BloomScholar. All rights reserved.</p>
+          <p>&copy; {currentYear} HighQ. All rights reserved.</p>
         </div>
       </div>
     </footer>

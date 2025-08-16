@@ -34,7 +34,7 @@ export interface UserPreferences {
   language?: string;
 }
 
-// ✅ Admin-specific user profile
+//  Admin-specific user profile
 export interface AdminUser extends BaseUser {
   role: 'admin';
 
@@ -65,7 +65,7 @@ export interface AdminUser extends BaseUser {
   };
 }
 
-// ✅ New type for dashboard response
+//  New type for dashboard response
 export interface DashboardData {
   totalStudents: number;
   feeCollection: number;

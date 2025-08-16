@@ -24,7 +24,7 @@ export const getTeacherDashboard = async (req, res) => {
 
     const todaySchedule = await Schedule.find({ teacherId, day: dayOfWeek })
       .populate("batchId", "name")
-      .populate("courseId", "title")
+      .populate("courseId", "name")
       .sort({ startTime: 1 })
       .lean();
 
@@ -161,7 +161,7 @@ export const getTeacherDashboard = async (req, res) => {
     });
 
     const courseIds = Object.values(courseStatsMap).map((c) => c.courseId);
-    const courses = await Course.find({ _id: { $in: courseIds } }).select("title");
+    const courses = await Course.find({ _id: { $in: courseIds } }).select("name");
 
     const courseContentOverview = Object.values(courseStatsMap).map((stat) => {
       const course = courses.find(
@@ -188,7 +188,7 @@ export const getTeacherDashboard = async (req, res) => {
       endDate: batch.endDate,
     }));
 
-    // ✅ Final Response
+    //  Final Response
     res.json({
       todaySchedule,
       recentNotices,

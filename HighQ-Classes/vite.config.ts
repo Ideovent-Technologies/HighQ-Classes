@@ -25,4 +25,34 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Vendor chunks for better caching
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['@radix-ui/react-toast', '@radix-ui/react-tooltip'],
+          'query-vendor': ['@tanstack/react-query'],
+          // Admin chunks
+          'admin': [
+            './src/components/dashboard/admin/AdminDashboard',
+            './src/pages/admin/AdminProfile',
+            './src/components/dashboard/admin/AdminAnnouncementPage'
+          ],
+          // Teacher chunks  
+          'teacher': [
+            './src/components/dashboard/teacher/MyStudents',
+            './src/components/dashboard/teacher/Schedule',
+            './src/components/dashboard/teacher/Recordings'
+          ],
+          // Student chunks
+          'student': [
+            './src/pages/student/StudentProfile',
+            './src/pages/student/MyClasses',
+            './src/pages/student/MyFees'
+          ]
+        }
+      }
+    }
+  }
 }));

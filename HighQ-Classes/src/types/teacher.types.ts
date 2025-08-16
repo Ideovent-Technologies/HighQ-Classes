@@ -1,9 +1,41 @@
 // teacher.types.ts
 
-import { BaseUser, Address, UserPreferences } from './admin.types';
+export interface BaseUser {
+  _id: string;
+  name: string;
+  email: string;
+  mobile: string;
+  profilePicture?: string;
+  status: 'pending' | 'active' | 'suspended' | 'inactive' | 'on-leave';
+  role: 'student' | 'teacher' | 'admin';
+  lastLogin?: string;
+  emailVerified?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
-// ✅ Separate type declaration
-export type DepartmentType =
+// Common address interface used across all user types
+export interface Address {
+  street?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  country?: string;
+}
+
+// Common preferences interface
+export interface UserPreferences {
+  notifications?: {
+    email: boolean;
+    sms: boolean;
+    push: boolean;
+  };
+  theme?: 'light' | 'dark';
+  language?: string;
+}
+
+// Department types for teachers
+export type DepartmentType = 
   | 'Mathematics'
   | 'Science'
   | 'English'
@@ -15,6 +47,7 @@ export type DepartmentType =
   | 'Biology'
   | 'Other';
 
+// Teacher status type
 export type TeacherStatus =
   | 'pending'
   | 'active'
@@ -22,7 +55,7 @@ export type TeacherStatus =
   | 'inactive'
   | 'on-leave';
 
-// ✅ Batch reference
+// Batch interface for teacher relationships
 export interface TeacherBatch {
   _id: string;
   name: string;
@@ -30,14 +63,14 @@ export interface TeacherBatch {
   endDate?: string;
 }
 
-// ✅ Course reference
+// Course interface for teacher relationships
 export interface TeacherCourse {
   _id: string;
   name: string;
   subject?: string;
 }
 
-// ✅ Permissions
+// Permissions interface for teachers
 export interface TeacherPermissions {
   canCreateCourse: boolean;
   canManageBatch: boolean;
@@ -47,9 +80,11 @@ export interface TeacherPermissions {
   canCreateAssignment: boolean;
 }
 
-// ✅ Main Teacher Interface
+//  Main Teacher Interface
 export interface TeacherUser extends BaseUser {
   role: 'teacher';
+  employeeId?: string;
+  password?: string; // Only used for creation/editing
   qualification: string;
   experience: number;
   specialization: string;
@@ -64,12 +99,9 @@ export interface TeacherUser extends BaseUser {
   courses?: TeacherCourse[];
   permissions?: TeacherPermissions;
   preferences?: UserPreferences;
-  emailVerified?: boolean;
-  status: TeacherStatus;
-  lastLogin?: string;
 }
 
-// ✅ Dashboard Data
+// Teacher dashboard data interface
 export interface TeacherDashboardData {
   teacher: TeacherUser;
   upcomingClasses: Array<{
@@ -102,12 +134,13 @@ export interface TeacherDashboardData {
   }>;
 }
 
-// ✅ Create & Update Data
+// Interface for teacher creation
 export interface CreateTeacherData {
   name: string;
   email: string;
   password: string;
   mobile: string;
+  employeeId: string;
   qualification: string;
   experience: number;
   specialization: string;
@@ -119,13 +152,14 @@ export interface CreateTeacherData {
   bio?: string;
 }
 
+// Interface for teacher updates
 export interface UpdateTeacherData extends Partial<CreateTeacherData> {
   status?: TeacherStatus;
   profilePicture?: string;
   preferences?: UserPreferences;
 }
 
-// ✅ API Response
+// API Response interface
 export interface TeacherApiResponse {
   success: boolean;
   message?: string;
@@ -135,3 +169,5 @@ export interface TeacherApiResponse {
   currentPage?: number;
   totalPages?: number;
 }
+
+export default TeacherUser;

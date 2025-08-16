@@ -12,6 +12,15 @@ export const uploadRecording = async (req, res) => {
     try {
         const { title, description, subject, batchId, courseId } = req.body;
 
+        // Validate required fields
+        if (!title || !subject || !courseId || !batchId) {
+            return res.status(400).json({
+                success: false,
+                message: "Title, subject, courseId, and batchId are required",
+            });
+        }
+
+        // Validate video file
         if (!req.files || !req.files.video) {
             return res.status(400).json({
                 success: false,
@@ -32,7 +41,7 @@ export const uploadRecording = async (req, res) => {
         const videoFile = req.files.video;
         const cloudinaryResult = await uploadToCloudinary(videoFile, "videos");
 
-        if (!cloudinaryResult.secure_url) {
+        if (!cloudinaryResult.secure_url || !cloudinaryResult.public_id) {
             return res.status(500).json({
                 success: false,
                 message: "Error uploading video to cloud storage",
@@ -72,6 +81,7 @@ export const uploadRecording = async (req, res) => {
         });
     }
 };
+
 
 /**
  * @desc    Get all recordings (with filters)

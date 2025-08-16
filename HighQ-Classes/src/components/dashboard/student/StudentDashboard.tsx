@@ -1,148 +1,715 @@
-import React from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Progress } from "@/components/ui/progress";
+import { FullScreenLoader } from "@/components/common/Loader";
+import { Separator } from "@/components/ui/separator";
 import {
-  UserCircle, Bell, BookOpen, Calendar, FileText, Video, Clipboard,
+    Book,
+    Clock,
+    Calendar,
+    Target,
+    User,
+    Bell,
+    BookOpen,
+    CheckCircle,
+    AlertCircle,
+    TrendingUp,
+    Users,
+    Award,
+    FileText,
+    Video,
+    GraduationCap,
+    BarChart3,
+    DollarSign,
 } from "lucide-react";
+import { StudentUser, StudentDashboardData } from "@/types/student.types";
+import { studentService } from "@/API/services/studentService";
+import { Link } from "react-router-dom";
+import { useBatchInfo } from "@/hooks/useBatch";
 
-// --- Static data examples (replace with props/context/API calls as needed) ---
-
-const summaryCards = [
-  { label: "Notices", value: 4, icon: <Bell className="w-7 h-7 text-blue-500" /> },
-  { label: "Attendance %", value: "80%", icon: <Clipboard className="w-7 h-7 text-green-600" /> },
-  { label: "Today Classes", value: 2, icon: <Calendar className="w-7 h-7 text-violet-600" /> },
-  { label: "Recordings", value: 3, icon: <Video className="w-7 h-7 text-yellow-500" /> },
-];
-const todayClasses = [
-  { time: "10:00 - 11:30", subject: "Computer Science Engineering" },
-  { time: "14:00 - 15:30", subject: "MERN Fullstack" },
-];
-const latestNotice = {
-  title: "Welcome to HighQ Classes!",
-  description: "Your dashboard is now set up with sample data. Start exploring your courses and schedule.",
-};
-
-const sidebarLinks = [
-  { to: ".", label: "Dashboard", icon: <BookOpen className="w-5 h-5 mr-2" /> },
-  { to: "notices", label: "Notices", icon: <Bell className="w-5 h-5 mr-2" /> },
-  { to: "attendance", label: "Attendance", icon: <Clipboard className="w-5 h-5 mr-2" /> },
-  { to: "schedule", label: "Schedule", icon: <Calendar className="w-5 h-5 mr-2" /> },
-  { to: "recordings", label: "Recordings", icon: <Video className="w-5 h-5 mr-2" /> },
-  { to: "profile", label: "Profile", icon: <UserCircle className="w-5 h-5 mr-2" /> },
-];
-
-// --- Main Component --- //
+interface DashboardStats {
+    totalCourses: number;
+    completedAssignments: number;
+    pendingAssignments: number;
+    attendancePercentage: number;
+    averageGrade: number;
+    upcomingClasses: number;
+}
 
 const StudentDashboard: React.FC = () => {
-  const location = useLocation();
-  // get last path segment for sidebar highlighting
-  const segments = location.pathname.split("/");
-  const activeRoute = segments[segments.length - 1] || "."; // for index route
+    const { state } = useAuth();
+    // Safe type conversion for student user
+    const user =
+        state.user && state.user.role === "student"
+            ? (state.user as unknown as StudentUser)
+            : null;
+    const [dashboardData, setDashboardData] =
+        useState<StudentDashboardData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-  return (
-    <div className="flex min-h-screen bg-gray-50 text-gray-800">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r flex flex-col">
-        <div className="h-20 flex items-center pl-7 border-b select-none">
-          <span className="font-extrabold text-2xl text-blue-600">
-            Bloom<span className="text-gray-700">Scholar</span>
-          </span>
-        </div>
-        {/* Profile area */}
-        <div className="flex flex-col items-center border-b pt-5 pb-5 bg-gray-50">
-          <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-2">
-            <UserCircle className="w-10 h-10 text-blue-500" />
-          </div>
-          <div className="font-semibold">Student Name</div>
-          <div className="text-xs text-gray-400">Student</div>
-        </div>
-        {/* Navigation */}
-        <nav className="flex-1 py-4">
-          <ul className="space-y-1">
-            {sidebarLinks.map((link) => (
-              <li key={link.to}>
-                <Link
-                  to={link.to}
-                  className={`flex items-center px-8 py-2 rounded-lg transition-colors ${
-                    // handle both "/" (dashboard home) and real route names
-                    (activeRoute === link.to || (link.to === "." && (activeRoute === "." || activeRoute === "dashboard")))
-                      ? "bg-blue-100 text-blue-600 font-semibold"
-                      : "hover:bg-gray-100"
-                  }`}
-                >
-                  {link.icon}
-                  <span>{link.label}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        {/* Bottom action (Logout) */}
-        <div className="mt-auto mb-7 px-8">
-          <button className="w-full py-2 bg-red-50 text-red-600 rounded hover:bg-red-100 font-medium text-base transition">Logout</button>
-        </div>
-      </aside>
+    // Get batch information
+    const {
+        batchInfo,
+        loading: batchLoading,
+        error: batchError,
+        isAssigned,
+    } = useBatchInfo();
 
-      {/* Main content */}
-      <main className="flex-1 p-8 md:p-12">
-        <div className="mb-2 flex items-center gap-x-4">
-          <h1 className="text-2xl md:text-3xl font-bold">Dashboard</h1>
-          {/* optional: role badge */}
-          <span className="ml-2 text-xs px-2.5 py-1 rounded bg-blue-100 text-blue-700 font-semibold lowercase">Student</span>
-        </div>
-        <p className="text-gray-500 mb-7">Welcome back, Student Name!</p>
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                setIsLoading(true);
+                const data = await studentService.getDashboard();
 
-        {/* Summary cards */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          {summaryCards.map((card) => (
-            <div className="rounded-xl bg-white shadow px-7 py-5 flex items-center gap-x-5" key={card.label}>
-              <div className="">{card.icon}</div>
-              <div>
-                <div className="text-xl font-semibold">{card.value}</div>
-                <div className="text-xs text-gray-500">{card.label}</div>
-              </div>
+                // Merge auth user data with dashboard data
+                if (user && data) {
+                    data.student = {
+                        ...data.student,
+                        _id: user._id || "",
+                        name: user.name || data.student.name,
+                        email: user.email || "",
+                        batch: user.batch || data.student.batch,
+                        grade: user.grade || "",
+                        parentName: user.parentName || "",
+                        parentContact: user.parentContact || "",
+                        schoolName: user.schoolName || "",
+                        mobile: user.mobile || "",
+                    };
+                }
+
+                setDashboardData(data);
+                console.log(data)
+                setError(null);
+            } catch (err: any) {
+                console.error("Dashboard fetch error:", err);
+                setError(err.message || "Failed to load dashboard");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        if (user) {
+            fetchDashboardData();
+        } else {
+            setIsLoading(false);
+        }
+    }, [user, state]);
+
+    const calculateStats = (): DashboardStats => {
+        if (!dashboardData) {
+            return {
+                totalCourses: 0,
+                completedAssignments: 0,
+                pendingAssignments: 0,
+                attendancePercentage: 0,
+                averageGrade: 0,
+                upcomingClasses: 0,
+            };
+        }
+
+        const completedAssignments = dashboardData.assignments.filter(
+            (a) => a.status === "graded"
+        ).length;
+        const pendingAssignments = dashboardData.assignments.filter(
+            (a) => a.status === "pending"
+        ).length;
+        const gradedAssignments = dashboardData.assignments.filter(
+            (a) => a.status === "graded" && a.marks !== undefined
+        );
+        const averageGrade =
+            gradedAssignments.length > 0
+                ? gradedAssignments.reduce(
+                      (sum, a) => sum + (a.marks || 0),
+                      0
+                  ) / gradedAssignments.length
+                : 0;
+
+        return {
+            totalCourses: dashboardData.student.courses?.length || 0,
+            completedAssignments,
+            pendingAssignments,
+            attendancePercentage:
+                dashboardData.attendanceSummary.percentage || 0,
+            averageGrade,
+            upcomingClasses: dashboardData.upcomingClasses.length,
+        };
+    };
+
+    const stats = calculateStats();
+
+    // Early return if no user
+    if (!user) {
+        return (
+            <div className="flex justify-center items-center h-96">
+                <Card className="p-6">
+                    <CardContent>
+                        <div className="text-center">
+                            <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                Please Login
+                            </h3>
+                            <p className="text-gray-600">
+                                You need to be logged in as a student to view
+                                this dashboard.
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
-          ))}
-        </div>
+        );
+    }
 
-        {/* Subpage content or dashboard overview */}
-        <div className="bg-white shadow rounded-xl p-7 min-h-[250px]">
-          {activeRoute !== "." && activeRoute !== "dashboard" ? (
-            <Outlet />
-          ) : (
-            <>
-              {/* Main dashboard summary (class schedule and notice) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-violet-500" />
-                    Today's Classes
-                  </h2>
-                  <ul className="mb-6">
-                    {todayClasses.map((c, i) => (
-                      <li key={i} className="mb-2">
-                        <span className="font-semibold">{c.time}:</span>{" "}
-                        {c.subject}
-                      </li>
-                    ))}
-                  </ul>
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center h-96">
+                {/* <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div> */}
+                <FullScreenLoader />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex justify-center items-center h-96">
+                <Card className="p-6">
+                    <CardContent>
+                        <div className="text-center">
+                            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                Failed to Load Dashboard
+                            </h3>
+                            <p className="text-gray-600 mb-4">{error}</p>
+                            <Button onClick={() => window.location.reload()}>
+                                Try Again
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    return (
+        <div className="p-6 space-y-6 bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div className="flex items-center space-x-4">
+                    <Avatar className="h-16 w-16">
+                        <AvatarImage
+                            src={user?.profilePicture}
+                            alt={user?.name}
+                        />
+                        <AvatarFallback className="bg-blue-500 text-white text-xl">
+                            {user?.name?.charAt(0)?.toUpperCase()}
+                        </AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900">
+                            Welcome back, {user?.name?.split(" ")[0]}! 👋
+                        </h1>
+                        <p className="text-gray-600">
+                            {user?.batch?.name} • {user?.grade} Grade
+                        </p>
+                    </div>
                 </div>
-                <div>
-                  <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <Bell className="w-5 h-5 text-blue-500" />
-                    Latest Notice
-                  </h2>
-                  <div className="mb-0 p-4 rounded bg-blue-50 border-l-4 border-blue-400 text-blue-900">
-                    <div className="font-semibold">{latestNotice.title}</div>
-                    <div className="mt-1 text-sm">{latestNotice.description}</div>
-                  </div>
+                <div className="mt-4 md:mt-0">
+                    <Badge variant="outline" className="text-lg px-4 py-2">
+                        <GraduationCap className="h-4 w-4 mr-2" />
+                        Student: {user?.name}
+                    </Badge>
                 </div>
-              </div>
-            </>
-          )}
+            </div>
+
+            {/* Quick Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-blue-100">Total Courses</p>
+                                <p className="text-2xl font-bold">
+                                    {stats.totalCourses}
+                                </p>
+                            </div>
+                            <Book className="h-8 w-8 text-blue-200" />
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-green-100">Attendance</p>
+                                <p className="text-2xl font-bold">
+                                    {stats.attendancePercentage.toFixed(1)}%
+                                </p>
+                            </div>
+                            <Users className="h-8 w-8 text-green-200" />
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-purple-100">Avg. Grade</p>
+                                <p className="text-2xl font-bold">
+                                    {stats.averageGrade.toFixed(1)}
+                                </p>
+                            </div>
+                            <Award className="h-8 w-8 text-purple-200" />
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-orange-100">Pending Work</p>
+                                <p className="text-2xl font-bold">
+                                    {stats.pendingAssignments}
+                                </p>
+                            </div>
+                            <Clock className="h-8 w-8 text-orange-200" />
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Batch Information Section */}
+            {isAssigned && batchInfo && (
+                <Card className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
+                    <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                            <div className="flex items-center">
+                                <GraduationCap className="h-6 w-6 mr-2" />
+                                Your Batch: {batchInfo.name}
+                            </div>
+                            <Link to="/student/batch">
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    className="text-purple-700"
+                                >
+                                    View Details
+                                </Button>
+                            </Link>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div className="bg-white/10 rounded-lg p-4">
+                                <p className="text-indigo-200 text-sm">
+                                    Course
+                                </p>
+                                <p className="font-semibold">
+                                    {batchInfo.course.name}
+                                </p>
+                            </div>
+                            <div className="bg-white/10 rounded-lg p-4">
+                                <p className="text-indigo-200 text-sm">
+                                    Teacher
+                                </p>
+                                <p className="font-semibold">
+                                    {batchInfo.teacher.name}
+                                </p>
+                            </div>
+                            <div className="bg-white/10 rounded-lg p-4">
+                                <p className="text-indigo-200 text-sm">
+                                    Schedule
+                                </p>
+                                <p className="font-semibold text-sm">
+                                    {batchInfo.schedule.days.join(", ")}
+                                </p>
+                                <p className="text-indigo-200 text-xs">
+                                    {batchInfo.schedule.startTime} -{" "}
+                                    {batchInfo.schedule.endTime}
+                                </p>
+                            </div>
+                            <div className="bg-white/10 rounded-lg p-4">
+                                <p className="text-indigo-200 text-sm">
+                                    Students
+                                </p>
+                                <p className="font-semibold">
+                                    {batchInfo.totalStudents}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-4 flex gap-3">
+                            <Link to="/student/materials">
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    className="text-purple-700"
+                                >
+                                    <BookOpen className="h-4 w-4 mr-2" />
+                                    Materials
+                                </Button>
+                            </Link>
+                            <Link to="/student/recordings">
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    className="text-purple-700"
+                                >
+                                    <Video className="h-4 w-4 mr-2" />
+                                    Recordings
+                                </Button>
+                            </Link>
+                            <Link to="/student/assignments">
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    className="text-purple-700"
+                                >
+                                    <FileText className="h-4 w-4 mr-2" />
+                                    Assignments
+                                </Button>
+                            </Link>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* No Batch Alert */}
+            {!batchLoading && !isAssigned && (
+                <Card className="border-orange-200 bg-orange-50">
+                    <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                            <AlertCircle className="h-6 w-6 text-orange-600" />
+                            <div>
+                                <h3 className="font-semibold text-orange-900">
+                                    Not Assigned to Batch
+                                </h3>
+                                <p className="text-orange-700 text-sm">
+                                    You haven't been assigned to any batch yet.
+                                    Please contact your administrator.
+                                </p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left Column - Upcoming Classes & Recent Assignments */}
+                <div className="lg:col-span-2 space-y-6">
+                    {/* Upcoming Classes */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center">
+                                <Calendar className="h-5 w-5 mr-2 text-blue-600" />
+                                Today's Classes
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {dashboardData?.upcomingClasses.length === 0 ? (
+                                <p className="text-gray-500 text-center py-4">
+                                    No classes scheduled for today
+                                </p>
+                            ) : (
+                                <div className="space-y-3">
+                                    {dashboardData?.upcomingClasses.map(
+                                        (classItem) => (
+                                            <div
+                                                key={classItem._id}
+                                                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                                            >
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                                    <div>
+                                                        <p className="font-semibold">
+                                                            {classItem.subject}
+                                                        </p>
+                                                        <p className="text-sm text-gray-600">
+                                                            with{" "}
+                                                            {classItem.teacher}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="font-semibold text-blue-600">
+                                                        {classItem.time}
+                                                    </p>
+                                                    {classItem.room && (
+                                                        <p className="text-sm text-gray-600">
+                                                            {classItem.room}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )
+                                    )}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Recent Assignments */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center justify-between">
+                                <div className="flex items-center">
+                                    <FileText className="h-5 w-5 mr-2 text-green-600" />
+                                    Recent Assignments
+                                </div>
+                                <Link to="/student/assignments">
+                                    <Button variant="outline" size="sm">
+                                        View All
+                                    </Button>
+                                </Link>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-3">
+                                {dashboardData?.assignments
+                                    .slice(0, 5)
+                                    .map((assignment) => (
+                                        <div
+                                            key={assignment._id}
+                                            className="flex items-center justify-between p-3 border rounded-lg"
+                                        >
+                                            <div className="flex items-center space-x-3">
+                                                <div
+                                                    className={`w-2 h-2 rounded-full ${
+                                                        assignment.status ===
+                                                        "graded"
+                                                            ? "bg-green-500"
+                                                            : assignment.status ===
+                                                              "submitted"
+                                                            ? "bg-yellow-500"
+                                                            : "bg-red-500"
+                                                    }`}
+                                                ></div>
+                                                <div>
+                                                    <p className="font-semibold">
+                                                        {assignment.title}
+                                                    </p>
+                                                    <p className="text-sm text-gray-600">
+                                                        {assignment.subject}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <Badge
+                                                    variant={
+                                                        assignment.status ===
+                                                        "graded"
+                                                            ? "default"
+                                                            : assignment.status ===
+                                                              "submitted"
+                                                            ? "secondary"
+                                                            : "destructive"
+                                                    }
+                                                >
+                                                    {assignment.status
+                                                        .charAt(0)
+                                                        .toUpperCase() +
+                                                        assignment.status.slice(
+                                                            1
+                                                        )}
+                                                </Badge>
+                                                {assignment.marks !==
+                                                    undefined && (
+                                                    <p className="text-sm font-semibold text-green-600">
+                                                        {assignment.marks}/
+                                                        {assignment.totalMarks}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Right Column - Quick Actions & Progress */}
+                <div className="space-y-6">
+                    {/* Quick Actions */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center">
+                                <Target className="h-5 w-5 mr-2 text-purple-600" />
+                                Quick Actions
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <Link to="/student/materials" className="block">
+                                <Button
+                                    variant="outline"
+                                    className="w-full justify-start"
+                                >
+                                    <BookOpen className="h-4 w-4 mr-2" />
+                                    Study Materials
+                                </Button>
+                            </Link>
+                            <Link to="/student/recordings" className="block">
+                                <Button
+                                    variant="outline"
+                                    className="w-full justify-start"
+                                >
+                                    <Video className="h-4 w-4 mr-2" />
+                                    Video Lectures
+                                </Button>
+                            </Link>
+                            <Link to="/student/assignments" className="block">
+                                <Button
+                                    variant="outline"
+                                    className="w-full justify-start"
+                                >
+                                    <FileText className="h-4 w-4 mr-2" />
+                                    My Assignments
+                                </Button>
+                            </Link>
+                            <Link to="/student/attendance" className="block">
+                                <Button
+                                    variant="outline"
+                                    className="w-full justify-start"
+                                >
+                                    <Users className="h-4 w-4 mr-2" />
+                                    My Attendance
+                                </Button>
+                            </Link>
+                            <Link to="/student/fees" className="block">
+                                <Button
+                                    variant="outline"
+                                    className="w-full justify-start"
+                                >
+                                    <DollarSign className="h-4 w-4 mr-2" />
+                                    Fee Details
+                                </Button>
+                            </Link>
+                            <Link to="/student/profile" className="block">
+                                <Button
+                                    variant="outline"
+                                    className="w-full justify-start"
+                                >
+                                    <User className="h-4 w-4 mr-2" />
+                                    My Profile
+                                </Button>
+                            </Link>
+                        </CardContent>
+                    </Card>
+
+                    {/* Progress Overview */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center">
+                                <BarChart3 className="h-5 w-5 mr-2 text-indigo-600" />
+                                Progress Overview
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div>
+                                <div className="flex justify-between text-sm mb-2">
+                                    <span>Attendance</span>
+                                    <span>
+                                        {stats.attendancePercentage.toFixed(1)}%
+                                    </span>
+                                </div>
+                                <Progress
+                                    value={stats.attendancePercentage}
+                                    className="h-2"
+                                />
+                            </div>
+
+                            <div>
+                                <div className="flex justify-between text-sm mb-2">
+                                    <span>Assignment Completion</span>
+                                    <span>
+                                        {stats.completedAssignments +
+                                            stats.pendingAssignments >
+                                        0
+                                            ? (
+                                                  (stats.completedAssignments /
+                                                      (stats.completedAssignments +
+                                                          stats.pendingAssignments)) *
+                                                  100
+                                              ).toFixed(1)
+                                            : "0.0"}
+                                        %
+                                    </span>
+                                </div>
+                                <Progress
+                                    value={
+                                        stats.completedAssignments +
+                                            stats.pendingAssignments >
+                                        0
+                                            ? (stats.completedAssignments /
+                                                  (stats.completedAssignments +
+                                                      stats.pendingAssignments)) *
+                                              100
+                                            : 0
+                                    }
+                                    className="h-2"
+                                />
+                            </div>
+
+                            <div>
+                                <div className="flex justify-between text-sm mb-2">
+                                    <span>Average Grade</span>
+                                    <span>
+                                        {stats.averageGrade.toFixed(1)}/100
+                                    </span>
+                                </div>
+                                <Progress
+                                    value={(stats.averageGrade / 100) * 100}
+                                    className="h-2"
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Notifications */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center">
+                                <Bell className="h-5 w-5 mr-2 text-yellow-600" />
+                                Recent Notifications
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-3">
+                                {dashboardData?.notifications
+                                    .slice(0, 3)
+                                    .map((notification) => (
+                                        <div
+                                            key={notification._id}
+                                            className="p-3 bg-gray-50 rounded-lg"
+                                        >
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex-1">
+                                                    <p className="font-semibold text-sm">
+                                                        {notification.title}
+                                                    </p>
+                                                    <p className="text-xs text-gray-600 mt-1">
+                                                        {notification.message}
+                                                    </p>
+                                                </div>
+                                                {!notification.read && (
+                                                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-1"></div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
         </div>
-      </main>
-    </div>
-  );
+    );
 };
 
 export default StudentDashboard;

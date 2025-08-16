@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import api from"../Axios";
-import { TeacherUser } from "../../types/teacher.types";
+import { TeacherUser, CreateTeacherData } from "../../types/teacher.types";
 
 class TeacherService {
     // GET /api/admin/teachers
@@ -20,13 +21,13 @@ class TeacherService {
     }
   }
 
-  async UpdateTeacher(teacherId : string) : Promise<{
+  async UpdateTeacher(teacherId: string, teacherData: Partial<TeacherUser>): Promise<{
     success: boolean;
     teacher?: TeacherUser;
     message?: string;
     }> {
     try {
-      const response = await api.put(`/admin/teachers/${teacherId} `);
+      const response = await api.put(`/admin/teachers/${teacherId}`, teacherData);
       return { success: true, teacher: response.data.teacher };
     } catch (error: any) {
       console.error('Update teacher error:', error);
@@ -53,7 +54,7 @@ async deleteTeacher(teacherId: string): Promise<{
     }
   }
 
-  async AddTeacher(teacherData: TeacherUser): Promise<{
+  async AddTeacher(teacherData: CreateTeacherData): Promise<{
     success: boolean;
     teacher?: TeacherUser;
     message?: string;
@@ -69,6 +70,7 @@ async deleteTeacher(teacherId: string): Promise<{
         };
     }
   }
-  
-
 }
+
+const teacherServiceInstance = new TeacherService();
+export default teacherServiceInstance;
