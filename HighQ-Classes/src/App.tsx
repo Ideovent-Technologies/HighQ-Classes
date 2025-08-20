@@ -114,7 +114,7 @@ const StudentProfile = React.lazy(
     () => import("@/pages/student/StudentProfile")
 );
 const MyMaterials = React.lazy(() => import("@/pages/student/MyMaterials"));
-const MyClasses = React.lazy(() => import("@/pages/student/MyClasses"));
+const MyClasses = React.lazy(() => import("@/pages/student/MyClasses/MyClasses"));
 const MyFees = React.lazy(() => import("@/pages/student/MyFees"));
 const StudentFeeDashboard = React.lazy(
     () => import("@/components/student/StudentFeeDashboard")
