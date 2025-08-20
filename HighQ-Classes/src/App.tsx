@@ -106,7 +106,7 @@ const TeacherRecordingManagementPage = React.lazy(
     () => import("@/pages/TeacherRecordingManagementPage")
 );
 const StudentRecordingsPage = React.lazy(
-    () => import("@/pages/StudentRecordingsPage")
+    () => import("@/pages/student/StudentRecordingsPage/StudentRecordingsPage")
 );
 
 // Lazy load student-specific pages
@@ -123,12 +123,12 @@ const StudentNotices = React.lazy(
     () => import("@/pages/student/StudentNotices")
 );
 const StudentAssignments = React.lazy(
-    () => import("@/pages/student/StudentAssignments")
+    () => import("@/pages/student/StudentAssignments/StudentAssignments")
 );
 const AddStudentForm = React.lazy(
     () => import("./components/dashboard/student/StudentForm"));
 const StudentAttendance = React.lazy(
-    () => import("@/pages/student/StudentAttendance")
+    () => import("@/pages/student/StudentAttendance/StudentAttendance")
 );
 
 // Lazy load student batch components
