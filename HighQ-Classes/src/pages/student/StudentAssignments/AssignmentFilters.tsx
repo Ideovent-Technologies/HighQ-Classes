@@ -11,15 +11,30 @@ const AssignmentFilters: React.FC<Props> = ({
   setFilterStatus,
   children,
 }) => {
+  const tabs = [
+    { value: "all", label: "All" },
+    { value: "pending", label: "Pending" },
+    { value: "submitted", label: "Submitted" },
+    { value: "graded", label: "Graded" },
+    { value: "overdue", label: "Overdue" },
+  ];
+
   return (
     <Tabs defaultValue="all" className="w-full">
-      <TabsList className="grid w-full grid-cols-5">
-        {["all", "pending", "submitted", "graded", "overdue"].map((s) => (
-          <TabsTrigger key={s} value={s} onClick={() => setFilterStatus(s)}>
-            {s.charAt(0).toUpperCase() + s.slice(1)}
-          </TabsTrigger>
-        ))}
-      </TabsList>
+      <div className="relative">
+        <TabsList className="flex overflow-x-auto overflow-y-hidden whitespace-nowrap p-1 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+          {tabs.map((tab) => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              onClick={() => setFilterStatus(tab.value)}
+              className="flex-1 min-w-[100px] sm:min-w-0 px-4 py-2 text-sm font-medium transition-colors hover:text-gray-900 data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm rounded-full dark:hover:text-gray-50 dark:data-[state=active]:bg-gray-900 dark:data-[state=active]:text-white"
+            >
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </div>
       <TabsContent value={filterStatus} className="mt-6">
         {children}
       </TabsContent>
