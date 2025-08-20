@@ -1,5 +1,6 @@
 import { ShieldCheck, Clock, Users, Lightbulb, BookOpenCheck, Medal } from "lucide-react";
 import { motion, Variants } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const promises = [
   {
@@ -56,6 +57,11 @@ const item: Variants = {
 };
 
 const FearAndPromiseBlock = () => {
+  const navigate = useNavigate();
+
+  const handleExploreClick = () => {
+    navigate("/services");
+  };
   return (
     <section className="min-h-screen bg-gradient-to-br from-white via-orange-50 to-orange-100 px-6 py-24">
       <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
@@ -89,7 +95,9 @@ const FearAndPromiseBlock = () => {
           </motion.p>
 
           <motion.div variants={item}>
-            <button className="mt-4 px-6 py-3 bg-orange-500 text-white font-semibold rounded-xl shadow-md hover:bg-orange-600 transition-all duration-300 hover:scale-105">
+            <button 
+            onClick={handleExploreClick}
+            className="mt-4 px-6 py-3 bg-orange-500 text-white font-semibold rounded-xl shadow-md hover:bg-orange-600 transition-all duration-300 hover:scale-105">
               Explore Programs
             </button>
           </motion.div>
