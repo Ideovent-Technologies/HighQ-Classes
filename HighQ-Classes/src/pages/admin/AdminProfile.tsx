@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import AdminService from "@/API/services/AdminService";
 import { AdminUser } from "@/types/admin.types"; // Using your defined type
+import { Link } from "react-router-dom";
 
 // UI Components from shadcn/ui and lucide-react
 import {
@@ -600,10 +601,11 @@ const AdminProfile: React.FC = () => {
                                             strong, unique password.
                                         </p>
                                     </div>
-                                    <Button variant="outline">
-                                        <KeyRound className="mr-2 h-4 w-4" />
+                                    <Link to="/dashboard/change-password">
+                                     <button className="px-6 py-3 bg-red-500 text-white rounded-xl shadow-md hover:bg-red-600 transition">
                                         Change Password
-                                    </Button>
+                                     </button>
+                                    </Link>
                                 </div>
                             </CardContent>
                         </Card>
