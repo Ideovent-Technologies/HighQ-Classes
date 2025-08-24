@@ -33,7 +33,7 @@ export const createFee = async (req, res) => {
 
         // Create new fee record
         const fee = new Fee({
-            student: studentId,
+            student: student,
             course: courseId,
             batch: batchId,
             amount,
