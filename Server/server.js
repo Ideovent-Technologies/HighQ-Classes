@@ -86,7 +86,7 @@ app.use("/api/assignments", assignmentRoutes);        // Assignment routes
 
 app.use("/api/admin", adminRoutes);
 app.use("/api/batches", batchRouter);
-app.use("/api/fee", feeRouter);
+app.use("/api/admin/fees", feeRouter);
 app.use('/api', contactRoutes); // your contact route
 app.use("/api/support", supportRoutes);
 app.use("/api/submissions", submissionRoutes);
