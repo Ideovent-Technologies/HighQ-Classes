@@ -339,3 +339,17 @@ export const getStudentBatch = async (req, res) => {
     });
   }
 };
+// controllers/studentController.js
+
+// GET /api/students (list all students)
+export const getAllStudents = async (req, res) => {
+  try {
+    const students = await Student.find({})
+      .select("_id name email grade batch"); // keep it lightweight
+
+    res.status(200).json(students);
+  } catch (error) {
+    console.error("Get all students error:", error);
+    res.status(500).json({ success: false, message: "Server error while fetching students" });
+  }
+};
