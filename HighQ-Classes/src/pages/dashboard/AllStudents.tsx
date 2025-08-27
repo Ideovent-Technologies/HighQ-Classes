@@ -221,7 +221,81 @@ const AllStudents = () => {
         navigate("/dashboard/students/add");
         console.log("Navigating to Add Student page");
     }
-    
+
+    const handleDelete = async (studentId: string) => {
+        if (!window.confirm("Are you sure you want to delete this student?")) return;
+      
+        try {
+          const response = await AdminService.deleteStudent(studentId);
+          if (response.success) {
+            toast({
+              title: "Deleted",
+              description: "Student removed successfully",
+              variant: "success",
+            });
+            fetchStudents(); // Refresh list
+          } else {
+            toast({
+              title: "Error",
+              description: response.message || "Failed to delete student",
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: "An error occurred while deleting student",
+            variant: "destructive",
+          });
+        }
+      };
+      
+    const exportToCSV = () => {
+        const filtered = getFilteredStudents();
+      
+        if (!filtered.length) {
+          toast({
+            title: "No Data",
+            description: "No students found to export",
+            variant: "destructive",
+          });
+          return;
+        }
+      
+        const headers = [
+          "Name",
+          "Email",
+          "Phone",
+          "Batch",
+          "Joining Date",
+          "Fee Status",
+        ];
+      
+        const rows = filtered.map(student => [
+          student.name,
+          student.email,
+          student.phone || "-",
+          student.batch?.name || "No Batch",
+          new Date(student.joiningDate).toLocaleDateString(),
+          (student.feeStatus?.pendingAmount || 0) === 0
+            ? "Paid"
+            : (student.feeStatus?.paidAmount || 0) === 0
+            ? "Unpaid"
+            : "Partial",
+        ]);
+      
+        const csvContent =
+          [headers, ...rows].map(e => e.join(",")).join("\n");
+      
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+      
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `students_${new Date().toISOString()}.csv`);
+        link.click();
+      };
+      
 
     return (
         <DashboardLayout>
@@ -361,10 +435,10 @@ const AllStudents = () => {
                                     </Select>
 
                                     {/* Export Button */}
-                                    <Button variant="outline" className="shrink-0 rounded-lg shadow-sm hover:bg-gray-50 transition-colors duration-200">
-                                        <Download className="h-4 w-4 mr-2" />
-                                        Export Data
+                                    <Button variant="outline" className="shrink-0 rounded-lg shadow-sm hover:bg-gray-50 transition-colors duration-200" onClick={exportToCSV}>
+                                        <Download className="h-4 w-4 mr-2" />   Export Data
                                     </Button>
+
                                 </div>
                             </div>
 
@@ -516,24 +590,17 @@ const AllStudents = () => {
                                                             </td>
                                                             <td className="px-6 py-4 whitespace-nowrap text-center">
                                                                 <div className="flex justify-center space-x-2">
-                                                                    {/* Edit Button */}
-                                                                    <Button
-                                                                        variant="ghost"
-                                                                        size="icon"
-                                                                        className="text-blue-500 hover:text-blue-700 hover:bg-blue-50 transition-colors"
-                                                                        title="Edit Student"
-                                                                    >
-                                                                        <Edit className="h-5 w-5" />
-                                                                    </Button>
                                                                     {/* Delete Button */}
                                                                     <Button
-                                                                        variant="ghost"
-                                                                        size="icon"
-                                                                        className="text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
-                                                                        title="Delete Student"
-                                                                    >
-                                                                        <Trash className="h-5 w-5" />
-                                                                    </Button>
+  variant="ghost"
+  size="icon"
+  className="text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
+  title="Delete Student"
+  onClick={() => handleDelete(student._id)}
+>
+  <Trash className="h-5 w-5" />
+</Button>
+
                                                                 </div>
                                                             </td>
                                                         </tr>

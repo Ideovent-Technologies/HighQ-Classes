@@ -137,7 +137,7 @@ const AttendanceManagementPage: React.FC<AttendanceManagementPageProps> = ({
                 ? format(date, "yyyy-MM-dd")
                 : format(selectedDate, "yyyy-MM-dd");
 
-            // console.log("🔍 Fetching attendance for:", { batchId, date: day });
+            console.log("🔍 Fetching attendance for:", { batchId, date: day });
 
             // Get the response from our updated service
             const response = await AttendanceService.getBatchAttendanceData(
