@@ -26,7 +26,7 @@ export const preloadRoleBasedRoutes = (role: string) => {
       break;
     case 'student':
       preloadRoute(() => import('@/pages/student/StudentProfile'));
-      preloadRoute(() => import('@/pages/student/MyClasses'));
+      preloadRoute(() => import('@/pages/student/MyClasses/MyClasses'));
       break;
   }
 };

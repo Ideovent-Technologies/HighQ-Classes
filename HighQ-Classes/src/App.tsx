@@ -23,10 +23,12 @@ const ResetPassword = React.lazy(() => import("@/pages/auth/ResetPassword"));
 const NotFound = React.lazy(() => import("@/pages/NotFound"));
 const About = React.lazy(() => import("./pages/About"));
 const TicketList = React.lazy(
-    () => import("@/components/dashboard/ticket/TicketList")  );
+    () => import("@/components/dashboard/ticket/TicketList")
+);
 
-    const TicketDetails = React.lazy(
-    () => import("@/components/dashboard/ticket/TicketDetails"));
+const TicketDetails = React.lazy(
+    () => import("@/components/dashboard/ticket/TicketDetails")
+);
 
 // Lazy load dashboard pages
 const Dashboard = React.lazy(() => import("@/pages/dashboard/Dashboard"));
@@ -76,7 +78,7 @@ const EditBatchPage = React.lazy(() => import("./pages/batch/EditBatchPage"));
 // Lazy load fee management pages
 const StudentFeeStatus = React.lazy(() => import("@/modules/fees/FeeStatus"));
 const AdminFeeDashboard = React.lazy(
-    () => import("@/modules/fees/AdminFeeDashboard")
+    () => import("@/components/admin/AdminFeeDashboard")
 );
 const BatchDetails = React.lazy(
     () => import("./components/dashboard/batch/BatchDetsils")
@@ -104,7 +106,7 @@ const TeacherRecordingManagementPage = React.lazy(
     () => import("@/pages/TeacherRecordingManagementPage")
 );
 const StudentRecordingsPage = React.lazy(
-    () => import("@/pages/StudentRecordingsPage")
+    () => import("@/pages/student/StudentRecordingsPage/StudentRecordingsPage")
 );
 
 // Lazy load student-specific pages
@@ -112,16 +114,21 @@ const StudentProfile = React.lazy(
     () => import("@/pages/student/StudentProfile")
 );
 const MyMaterials = React.lazy(() => import("@/pages/student/MyMaterials"));
-const MyClasses = React.lazy(() => import("@/pages/student/MyClasses"));
+const MyClasses = React.lazy(() => import("@/pages/student/MyClasses/MyClasses"));
 const MyFees = React.lazy(() => import("@/pages/student/MyFees"));
+const StudentFeeDashboard = React.lazy(
+    () => import("@/components/student/StudentFeeDashboard")
+);
 const StudentNotices = React.lazy(
     () => import("@/pages/student/StudentNotices")
 );
 const StudentAssignments = React.lazy(
-    () => import("@/pages/student/StudentAssignments")
+    () => import("@/pages/student/StudentAssignments/StudentAssignments")
 );
+const AddStudentForm = React.lazy(
+    () => import("./components/dashboard/student/StudentForm"));
 const StudentAttendance = React.lazy(
-    () => import("@/pages/student/StudentAttendance")
+    () => import("@/pages/student/StudentAttendance/StudentAttendance")
 );
 
 // Lazy load student batch components
@@ -140,9 +147,6 @@ const AdminAnnouncementPage = React.lazy(
 );
 const ManageNotices = React.lazy(
     () => import("@/pages/dashboard/ManageNotices")
-);
-const FeeManagement = React.lazy(
-    () => import("@/pages/dashboard/FeeManagement")
 );
 const ScheduleManagement = React.lazy(
     () => import("@/pages/dashboard/ScheduleManagement")
@@ -300,13 +304,13 @@ const App: React.FC = () => {
                                         </ProtectedRoute>
                                     }
                                 />
-                                <Route 
-                                path="/dashboard/UserSupport"
-                                element={
-                                    <ProtectedRoute roles={["admin"]}>
-                                        <TicketList/>
-                                    </ProtectedRoute>
-                                }
+                                <Route
+                                    path="/dashboard/UserSupport"
+                                    element={
+                                        <ProtectedRoute roles={["admin"]}>
+                                            <TicketList />
+                                        </ProtectedRoute>
+                                    }
                                 />
                                 <Route
                                     path="/student/batch"
@@ -336,7 +340,7 @@ const App: React.FC = () => {
                                     path="/student/fees"
                                     element={
                                         <ProtectedRoute roles={["student"]}>
-                                            <MyFees />
+                                            <StudentFeeDashboard />
                                         </ProtectedRoute>
                                     }
                                 />
@@ -470,9 +474,10 @@ const App: React.FC = () => {
                                     path="/admin/tickets/:id"
                                     element={
                                         <ProtectedRoute roles={["admin"]}>
-                                            <TicketDetails/>
+                                            <TicketDetails />
                                         </ProtectedRoute>
-                                    }/>
+                                    }
+                                />
                                 <Route
                                     path="/dashboard/manage-notices"
                                     element={
@@ -485,7 +490,7 @@ const App: React.FC = () => {
                                     path="/dashboard/fee-management"
                                     element={
                                         <ProtectedRoute roles={["admin"]}>
-                                            <FeeManagement />
+                                            <AdminFeeDashboard />
                                         </ProtectedRoute>
                                     }
                                 />
@@ -662,6 +667,13 @@ const App: React.FC = () => {
                                         </ProtectedRoute>
                                     }
                                 />
+                                <Route 
+                                path="/dashboard/students/add"
+                                element={
+                                    <ProtectedRoute roles={["admin"]}>
+                                        <AddStudentForm />
+                                    </ProtectedRoute>
+                                }/>
                                 <Route
                                     path="/admin/attendance"
                                     element={
