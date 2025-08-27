@@ -69,21 +69,23 @@ const GradientCard: React.FC<GradientCardProps> = ({
     };
 
     return (
-        <motion.a
-            href={to}
+        <motion.div
+        variants={cardVariants}
+        initial="initial"
+        animate="animate"
+        whileHover="hover"
+        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+    >
+        <Link
+            to={to}
             className={`relative flex flex-col justify-between p-6 rounded-3xl overflow-hidden text-white transition-all duration-300 transform-gpu cursor-pointer`}
-            variants={cardVariants}
-            initial="initial"
-            animate="animate"
-            whileHover="hover"
-            transition={{ type: "spring", stiffness: 300, damping: 25 }} // Adjusted damping for smoother spring
             style={{
-                backgroundImage: `linear-gradient(to bottom right, ${gradientFrom}, ${gradientTo})`, // Changed gradient direction
+                backgroundImage: `linear-gradient(to bottom right, ${gradientFrom}, ${gradientTo})`,
             }}
         >
             {/* Subtle overlay for depth */}
             <div className="absolute inset-0 bg-black/15 mix-blend-overlay rounded-3xl"></div>
-            
+    
             <div className="relative z-10 flex justify-between items-start">
                 <div>
                     <h3 className="text-xl sm:text-2xl font-bold tracking-wide">{title}</h3>
@@ -93,10 +95,13 @@ const GradientCard: React.FC<GradientCardProps> = ({
                     {icon}
                 </div>
             </div>
+    
             <div className="relative z-10 mt-8">
                 <p className="text-4xl sm:text-5xl font-extrabold drop-shadow-md">{value}</p>
             </div>
-        </motion.a>
+        </Link>
+    </motion.div>
+    
     );
 };
 
@@ -372,15 +377,16 @@ const AdminDashboard: React.FC = () => {
                                 )}
                                 {recentNotices.length > 4 && (
                                     <div className="mt-6 text-center">
-                                        <Link to="/dashboard/notices">
-                                            <motion.button
-                                                className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-white bg-purple-600 hover:bg-purple-700 transition-colors duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                                                whileTap={{ scale: 0.95 }}
-                                            >
-                                                View All Notices
-                                                <ArrowRight className="ml-2 h-5 w-5" />
-                                            </motion.button>
+                                        <Link to="/dashboard/manage-notices">
+                                         <motion.button
+                                          className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-white bg-purple-600 hover:bg-purple-700 transition-colors duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                                          whileTap={{ scale: 0.95 }}
+                                         >
+                                          View All Notices
+                                          <ArrowRight className="ml-2 h-5 w-5" />
+                                         </motion.button>
                                         </Link>
+
                                     </div>
                                 )}
                             </CardContent>

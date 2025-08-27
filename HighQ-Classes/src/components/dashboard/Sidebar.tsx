@@ -95,6 +95,8 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
         createNavItem(
             user?.role === "student"
                 ? "/student/notices"
+                : user?.role === "admin"
+                 ? "/dashboard/manage-notices"
                 : "/dashboard/notices",
             Bell,
             "Notices"
