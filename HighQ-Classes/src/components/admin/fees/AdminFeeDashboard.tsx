@@ -290,7 +290,7 @@ const AdminFeeDashboard: React.FC = () => {
               {stats.paidFees}
             </p>
             <p className="mt-2 text-sm text-gray-500">
-              Amount Collected: ${stats.paidAmount}
+              Amount Collected: ₹{stats.paidAmount}
             </p>
           </div>
           <div className="bg-white rounded-2xl p-6 shadow-xl border border-red-200">
@@ -302,7 +302,7 @@ const AdminFeeDashboard: React.FC = () => {
               {stats.pendingFees}
             </p>
             <p className="mt-2 text-sm text-gray-500">
-              Amount Due: ${stats.pendingAmount}
+              Amount Due: ₹{stats.pendingAmount}
             </p>
           </div>
           <div className="bg-white rounded-2xl p-6 shadow-xl border border-yellow-200">
