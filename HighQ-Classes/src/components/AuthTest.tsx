@@ -7,7 +7,7 @@ import {
     Users,
     Bell,
     FileText,
-    DollarSign,
+    IndianRupee,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -97,7 +97,7 @@ const StudentDashboard = () => {
                     {/* Replaced CardHeader and CardTitle */}
                     <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
                         <h3 className="text-sm font-medium">Fee Status</h3>
-                        <DollarSign className="h-4 w-4 text-navy-500" />
+                        <IndianRupee className="h-4 w-4 text-navy-500" />
                     </div>
                     {/* Replaced CardContent */}
                     <div className="p-6 pt-0">
@@ -373,7 +373,7 @@ const AdminDashboard = () => {
                     {/* Replaced CardHeader and CardTitle */}
                     <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
                         <h3 className="text-sm font-medium">Fee Collection</h3>
-                        <DollarSign className="h-4 w-4 text-navy-500" />
+                        <IndianRupee className="h-4 w-4 text-navy-500" />
                     </div>
                     {/* Replaced CardContent */}
                     <div className="p-6 pt-0">
@@ -387,7 +387,7 @@ const AdminDashboard = () => {
                     {/* Replaced CardHeader and CardTitle */}
                     <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
                         <h3 className="text-sm font-medium">Pending Dues</h3>
-                        <DollarSign className="h-4 w-4 text-coral-500" />
+                        <IndianRupee className="h-4 w-4 text-coral-500" />
                     </div>
                     {/* Replaced CardContent */}
                     <div className="p-6 pt-0">

@@ -16,7 +16,7 @@ import {
     AlertCircle,
     CheckCircle,
     Clock,
-    DollarSign,
+    IndianRupee,
 } from "lucide-react";
 import { useFeeService } from "@/API/services/feeService";
 import { Fee, FeeSummary, Payment, ReceiptData } from "@/types/fee.types";
@@ -119,7 +119,7 @@ const StudentFeeDashboard: React.FC = () => {
                                     <CardTitle className="text-sm font-medium text-gray-600">
                                         Total Fees
                                     </CardTitle>
-                                    <DollarSign className="h-5 w-5 text-blue-600" />
+                                    <IndianRupee className="h-5 w-5 text-blue-600" />
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-2xl font-bold text-gray-900">

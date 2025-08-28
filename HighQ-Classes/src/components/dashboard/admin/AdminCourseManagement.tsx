@@ -10,13 +10,13 @@ import {
     Eye,
     Users,
     Calendar,
-    DollarSign,
     Clock,
     Star,
     Award,
     TrendingUp,
     Download,
     Loader2,
+    IndianRupee,
 } from "lucide-react";
 import AdminService from "@/API/services/AdminService";
 import CourseService from "@/API/services/courseService";
@@ -607,7 +607,7 @@ const AdminCourseManagement: React.FC = () => {
                                     )}
                                 </p>
                             </div>
-                            <DollarSign className="h-8 w-8 text-orange-600" />
+                            <IndianRupee className="h-8 w-8 text-orange-600" />
                         </div>
                     </CardContent>
                 </Card>

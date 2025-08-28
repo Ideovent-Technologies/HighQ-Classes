@@ -24,7 +24,7 @@ import {
     Video,
     GraduationCap,
     BarChart3,
-    DollarSign,
+    IndianRupee,
 } from "lucide-react";
 import { StudentUser, StudentDashboardData } from "@/types/student.types";
 import { studentService } from "@/API/services/studentService";
@@ -586,7 +586,7 @@ const StudentDashboard: React.FC = () => {
                                     variant="outline"
                                     className="w-full justify-start"
                                 >
-                                    <DollarSign className="h-4 w-4 mr-2" />
+                                    <IndianRupee className="h-4 w-4 mr-2" />
                                     Fee Details
                                 </Button>
                             </Link>

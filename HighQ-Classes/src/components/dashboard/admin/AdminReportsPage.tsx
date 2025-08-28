@@ -5,7 +5,7 @@ import {
     TrendingUp,
     Users,
     GraduationCap,
-    DollarSign,
+    IndianRupee,
     Calendar,
     Download,
     Filter,
@@ -336,7 +336,7 @@ const AdminReportsPage: React.FC = () => {
                                         </span>
                                     </div>
                                 </div>
-                                <DollarSign className="h-12 w-12 text-purple-600" />
+                                <IndianRupee className="h-12 w-12 text-purple-600" />
                             </div>
                         </CardContent>
                     </Card>
@@ -534,7 +534,7 @@ const AdminReportsPage: React.FC = () => {
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <DollarSign className="h-5 w-5 text-purple-600" />
+                                <IndianRupee className="h-5 w-5 text-purple-600" />
                                 Monthly Revenue
                             </CardTitle>
                         </CardHeader>

@@ -11,7 +11,7 @@ import {
     Loader2,
     LayoutDashboard, // Added for Dashboard Header
     ArrowRight, // Added for "View All" button
-    DollarSign // Ensure DollarSign is imported if used
+    IndianRupee
 } from "lucide-react";
 
 // The following imports are external to this compilation unit and are assumed to be provided by the environment.
@@ -265,7 +265,7 @@ const AdminDashboard: React.FC = () => {
             value: formatToIndianCurrency(totalRevenue),
             subtitle: "This fiscal year",
             to: "/admin/finance",
-            icon: <DollarSign className="h-7 w-7 text-white" />, // Changed to DollarSign for revenue
+            icon: <IndianRupee className="h-7 w-7 text-white" />,
             gradientFrom: "#15803d", // dark lime green
             gradientTo: "#22c55e",   // lime green
         },

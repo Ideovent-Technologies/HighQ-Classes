@@ -8,7 +8,7 @@ import {
     Building,
     Settings,
     Plus,
-    DollarSign,
+    IndianRupee
 } from "lucide-react";
 
 interface QuickActionsProps {
@@ -71,7 +71,7 @@ const QuickActions: React.FC<QuickActionsProps> = ({ className }) => {
                                        hover:from-yellow-600 hover:to-orange-700 hover:scale-105 transition-all duration-300 ease-in-out
                                        transform focus:ring-4 focus:ring-yellow-300 focus:outline-none"
                         >
-                            <DollarSign className="h-8 w-8 mb-2" />
+                            <IndianRupee className="h-8 w-8 mb-2" />
                             Manage Fees
                         </Button>
                     </Link>

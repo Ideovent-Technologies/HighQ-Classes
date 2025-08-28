@@ -313,7 +313,7 @@ const AdminFeeDashboard: React.FC = () => {
               </div>
             </div>
             <p className="mt-4 text-4xl font-extrabold text-yellow-600">
-              ${stats.totalAmount}
+              ₹{stats.totalAmount}
             </p>
             <p className="mt-2 text-sm text-gray-500">
               Total amount recorded
