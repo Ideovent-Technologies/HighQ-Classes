@@ -12,8 +12,8 @@ export const protect = async (req, res, next) => {
     let token;
 
     // Get token from authorization header
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-      token = req.headers.authorization.split(' ')[1];
+    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+      token = req.headers.authorization.split(" ")[1];
     }
     // Check cookies if not in header
     else if (req.cookies?.authToken) {
@@ -23,7 +23,7 @@ export const protect = async (req, res, next) => {
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "Not authorized, no token provided"
+        message: "Not authorized, no token provided",
       });
     }
 
@@ -33,34 +33,34 @@ export const protect = async (req, res, next) => {
     // Get user based on role from token
     let user;
     switch (decoded.role) {
-      case 'student':
-        user = await Student.findById(decoded.id).select('-password');
+      case "student":
+        user = await Student.findById(decoded.id).select("-password");
         break;
-      case 'teacher':
-        user = await Teacher.findById(decoded.id).select('-password');
+      case "teacher":
+        user = await Teacher.findById(decoded.id).select("-password");
         break;
-      case 'admin':
-        user = await Admin.findById(decoded.id).select('-password');
+      case "admin":
+        user = await Admin.findById(decoded.id).select("-password");
         break;
       default:
         return res.status(401).json({
           success: false,
-          message: "Invalid user role in token"
+          message: "Invalid user role in token",
         });
     }
 
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
     // Check if user is active
-    if (user.status !== 'active') {
+    if (user.status !== "active") {
       return res.status(403).json({
         success: false,
-        message: "Account is not active. Please contact admin."
+        message: "Account is not active. Please contact admin.",
       });
     }
 
@@ -72,7 +72,7 @@ export const protect = async (req, res, next) => {
     console.error("Auth error:", error);
     return res.status(401).json({
       success: false,
-      message: "Not authorized, token failed"
+      message: "Not authorized, token failed",
     });
   }
 };
@@ -83,25 +83,23 @@ export const protect = async (req, res, next) => {
 export const authenticate = protect;
 
 /**
- * Middleware to check if user has required role
- * @param {string|string[]} roles - Single role or array of roles
+ * Generic middleware to check if user has required role(s)
  */
 export const authorize = (roles) => {
-  // Convert to array if a single role is passed
   const allowedRoles = Array.isArray(roles) ? roles : [roles];
 
   return (req, res, next) => {
     if (!req.user || !req.user.role) {
       return res.status(403).json({
         success: false,
-        message: "Access denied. User role not found."
+        message: "Access denied. User role not found.",
       });
     }
 
     if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
-        message: `Access denied. ${req.user.role} role not authorized.`
+        message: `Access denied. ${req.user.role} role not authorized.`,
       });
     }
 
@@ -114,10 +112,10 @@ export const authorize = (roles) => {
  * Ensures the student can only access their own resources
  */
 export const authorizeStudent = (req, res, next) => {
-  if (req.user.role !== 'student') {
+  if (req.user.role !== "student") {
     return res.status(403).json({
       success: false,
-      message: "Access denied. This endpoint is for students only."
+      message: "Access denied. This endpoint is for students only.",
     });
   }
 
@@ -125,10 +123,35 @@ export const authorizeStudent = (req, res, next) => {
   if (req.params.id && req.user._id.toString() !== req.params.id) {
     return res.status(403).json({
       success: false,
-      message: "Access denied. Students can only access their own data."
+      message: "Access denied. Students can only access their own data.",
     });
   }
 
   next();
 };
 
+/**
+ * Admin-specific authorization
+ */
+export const authorizeAdmin = (req, res, next) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({
+      success: false,
+      message: "Access denied. Admins only.",
+    });
+  }
+  next();
+};
+
+/**
+ * Teacher-specific authorization
+ */
+export const authorizeTeacher = (req, res, next) => {
+  if (req.user.role !== "teacher") {
+    return res.status(403).json({
+      success: false,
+      message: "Access denied. Teachers only.",
+    });
+  }
+  next();
+};
