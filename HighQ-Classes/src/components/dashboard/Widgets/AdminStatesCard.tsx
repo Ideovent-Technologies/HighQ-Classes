@@ -1,5 +1,5 @@
 import React from "react";
-import { Users, UserCheck, BookOpen, Building, BarChart3, Shield, DollarSign } from "lucide-react";
+import { Users, UserCheck, BookOpen, Building, BarChart3, Shield, IndianRupee } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminUser } from "@/types/admin.types";
 

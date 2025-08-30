@@ -5,7 +5,6 @@ import {
     ChevronRight,
     BookOpen,
     Clock,
-    // DollarSign,
     IndianRupee,
 } from "lucide-react";
 import { Link } from "react-router-dom";

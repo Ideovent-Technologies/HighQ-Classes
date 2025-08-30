@@ -11,7 +11,7 @@ import {
     LogOut,
     User,
     Upload,
-    DollarSign,
+    IndianRupeeIcon,
     Megaphone,
     GraduationCap,
     UserCheck,
@@ -20,6 +20,7 @@ import {
     ClipboardCheck,
     MessageSquare,
     UserCog,
+    IndianRupee,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
@@ -118,7 +119,7 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
         createNavItem("/student/recordings", FileText, "Video Lectures"),
         createNavItem("/student/assignments", FileText, "My Assignments"),
         createNavItem("/student/attendance", Users, "My Attendance"),
-        createNavItem("/student/fees", DollarSign, "Fee Details"),
+        createNavItem("/student/fees", IndianRupee, "Fee Details"),
         createNavItem("/dashboard/contact-admin", Settings, "Contact Admin"),
     ];
 
@@ -140,7 +141,7 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
         createNavItem("/admin/announcements", Megaphone, "Announcements"),
         createNavItem(
             "/dashboard/fee-management",
-            DollarSign,
+            IndianRupeeIcon,
             "Fee Management"
         ),
         createNavItem(

@@ -1,36 +1,45 @@
-import { Router } from 'express';
-import {
-    getProfile,
-    updateProfile,
-    uploadProfilePicture,
-    changePassword,
-    getStudentBatch
-} from '../controllers/studentController.js';
+// In routes/studentRoutes.js
 
-import { authenticate, authorizeStudent } from '../middleware/authMiddleware.js';
-import { fileUpload } from '../middleware/fileUpload.js';
+import express from "express";
+import { 
+  getAllStudents, 
+  getProfile, 
+  updateProfile, 
+  changePassword, 
+  getStudentBatch, 
+  uploadProfilePicture 
+} from "../controllers/studentController.js";
 
-const router = Router();
+// Change this import to use the generic authorize middleware
+import { authenticate, authorize , authorizeStudent } from "../middleware/authMiddleware.js";
+import { fileUpload } from "../middleware/fileUpload.js";
 
-// Get student's assigned batch information
-router.get('/batch', authenticate, authorizeStudent, getStudentBatch);
+const router = express.Router();
 
-// View profile
-router.get('/:id/profile', authenticate, authorizeStudent, getProfile);
+// 🔒 FIX: This endpoint should be accessible by Admins and Teachers, not just Students.
+// Replace `authorizeStudent` with `authorize`
+router.get("/students", authenticate, authorize(['admin', 'teacher']), getAllStudents);
 
-// Update email / phone
-router.patch('/:id/profile', authenticate, authorizeStudent, updateProfile);
+// These routes are correct as they deal with a specific student's data
+router.get("/student/:id/profile", authenticate, authorize(['student', 'teacher', 'admin']), getProfile);
 
-// Upload profile picture (using express-fileupload)
+// This endpoint should be for students only to change their own password
+router.patch("/student/:id/change-password", authenticate, authorizeStudent, changePassword);
+
+// This endpoint retrieves the student's own batch info and is fine with `authorizeStudent`
+router.get("/student/batch", authenticate, authorizeStudent, getStudentBatch);
+
+// You may want to authorize teachers/admins for these as well, depending on your app's logic
+// For example:
+router.patch("/student/:id/profile", authenticate, authorize(['student', 'teacher', 'admin']), updateProfile);
+
+// The `fileUpload` middleware will be handled correctly after the authentication
 router.post(
-    '/:id/profile-picture',
-    authenticate,
-    authorizeStudent,
-    fileUpload,
-    uploadProfilePicture
+  "/student/:id/profile-picture",
+  authenticate,
+  authorize(['student', 'teacher', 'admin']),
+  fileUpload,
+  uploadProfilePicture
 );
-
-// Change password
-router.patch('/:id/change-password', authenticate, authorizeStudent, changePassword);
 
 export default router;

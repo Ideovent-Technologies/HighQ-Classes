@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import {
     CreditCard,
     Calendar,
-    DollarSign,
+    IndianRupee,
     FileText,
     Download,
     AlertCircle,
@@ -209,7 +209,7 @@ const MyFees: React.FC = () => {
                                     ₹{summary.totalAmount.toLocaleString()}
                                 </p>
                             </div>
-                            <DollarSign className="h-8 w-8 text-blue-200" />
+                            <IndianRupee className="h-8 w-8 text-blue-200" />
                         </div>
                     </CardContent>
                 </Card>
