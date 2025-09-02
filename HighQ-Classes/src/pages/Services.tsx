@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import ServiceTabs from "../components/services/ServiceTabs";
 import ServiceContent from "../components/services/ServiceContent";
 import ServiceFaq from "../components/services/ServiceFaq";
 import { motion } from "framer-motion";
-
 const Services = () => {
   const [searchParams] = useSearchParams();
   const defaultTab = searchParams.get("tab") || "foundation";
   const [activeTab, setActiveTab] = useState(defaultTab);
+  const navigate = useNavigate();
 
   // Sync tab with query param if user clicks "Learn More" from elsewhere
   useEffect(() => {
@@ -18,6 +18,9 @@ const Services = () => {
     }
   }, [searchParams, activeTab]);
 
+  const handleEnquireClick = () => {
+    navigate("/contact");
+  };
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-white text-gray-800 pt-24">
       {/* HEADER */}
@@ -70,12 +73,12 @@ const Services = () => {
           <p className="mb-6 max-w-2xl mx-auto text-base md:text-lg leading-relaxed">
             Speak with our academic advisors and let us recommend the perfect track tailored to your goals and strengths.
           </p>
-          <a
-            href="/contact"
+          <button
+            onClick={handleEnquireClick}
             className="inline-block bg-white text-indigo-700 font-semibold py-3 px-8 rounded-full shadow-md hover:bg-gray-100 transition-all duration-300"
           >
             Enquire Now
-          </a>
+          </button>
         </div>
       </motion.section>
     </div>

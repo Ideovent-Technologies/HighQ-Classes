@@ -2,9 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
     Card,
     CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +20,6 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog";
 import { useContactAdmin } from "@/hooks/useContact";
 import {
@@ -54,15 +50,11 @@ interface ContactMessage {
 }
 
 const AdminContactMessages: React.FC = () => {
-    const { getContactMessages, updateMessageStatus, loading } =
-        useContactAdmin();
+    const { getContactMessages, updateMessageStatus, loading } = useContactAdmin();
 
     const [messages, setMessages] = useState<ContactMessage[]>([]);
-    const [filteredMessages, setFilteredMessages] = useState<ContactMessage[]>(
-        []
-    );
-    const [selectedMessage, setSelectedMessage] =
-        useState<ContactMessage | null>(null);
+    const [filteredMessages, setFilteredMessages] = useState<ContactMessage[]>([]);
+    const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
     const [replyText, setReplyText] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [searchTerm, setSearchTerm] = useState("");
@@ -74,11 +66,7 @@ const AdminContactMessages: React.FC = () => {
     // Fetch messages
     const fetchMessages = async () => {
         try {
-            const response = await getContactMessages(
-                currentPage,
-                10,
-                statusFilter
-            );
+            const response = await getContactMessages(currentPage, 10, statusFilter);
             setMessages(response.data);
             setTotalPages(response.totalPages);
         } catch (error) {
@@ -94,9 +82,7 @@ const AdminContactMessages: React.FC = () => {
             filtered = filtered.filter(
                 (msg) =>
                     msg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    msg.email
-                        .toLowerCase()
-                        .includes(searchTerm.toLowerCase()) ||
+                    msg.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     msg.message.toLowerCase().includes(searchTerm.toLowerCase())
             );
         }
@@ -148,11 +134,11 @@ const AdminContactMessages: React.FC = () => {
                 prev.map((msg) =>
                     msg._id === selectedMessage._id
                         ? {
-                              ...msg,
-                              status: "replied",
-                              adminReply: replyText,
-                              repliedAt: new Date().toISOString(),
-                          }
+                            ...msg,
+                            status: "replied",
+                            adminReply: replyText,
+                            repliedAt: new Date().toISOString(),
+                        }
                         : msg
                 )
             );
@@ -171,28 +157,19 @@ const AdminContactMessages: React.FC = () => {
         switch (status) {
             case "unread":
                 return (
-                    <Badge
-                        variant="destructive"
-                        className="bg-red-100 text-red-700"
-                    >
+                    <Badge variant="destructive" className="bg-red-100 text-red-700">
                         Unread
                     </Badge>
                 );
             case "read":
                 return (
-                    <Badge
-                        variant="secondary"
-                        className="bg-yellow-100 text-yellow-700"
-                    >
+                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-700">
                         Read
                     </Badge>
                 );
             case "replied":
                 return (
-                    <Badge
-                        variant="default"
-                        className="bg-green-100 text-green-700"
-                    >
+                    <Badge variant="default" className="bg-green-100 text-green-700">
                         Replied
                     </Badge>
                 );
@@ -217,30 +194,28 @@ const AdminContactMessages: React.FC = () => {
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2 md:text-4xl">
                     Contact Messages
                 </h1>
-                <p className="text-gray-600">
+                <p className="text-gray-600 text-sm md:text-base">
                     Manage and respond to user inquiries
                 </p>
             </div>
 
             {/* Filters and Search */}
-            <div className="mb-6 flex flex-col sm:flex-row gap-4">
-                <div className="flex-1">
-                    <div className="relative">
-                        <Search className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
-                        <Input
-                            placeholder="Search messages..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-9"
-                        />
-                    </div>
+            <div className="mb-6 flex flex-col md:flex-row items-center gap-4">
+                <div className="w-full relative">
+                    <Search className="h-4 w-4 absolute left-3 top-3 text-gray-400" />
+                    <Input
+                        placeholder="Search messages..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-9 w-full md:w-auto"
+                    />
                 </div>
 
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-48">
+                    <SelectTrigger className="w-full md:w-48">
                         <Filter className="h-4 w-4 mr-2" />
                         <SelectValue placeholder="Filter by status" />
                     </SelectTrigger>
@@ -270,39 +245,39 @@ const AdminContactMessages: React.FC = () => {
                             }`}
                             onClick={() => handleMessageClick(message)}
                         >
-                            <CardContent className="p-6">
-                                <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-2">
+                            <CardContent className="p-4 sm:p-6">
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1 sm:mb-2">
                                             {getStatusIcon(message.status)}
-                                            <h3 className="font-semibold text-lg">
+                                            <h3 className="font-semibold text-base sm:text-lg truncate">
                                                 {message.name}
                                             </h3>
-                                            {getStatusBadge(message.status)}
+                                            <div className="hidden sm:block">{getStatusBadge(message.status)}</div>
                                         </div>
 
-                                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                                        <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
                                             <div className="flex items-center gap-1">
-                                                <Mail className="h-4 w-4" />
-                                                {message.email}
+                                                <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
+                                                <span className="truncate">{message.email}</span>
                                             </div>
                                             <div className="flex items-center gap-1">
-                                                <Calendar className="h-4 w-4" />
-                                                {new Date(
-                                                    message.createdAt
-                                                ).toLocaleDateString()}
+                                                <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+                                                <span>{new Date(message.createdAt).toLocaleDateString()}</span>
                                             </div>
                                         </div>
 
-                                        <p className="text-gray-700 line-clamp-2">
+                                        <p className="text-gray-700 text-sm line-clamp-2">
                                             {message.message}
                                         </p>
                                     </div>
-
-                                    <Button variant="outline" size="sm">
-                                        <Eye className="h-4 w-4 mr-2" />
-                                        View
-                                    </Button>
+                                    <div className="sm:ml-4 mt-2 sm:mt-0">
+                                         <div className="sm:hidden mb-2">{getStatusBadge(message.status)}</div>
+                                         <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                                            <Eye className="h-4 w-4 mr-2" />
+                                            View
+                                        </Button>
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
@@ -357,26 +332,24 @@ const AdminContactMessages: React.FC = () => {
 
             {/* Message Detail Dialog */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogContent className="max-w-xl md:max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
+                        <DialogTitle className="flex flex-col sm:flex-row sm:items-center gap-2">
                             <User className="h-5 w-5" />
                             {selectedMessage?.name}
                         </DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription className="text-sm">
                             {selectedMessage?.email} •{" "}
                             {selectedMessage &&
-                                new Date(
-                                    selectedMessage.createdAt
-                                ).toLocaleDateString()}
+                                new Date(selectedMessage.createdAt).toLocaleDateString()}
                         </DialogDescription>
                     </DialogHeader>
 
                     {selectedMessage && (
-                        <div className="space-y-6">
+                        <div className="space-y-6 text-sm">
                             {/* Status */}
                             <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium">
+                                <span className="font-medium">
                                     Status:
                                 </span>
                                 {getStatusBadge(selectedMessage.status)}
@@ -403,7 +376,7 @@ const AdminContactMessages: React.FC = () => {
                                             {selectedMessage.adminReply}
                                         </p>
                                         {selectedMessage.repliedAt && (
-                                            <p className="text-sm text-gray-600 mt-2">
+                                            <p className="text-xs text-gray-600 mt-2">
                                                 Sent on{" "}
                                                 {new Date(
                                                     selectedMessage.repliedAt
@@ -423,9 +396,7 @@ const AdminContactMessages: React.FC = () => {
                                 </h4>
                                 <Textarea
                                     value={replyText}
-                                    onChange={(e) =>
-                                        setReplyText(e.target.value)
-                                    }
+                                    onChange={(e) => setReplyText(e.target.value)}
                                     placeholder="Type your reply here..."
                                     rows={4}
                                     className="mb-3"
