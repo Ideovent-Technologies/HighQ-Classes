@@ -3,6 +3,7 @@ import Student from '../models/Student.js';
 import bcrypt from 'bcryptjs';
 import { v2 as cloudinary } from 'cloudinary';
 import configureCloudinary from '../config/cloudinary.js';
+import Batch from '../models/Batch.js';
 
 configureCloudinary();
 
@@ -252,58 +253,35 @@ export const changePassword = async (req, res) => {
 
 // GET /api/student/batch
 export const getStudentBatch = async (req, res) => {
+
   try {
-    const studentId = req.user.id; // Get from authenticated user
+    const studentId = mongoose.Types.ObjectId(req.user.id);
 
-    // Find student and populate batch with detailed information
-    const student = await Student.findById(studentId)
-      .populate({
-        path: 'batch',
-        populate: [
-          {
-            path: 'courseId',
-            select: 'name description duration instructor topics'
-          },
-          {
-            path: 'teacherId',
-            select: 'name email employeeId qualification specialization profilePicture'
-          },
-          {
-            path: 'students',
-            select: 'name email grade profilePicture'
-          }
-        ]
-      });
+    const batches = await Batch.find({ students: studentId })
+      .populate("courseId", "name description duration instructor topics")
+      .populate("teacherId", "name email employeeId qualification specialization profilePicture")
+      .populate("students", "name email grade profilePicture");
 
-    if (!student) {
+    if (!batches || batches.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'Student not found'
+        message: "Student is not assigned to any batch"
       });
     }
 
-    if (!student.batch) {
-      return res.status(404).json({
-        success: false,
-        message: 'Student is not assigned to any batch'
-      });
-    }
 
-    const batch = student.batch;
-
-    // Format the response
-    const batchInfo = {
+    const formatted = batches.map(batch => ({
       _id: batch._id,
       name: batch.name,
       course: {
-        _id: batch.courseId._id,
-        name: batch.courseId.name,
-        description: batch.courseId.description,
-        duration: batch.courseId.duration,
-        instructor: batch.courseId.instructor,
-        topics: batch.courseId.topics || []
+        _id: batch.courseId?._id,
+        name: batch.courseId?.name,
+        description: batch.courseId?.description,
+        duration: batch.courseId?.duration,
+        instructor: batch.courseId?.instructor,
+        topics: batch.courseId?.topics || []
       },
-      teacher: {
+      teacher: batch.teacherId && {
         _id: batch.teacherId._id,
         name: batch.teacherId.name,
         email: batch.teacherId.email,
@@ -312,25 +290,24 @@ export const getStudentBatch = async (req, res) => {
         specialization: batch.teacherId.specialization,
         profilePicture: batch.teacherId.profilePicture
       },
-      students: batch.students.map(student => ({
-        _id: student._id,
-        name: student.name,
-        email: student.email,
-        grade: student.grade,
-        profilePicture: student.profilePicture
+      students: batch.students.map(s => ({
+        _id: s._id,
+        name: s.name,
+        email: s.email,
+        grade: s.grade,
+        profilePicture: s.profilePicture
       })),
       schedule: batch.schedule,
       startDate: batch.startDate,
       endDate: batch.endDate,
       totalStudents: batch.students.length,
-      isActive: batch.status === 'active'
-    };
+      isActive: batch.status === "active"
+    }));
 
     res.status(200).json({
       success: true,
-      batch: batchInfo
+      batches: formatted
     });
-
   } catch (error) {
     console.error("Get student batch error:", error);
     res.status(500).json({
@@ -339,6 +316,7 @@ export const getStudentBatch = async (req, res) => {
     });
   }
 };
+
 // controllers/studentController.js
 
 // GET /api/students (list all students)
