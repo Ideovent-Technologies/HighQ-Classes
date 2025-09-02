@@ -15,7 +15,8 @@ import {
     generateReceipt,
     applyDiscount,
     sendFeeReminder,
-    getFeeAnalytics
+    getFeeAnalytics,
+    createBatchCourseFees,
 } from "../controllers/feeController.js";
 import { protect, authorize } from '../middleware/authMiddleware.js';
 
@@ -47,5 +48,8 @@ router.get('/student/:studentId', authorize('admin', 'student'), getFeesByStuden
 
 // Student and admin can view a specific fee (controller checks ownership)
 router.get('/:id', authorize('admin', 'student'), getFeeById);
+
+router.post('/batch-course', authorize('admin'), createBatchCourseFees);
+
 
 export default router;

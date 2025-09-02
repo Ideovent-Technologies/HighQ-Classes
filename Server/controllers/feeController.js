@@ -9,31 +9,39 @@ import mongoose from "mongoose";
  * @access  Private (Admin only)
  */
 export const createFee = async (req, res) => {
-    try {
-        const {
-            studentId,
-            courseId,
-            batchId,
-            amount,
-            dueDate,
-            feeType,
-            month,
-            year,
-            description
-        } = req.body;
+  try {
+    const {
+      studentId,
+      studentIds,
+      courseId,
+      batchId,
+      amount,
+      dueDate,
+      feeType,
+      month,
+      year,
+      description
+    } = req.body;
 
-        // Check if student exists
-        const student = await Student.findById(studentId);
-        if (!student) {
-            return res.status(404).json({
-                success: false,
-                message: 'Student not found'
-            });
-        }
+    if (!courseId || !batchId) {
+      return res.status(400).json({
+        success: false,
+        message: "Course ID and Batch ID are required"
+      });
+    }
 
-        // Create new fee record
-        const fee = new Fee({
-            student: studentId,
+    let fees = [];
+
+    // Case 1: Admin selects "All Students"
+    if (studentId === "all") {
+      const students = await Student.find({ course: courseId, batch: batchId });
+      if (students.length === 0) {
+        return res.status(404).json({ success: false, message: "No students found" });
+      }
+      fees = await Promise.all(
+        students.map(student =>
+          new Fee({
+            student: student._id,
             course: courseId,
             batch: batchId,
             amount,
@@ -42,25 +50,73 @@ export const createFee = async (req, res) => {
             month,
             year,
             description,
-            status: 'pending'
-        });
-
-        await fee.save();
-
-        res.status(201).json({
-            success: true,
-            message: 'Fee created successfully',
-            fee
-        });
-    } catch (error) {
-        console.error('Fee creation error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error creating fee record',
-            error: error.message
-        });
+            status: "pending"
+          }).save()
+        )
+      );
     }
+    // Case 2: Admin selects multiple students
+    else if (studentIds && Array.isArray(studentIds) && studentIds.length > 0) {
+      const students = await Student.find({ _id: { $in: studentIds } });
+      if (students.length === 0) {
+        return res.status(404).json({ success: false, message: "No students found" });
+      }
+      fees = await Promise.all(
+        students.map(student =>
+          new Fee({
+            student: student._id,
+            course: courseId,
+            batch: batchId,
+            amount,
+            dueDate: new Date(dueDate),
+            feeType,
+            month,
+            year,
+            description,
+            status: "pending"
+          }).save()
+        )
+      );
+    }
+    // Case 3: Single student
+    else if (studentId) {
+      const student = await Student.findById(studentId);
+      if (!student) {
+        return res.status(404).json({ success: false, message: "Student not found" });
+      }
+      const fee = new Fee({
+        student: student._id,
+        course: courseId,
+        batch: batchId,
+        amount,
+        dueDate: new Date(dueDate),
+        feeType,
+        month,
+        year,
+        description,
+        status: "pending"
+      });
+      await fee.save();
+      fees.push(fee);
+    } else {
+      return res.status(400).json({ success: false, message: "No student(s) specified" });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: `Created ${fees.length} fee record(s)`,
+      data: fees
+    });
+  } catch (error) {
+    console.error("Fee creation error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error creating fee record",
+      error: error.message
+    });
+  }
 };
+
 
 /**
  * @desc    Update an existing fee record
@@ -896,6 +952,73 @@ export const getFeeAnalytics = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error fetching fee analytics',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * @desc    Create fees for all students in a batch & course
+ * @route   POST /api/fee/batch-course
+ * @access  Private (Admin only)
+ */
+export const createBatchCourseFees = async (req, res) => {
+    try {
+        const {
+            batchId,
+            courseId,
+            amount,
+            dueDate,
+            feeType,
+            month,
+            year,
+            description
+        } = req.body;
+
+        if (!batchId || !courseId) {
+            return res.status(400).json({
+                success: false,
+                message: "Batch ID and Course ID are required"
+            });
+        }
+
+        // Find all students in this batch & course
+        const students = await Student.find({ batch: batchId, course: courseId });
+        if (students.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "No students found for this batch & course"
+            });
+        }
+
+        // Create fee records for each student
+        const feePromises = students.map(student => {
+            return new Fee({
+                student: student._id,
+                course: courseId,
+                batch: batchId,
+                amount,
+                dueDate: new Date(dueDate),
+                feeType,
+                month,
+                year,
+                description,
+                status: "pending"
+            }).save();
+        });
+
+        const createdFees = await Promise.all(feePromises);
+
+        res.status(201).json({
+            success: true,
+            message: `Successfully created fees for ${createdFees.length} students`,
+            data: createdFees
+        });
+    } catch (error) {
+        console.error("Batch-course fee creation error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Error creating fees",
             error: error.message
         });
     }
