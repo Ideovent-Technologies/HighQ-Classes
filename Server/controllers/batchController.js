@@ -286,9 +286,11 @@ export const deleteBatch = async (req, res) => {
 };
 
 //  Admin: Assign student to batch
+
+
 export const assignStudentToBatch = async (req, res) => {
   const { studentId } = req.body;
-  const { batchId } = req.params;  //  Extract from URL path
+  const { batchId } = req.params;
 
   if (!batchId || !studentId) {
     return res.status(400).json({ message: "Batch ID and Student ID are required." });
@@ -296,9 +298,7 @@ export const assignStudentToBatch = async (req, res) => {
 
   try {
     const batch = await Batch.findById(batchId);
-    if (!batch) {
-      return res.status(404).json({ message: "Batch not found." });
-    }
+    if (!batch) return res.status(404).json({ message: "Batch not found." });
 
     if (batch.students.includes(studentId)) {
       return res.status(400).json({ message: "Student is already assigned to this batch." });
@@ -308,14 +308,22 @@ export const assignStudentToBatch = async (req, res) => {
     await batch.save();
 
     // Update student's batch reference
-    await Student.findByIdAndUpdate(studentId, { batch: batchId });
+    const student = await Student.findByIdAndUpdate(
+      studentId,
+      { 
+        batch: batchId,
+        $addToSet: { courses: batch.courseId } // add course if not already present
+      },
+      { new: true }
+    );
 
-    res.status(200).json({ message: "Student assigned to batch successfully.", batch });
+    res.status(200).json({ message: "Student assigned to batch successfully.", batch, student });
   } catch (error) {
     console.error("assignStudentToBatch error:", error);
     res.status(500).json({ message: "Error assigning student to batch", error: error.message });
   }
 };
+
 
 //  Admin: Get batches by course
 export const getBatchesByCourse = async (req, res) => {

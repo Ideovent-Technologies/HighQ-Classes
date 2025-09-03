@@ -186,7 +186,10 @@ const batchService = {
     getStudentBatch: async (): Promise<StudentBatchInfo | null> => {
         try {
             const response = await api.get('/student/batch');
-            return response.data.success ? response.data.batch : null;
+            return response.data.success && response.data.batches.length > 0
+    ? response.data.batches[0] // or handle multiple batches properly
+    : null;
+
         } catch (error: any) {
             if (error.response?.status === 404) {
                 return null; // Student not assigned to any batch

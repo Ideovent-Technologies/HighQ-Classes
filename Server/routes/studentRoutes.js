@@ -27,7 +27,7 @@ router.get("/student/:id/profile", authenticate, authorize(['student', 'teacher'
 router.patch("/student/:id/change-password", authenticate, authorizeStudent, changePassword);
 
 // This endpoint retrieves the student's own batch info and is fine with `authorizeStudent`
-router.get("/student/batch", authenticate, authorizeStudent, getStudentBatch);
+router.get("/batch", authenticate, authorizeStudent, getStudentBatch);
 
 // You may want to authorize teachers/admins for these as well, depending on your app's logic
 // For example:
