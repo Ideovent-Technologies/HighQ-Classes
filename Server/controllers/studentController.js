@@ -252,69 +252,79 @@ export const changePassword = async (req, res) => {
 };
 
 // GET /api/student/batch
+// GET /api/student/batch
 export const getStudentBatch = async (req, res) => {
-
-  try {
-    const studentId = mongoose.Types.ObjectId(req.user.id);
-
-    const batches = await Batch.find({ students: studentId })
-      .populate("courseId", "name description duration instructor topics")
-      .populate("teacherId", "name email employeeId qualification specialization profilePicture")
-      .populate("students", "name email grade profilePicture");
-
-    if (!batches || batches.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Student is not assigned to any batch"
-      });
+  try {
+    // This is the most critical check. Ensure req.user exists before accessing its properties.
+    if (!req.user || !req.user.id) {
+        console.error("Authentication/Authorization failed. req.user is missing or incomplete.");
+        return res.status(401).json({
+            success: false,
+            message: "Unauthorized. Authentication failed."
+        });
     }
 
+    // Now, with confidence, we can proceed.
+ const studentId = new mongoose.Types.ObjectId(req.user.id);
+ 
+    const batches = await Batch.find({ students: studentId })
+      .populate("courseId", "name description duration instructor topics")
+      .populate("teacherId", "name email employeeId qualification specialization profilePicture")
+      .populate("students", "name email grade profilePicture");
 
-    const formatted = batches.map(batch => ({
-      _id: batch._id,
-      name: batch.name,
-      course: {
-        _id: batch.courseId?._id,
-        name: batch.courseId?.name,
-        description: batch.courseId?.description,
-        duration: batch.courseId?.duration,
-        instructor: batch.courseId?.instructor,
-        topics: batch.courseId?.topics || []
-      },
-      teacher: batch.teacherId && {
-        _id: batch.teacherId._id,
-        name: batch.teacherId.name,
-        email: batch.teacherId.email,
-        employeeId: batch.teacherId.employeeId,
-        qualification: batch.teacherId.qualification,
-        specialization: batch.teacherId.specialization,
-        profilePicture: batch.teacherId.profilePicture
-      },
-      students: batch.students.map(s => ({
-        _id: s._id,
-        name: s.name,
-        email: s.email,
-        grade: s.grade,
-        profilePicture: s.profilePicture
-      })),
-      schedule: batch.schedule,
-      startDate: batch.startDate,
-      endDate: batch.endDate,
-      totalStudents: batch.students.length,
-      isActive: batch.status === "active"
-    }));
+    if (!batches || batches.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Student is not assigned to any batch"
+      });
+    }
 
-    res.status(200).json({
-      success: true,
-      batches: formatted
-    });
-  } catch (error) {
-    console.error("Get student batch error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error while fetching batch information"
-    });
-  }
+    const formatted = batches.map(batch => ({
+      _id: batch._id,
+      name: batch.name,
+      course: {
+        _id: batch.courseId?._id,
+        name: batch.courseId?.name,
+        description: batch.courseId?.description,
+        duration: batch.courseId?.duration,
+        instructor: batch.courseId?.instructor,
+        topics: batch.courseId?.topics || []
+      },
+      teacher: batch.teacherId && {
+        _id: batch.teacherId._id,
+        name: batch.teacherId.name,
+        email: batch.teacherId.email,
+        employeeId: batch.teacherId.employeeId,
+        qualification: batch.teacherId.qualification,
+        specialization: batch.teacherId.specialization,
+        profilePicture: batch.teacherId.profilePicture
+      },
+      students: batch.students.map(s => ({
+        _id: s._id,
+        name: s.name,
+        email: s.email,
+        grade: s.grade,
+        profilePicture: s.profilePicture
+      })),
+      schedule: batch.schedule,
+      startDate: batch.startDate,
+      endDate: batch.endDate,
+      totalStudents: batch.students.length,
+      isActive: batch.status === "active"
+    }));
+
+    res.status(200).json({
+      success: true,
+      batches: formatted
+    });
+  } catch (error) {
+    // THIS IS THE KEY: The detailed error log will show the stack trace.
+    console.error("Get student batch error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching batch information"
+    });
+  }
 };
 
 // controllers/studentController.js
