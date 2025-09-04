@@ -1,9 +1,8 @@
-// routes/noticeRoutes.js
 import express from "express";
 import {
   createNotice,
   getAllNotices,
-  getNoticeById,   //  FIXED NAME HERE
+  getNoticeById,
   updateNotice,
   deleteNotice,
 } from "../controllers/noticeController.js";
@@ -12,22 +11,22 @@ import { protect, authorize } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Middleware for teacher protection
-const protectTeacher = [protect, authorize("teacher")];
+// Middleware to allow teacher or admin
+const protectTeacherOrAdmin = [protect, authorize("teacher", "admin")];
 
-//  Create a new notice
-router.post("/", protectTeacher, createNotice);
+// Create a new notice
+router.post("/", protectTeacherOrAdmin, createNotice);
 
-//  Get all notices posted by the teacher (with filters + pagination)
-router.get("/", protectTeacher, getAllNotices);
+// Get all notices
+router.get("/", protectTeacherOrAdmin, getAllNotices);
 
-//  Get a single notice by ID (must be posted by this teacher)
-router.get("/:id", protectTeacher, getNoticeById); //  FIXED HERE TOO
+// Get a single notice by ID
+router.get("/:id", protectTeacherOrAdmin, getNoticeById);
 
-//  Update a notice by ID
-router.put("/:id", protectTeacher, updateNotice);
+// Update a notice by ID
+router.put("/:id", protectTeacherOrAdmin, updateNotice);
 
-//  Delete a notice by ID
-router.delete("/:id", protectTeacher, deleteNotice);
+// Delete a notice by ID
+router.delete("/:id", protectTeacherOrAdmin, deleteNotice);
 
 export default router;
