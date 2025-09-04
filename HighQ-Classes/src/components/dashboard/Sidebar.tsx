@@ -84,7 +84,7 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
 
     const commonItems = [
         createNavItem(
-            user?.role === "admin" ? "/admin/dashboard" : "/dashboard",
+            user?.role === "admin" ? "/dashboard" : "/dashboard",
             Home,
             "Dashboard"
         ),

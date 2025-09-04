@@ -78,11 +78,12 @@ const EditBatchPage = React.lazy(() => import("./pages/batch/EditBatchPage"));
 // Lazy load fee management pages
 const StudentFeeStatus = React.lazy(() => import("@/modules/fees/FeeStatus"));
 const AdminFeeDashboard = React.lazy(
-    () => import("@/components/admin/fees/AdminFeeDashboard")
+    () => import("@/components/admin/AdminFeeDashboard")
 );
 const BatchDetails = React.lazy(
     () => import("./components/dashboard/batch/BatchDetsils")
 );
+
 const StudentDashboardTest = React.lazy(
     () => import("@/components/debug/StudentDashboardTest")
 );
@@ -178,6 +179,8 @@ const CustomerSupport = React.lazy(
 const UserSupport = React.lazy(
     () => import("@/components/dashboard/admin/UserSupport")
 );
+import CreateFeeForm from "./components/dashboard/fee/FeeForm.tsx";
+import BulkFeeForm from "./components/dashboard/fee/bulkFee.tsx";
 
 const queryClient = new QueryClient();
 
@@ -486,14 +489,7 @@ const App: React.FC = () => {
                                         </ProtectedRoute>
                                     }
                                 />
-                                <Route
-                                    path="/dashboard/fee-management"
-                                    element={
-                                        <ProtectedRoute roles={["admin"]}>
-                                            <AdminFeeDashboard />
-                                        </ProtectedRoute>
-                                    }
-                                />
+                               
                                 <Route
                                     path="/dashboard/schedule-management"
                                     element={
@@ -518,6 +514,7 @@ const App: React.FC = () => {
                                         </ProtectedRoute>
                                     }
                                 />
+                              
                                 {/* <Route path="/admin/dashboard" element={<Dashboard />}/>
                                  */}
                                 <Route
@@ -763,6 +760,20 @@ const App: React.FC = () => {
                                         </ProtectedRoute>
                                     }
                                 />
+                                  <Route 
+                                    path="/dashboard/fees/new"
+                                    element={
+                                        <ProtectedRoute roles={["admin"]}>
+                                        <CreateFeeForm/>
+                                        </ProtectedRoute>
+                                    }/>
+                                <Route 
+                                    path="/dashboard/fees/bulk" 
+                                    element={
+                                        <ProtectedRoute roles={["admin"]}>
+                                            <BulkFeeForm />
+                                        </ProtectedRoute>
+                                    }/>
                                 <Route
                                     path="/student/recordings"
                                     element={

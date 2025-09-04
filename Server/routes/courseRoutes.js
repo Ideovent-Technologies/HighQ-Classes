@@ -7,7 +7,8 @@ import {
   addBatchToCourse,
   updateBatch,
   updateStudentsInBatch,
-  getCourseById
+  getCourseById,
+  deleteCourse
 
 } from '../controllers/courseController.js';
 
@@ -25,11 +26,14 @@ router.use(authorize('admin'));
 
 router.post('/', createCourse);
 router.patch('/:id', updateCourse);
+router.delete('/:id', deleteCourse); 
 
 // Batches inside courses
 router.post('/:courseId/batches', addBatchToCourse);
 router.patch('/:courseId/batches/:batchId', updateBatch);
 router.patch('/:courseId/batches/:batchId/students', updateStudentsInBatch);
 router.get('/:courseid', getCourseById);
+
+
 
 export default router;
