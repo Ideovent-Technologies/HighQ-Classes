@@ -35,4 +35,5 @@ router.patch('/:courseId/batches/:batchId/students', updateStudentsInBatch);
 router.get('/:courseid', getCourseById);
 
 
+
 export default router;
