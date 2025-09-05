@@ -1,5 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import Notice from '../models/Notice.js';
+import Student from '../models/Student.js';
 
 /**
  * @desc    Create a new notice
@@ -71,31 +72,38 @@ export const deleteNotice = asyncHandler(async (req, res) => {
   res.status(200).json({ message: 'Notice deleted successfully' });
 });
 
+
 /**
- * @desc    Get all notices by teacher (filtered and paginated)
- * @route   GET /api/teacher/notices
- * @access  Private (Teacher only)
+ * @desc    Get all notices (role-aware)
+ * @route   GET /api/notices
+ * @access  Private (Teacher, Admin)
  */
 export const getAllNotices = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, targetAudience, targetBatchId, keyword, date } = req.query;
   const skip = (page - 1) * limit;
 
   const filter = {
-    postedBy: req.user._id,
     $or: [
       { isScheduled: false },
       { isScheduled: true, scheduledAt: { $lte: new Date() } },
     ],
   };
 
+  // Teachers → only their notices
+  if (req.user.role === "teacher") {
+    filter.postedBy = req.user._id;
+  }
+
+  // Admins → see all notices (no postedBy filter)
+
   if (targetAudience) filter.targetAudience = targetAudience;
   if (targetBatchId) filter.targetBatchIds = { $in: [targetBatchId] };
+
   if (keyword) {
-    filter.$or.push({
-      title: { $regex: keyword, $options: 'i' },
-    }, {
-      description: { $regex: keyword, $options: 'i' },
-    });
+    filter.$or.push(
+      { title: { $regex: keyword, $options: "i" } },
+      { description: { $regex: keyword, $options: "i" } }
+    );
   }
 
   if (date) {
@@ -107,6 +115,7 @@ export const getAllNotices = asyncHandler(async (req, res) => {
 
   const total = await Notice.countDocuments(filter);
   const notices = await Notice.find(filter)
+    .populate("postedBy", "name role") // show who posted
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(Number(limit));
@@ -120,22 +129,27 @@ export const getAllNotices = asyncHandler(async (req, res) => {
 });
 
 /**
- * @desc    Get a single notice by ID
- * @route   GET /api/teacher/notices/:id
- * @access  Private (Teacher only)
+ * @desc    Get a single notice by ID (role-aware)
+ * @route   GET /api/notices/:id
+ * @access  Private (Teacher, Admin)
  */
 export const getNoticeById = asyncHandler(async (req, res) => {
-  const notice = await Notice.findById(req.params.id);
+  const notice = await Notice.findById(req.params.id).populate("postedBy", "name role");
+
   if (!notice) {
-    return res.status(404).json({ message: 'Notice not found' });
+    return res.status(404).json({ message: "Notice not found" });
   }
 
-  if (notice.postedBy.toString() !== req.user._id.toString()) {
-    return res.status(403).json({ message: 'Unauthorized' });
+  // Teachers → can only fetch their own notices
+  if (req.user.role === "teacher" && notice.postedBy._id.toString() !== req.user._id.toString()) {
+    return res.status(403).json({ message: "Unauthorized" });
   }
+
+  // Admins → can fetch any notice
 
   res.json(notice);
 });
+
 
 /**
  * @desc    Get all notices for a specific batch
@@ -158,4 +172,41 @@ export const getNoticesByBatch = asyncHandler(async (req, res) => {
     count: notices.length,
     data: notices,
   });
+});
+
+
+
+/**
+ * @desc    Get all notices for a student
+ * @route   GET /api/notices/student
+ * @access  Private (Student only)
+ */
+export const getNoticesForStudent = asyncHandler(async (req, res) => {
+  const studentId = req.user._id;
+
+  // Fetch student with batches
+  const student = await Student.findById(studentId).populate("batches");
+
+  if (!student) {
+    return res.status(404).json({ message: "Student not found" });
+  }
+
+  const batchIds = student.batches.map((b) => b._id);
+
+  const notices = await Notice.find({
+    isActive: true,
+    $or: [
+      { targetAudience: "all" },
+      { targetAudience: "students" },
+      { targetAudience: "batch", targetBatchIds: { $in: batchIds } },
+    ],
+    $or: [
+      { isScheduled: false },
+      { isScheduled: true, scheduledAt: { $lte: new Date() } },
+    ],
+  })
+    .populate("postedBy", "name role")
+    .sort({ createdAt: -1 });
+
+  res.json({ count: notices.length, notices });
 });

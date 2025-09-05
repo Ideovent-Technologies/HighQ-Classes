@@ -13,7 +13,7 @@ import {
   Loader2,
   CheckCircle,
 } from "lucide-react";
-import noticeService from "@/API/services/noticeService" // ✅ use our noticeService
+import noticeService from "@/API/services/noticeService"; // ✅ use our noticeService
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -64,18 +64,29 @@ const ManageNotices: React.FC = () => {
 
   const fetchNotices = async () => {
     setLoading(true);
-    const response = await noticeService.getAllNotices();
-    if (response.success && response.notices) {
-      setNotices(response.notices);
-    } else {
-      setNotices([]);
+
+    try {
+      const response = await noticeService.getAllNotices();
+
+      // Normalize the response to ensure it's always an array
+      // This is the most crucial part to prevent the error.
+      const noticeArray = Array.isArray(response)
+        ? response
+        : response?.notices && Array.isArray(response.notices)
+        ? response.notices
+        : [];
+
+      setNotices(noticeArray);
+    } catch (err) {
       toast({
         title: "Error",
-        description: response.message,
+        description: "Failed to fetch notices",
         variant: "destructive",
       });
+      setNotices([]); // Ensure state is an array even on error
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -120,7 +131,9 @@ const ManageNotices: React.FC = () => {
     }
   };
 
-  const filteredNotices = notices.filter((notice) => {
+  // FIX: Added a defensive check here to ensure 'notices' is an array.
+  // This is the most direct fix for the original 'TypeError'.
+  const filteredNotices = (Array.isArray(notices) ? notices : []).filter((notice) => {
     const matchesSearch =
       notice.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       notice.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -330,9 +343,9 @@ const ManageNotices: React.FC = () => {
                 Notice Management
               </h3>
               <p className="text-gray-600 mb-4">
-                {searchTerm || filterType !== "all"
-                  ? "Try adjusting your filters"
-                  : "No notices found"}
+                  {searchTerm || filterType !== "all"
+                    ? "Try adjusting your filters"
+                    : "No notices found"}
               </p>
             </div>
           ) : (

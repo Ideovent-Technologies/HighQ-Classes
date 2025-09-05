@@ -1,14 +1,22 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const noticeSchema = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
     description: { type: String, required: true },
+
+    // Dynamic reference (can point to Admin, Teacher, or Student)
     postedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
       required: true,
+      refPath: "postedByModel",
     },
+    postedByModel: {
+      type: String,
+      required: true,
+      enum: ["Admin", "Teacher", "Student"], // 👈 allowed models
+    },
+
     targetAudience: {
       type: String,
       enum: ["all", "teachers", "students", "batch"],
