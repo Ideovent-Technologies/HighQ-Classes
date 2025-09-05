@@ -9,6 +9,7 @@ export interface Notice {
   isActive: boolean;
   scheduledAt?: string | null;
   isScheduled: boolean;
+  isImportant: boolean; // FIX: Added the missing property
   createdAt: string;
   updatedAt: string;
 }
@@ -21,6 +22,7 @@ export interface CreateNoticeDto {
   isActive?: boolean;
   scheduledAt?: string | null;
   isScheduled?: boolean;
+  isImportant?: boolean; // You may also need this for creating notices
 }
 
 export interface UpdateNoticeDto extends Partial<CreateNoticeDto> {}

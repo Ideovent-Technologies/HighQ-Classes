@@ -1,3 +1,5 @@
+// File: src/pages/dashboard/ManageNotices.tsx
+
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
@@ -13,7 +15,7 @@ import {
   Loader2,
   CheckCircle,
 } from "lucide-react";
-import noticeService from "@/API/services/noticeService"; // ✅ use our noticeService
+import noticeService from "@/API/services/noticeService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,12 +37,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Notice } from "../../types/notice.types"; // ✅ use shared type
+import { Notice } from "../../types/notice.types";
 
+// FIX: Updated the type for 'targetAudience' to a union type to match the DTO.
 interface NoticeFormData {
   title: string;
-  description: string; // changed from "content" → matches backend schema
+  description: string;
   isImportant: boolean;
+  targetAudience: "all" | "teachers" | "students" | "batch";
 }
 
 const ManageNotices: React.FC = () => {
@@ -56,6 +60,8 @@ const ManageNotices: React.FC = () => {
     title: "",
     description: "",
     isImportant: false,
+    // FIX: Initializing 'targetAudience' with a valid value from the union type.
+    targetAudience: "all",
   });
 
   useEffect(() => {
@@ -64,18 +70,13 @@ const ManageNotices: React.FC = () => {
 
   const fetchNotices = async () => {
     setLoading(true);
-
     try {
       const response = await noticeService.getAllNotices();
-
-      // Normalize the response to ensure it's always an array
-      // This is the most crucial part to prevent the error.
       const noticeArray = Array.isArray(response)
         ? response
         : response?.notices && Array.isArray(response.notices)
         ? response.notices
         : [];
-
       setNotices(noticeArray);
     } catch (err) {
       toast({
@@ -83,7 +84,7 @@ const ManageNotices: React.FC = () => {
         description: "Failed to fetch notices",
         variant: "destructive",
       });
-      setNotices([]); // Ensure state is an array even on error
+      setNotices([]);
     } finally {
       setLoading(false);
     }
@@ -94,6 +95,7 @@ const ManageNotices: React.FC = () => {
     setIsSubmitting(true);
 
     const response = await noticeService.createNotice(formData);
+
     if (response.success && response.notice) {
       toast({
         title: "Success",
@@ -102,7 +104,12 @@ const ManageNotices: React.FC = () => {
       });
       setNotices((prev) => [response.notice!, ...prev]);
       setIsDialogOpen(false);
-      setFormData({ title: "", description: "", isImportant: false });
+      setFormData({
+        title: "",
+        description: "",
+        isImportant: false,
+        targetAudience: "all",
+      });
     } else {
       toast({
         title: "Error",
@@ -131,8 +138,6 @@ const ManageNotices: React.FC = () => {
     }
   };
 
-  // FIX: Added a defensive check here to ensure 'notices' is an array.
-  // This is the most direct fix for the original 'TypeError'.
   const filteredNotices = (Array.isArray(notices) ? notices : []).filter((notice) => {
     const matchesSearch =
       notice.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -205,6 +210,26 @@ const ManageNotices: React.FC = () => {
                   rows={6}
                   required
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="targetAudience">Target Audience</Label>
+                <Select
+                  value={formData.targetAudience}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, targetAudience: value as "all" | "teachers" | "students" | "batch" })
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select target audience" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Users</SelectItem>
+                    <SelectItem value="teachers">Teachers</SelectItem>
+                    <SelectItem value="students">Students</SelectItem>
+                    <SelectItem value="batch">Specific Batch</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="flex items-center space-x-2">
