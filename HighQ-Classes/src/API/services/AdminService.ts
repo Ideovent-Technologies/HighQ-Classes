@@ -1,9 +1,50 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import api from "../Axios";
 import { DashboardData } from "../../types/admin.types";
-import { StudentUser, CreateStudentData  } from "../../types/student.types";
+import { StudentUser, CreateStudentData } from "../../types/student.types";
 import { TeacherUser } from "../../types/teacher.types";
 import { AdminUser } from "../../types/admin.types";
+
+// Define a consistent ApiResponse interface for all data-fetching methods
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  message?: string;
+}
+
+interface Batch {
+  _id: string;
+  name: string;
+  // Add other properties as needed
+}
+
+interface Course {
+  _id: string;
+  name: string;
+  // Add other properties as needed
+}
+
+interface Schedule {
+  _id: string;
+  batchId: { _id: string; name: string };
+  teacherId: { _id: string; name: string };
+  courseId: { _id: string; name: string };
+  day: string;
+  startTime: string;
+  endTime: string;
+  room: string;
+}
+
+// Data transfer objects for creating and updating schedules
+interface ScheduleFormData {
+  teacherId: string;
+  batchId: string;
+  courseId: string;
+  day: string;
+  startTime: string;
+  endTime: string;
+  room: string;
+}
 
 interface AnnouncementData {
   title: string;
@@ -25,11 +66,7 @@ interface CreateUserData {
 
 class AdminService {
   // GET /api/admin/dashboard - Get dashboard data
-  async getAdminData(): Promise<{
-    success: boolean;
-    data?: DashboardData;
-    message?: string;
-  }> {
+  async getAdminData(): Promise<ApiResponse<DashboardData>> {
     try {
       const response = await api.get('/admin/dashboard');
       return { success: true, data: response.data };
@@ -43,14 +80,10 @@ class AdminService {
   }
 
   // GET /api/admin/profile - Get admin profile
-  async getAdminProfile(): Promise<{
-    success: boolean;
-    admin?: AdminUser;
-    message?: string;
-  }> {
+  async getAdminProfile(): Promise<ApiResponse<AdminUser>> {
     try {
       const response = await api.get('/admin/profile');
-      return { success: true, admin: response.data };
+      return { success: true, data: response.data };
     } catch (error: any) {
       console.error('Get admin profile error:', error);
       return {
@@ -61,14 +94,10 @@ class AdminService {
   }
 
   // GET /api/admin/students - Get all students
-  async getAllStudents(): Promise<{
-    success: boolean;
-    students?: StudentUser[];
-    message?: string;
-  }> {
+  async getAllStudents(): Promise<ApiResponse<StudentUser[]>> {
     try {
       const response = await api.get('/admin/students');
-      return { success: true, students: response.data.students };
+      return { success: true, data: response.data.students };
     } catch (error: any) {
       console.error('Get all students error:', error);
       return {
@@ -79,14 +108,10 @@ class AdminService {
   }
 
   // GET /api/admin/teachers - Get all teachers
-  async getAllTeachers(): Promise<{
-    success: boolean;
-    teachers?: TeacherUser[];
-    message?: string;
-  }> {
+  async getAllTeachers(): Promise<ApiResponse<TeacherUser[]>> {
     try {
       const response = await api.get('/admin/teachers');
-      return { success: true, teachers: response.data.teachers };
+      return { success: true, data: response.data.teachers };
     } catch (error: any) {
       console.error('Get all teachers error:', error);
       return {
@@ -97,14 +122,10 @@ class AdminService {
   }
 
   // POST /api/admin/user - Create new user
-  async createUser(userData: CreateUserData): Promise<{
-    success: boolean;
-    user?: any;
-    message?: string;
-  }> {
+  async createUser(userData: CreateUserData): Promise<ApiResponse<any>> {
     try {
       const response = await api.post('/admin/user', userData);
-      return { success: true, user: response.data.user, message: response.data.message };
+      return { success: true, data: response.data.user, message: response.data.message };
     } catch (error: any) {
       console.error('Create user error:', error);
       return {
@@ -115,14 +136,10 @@ class AdminService {
   }
 
   // PUT /api/admin/user/:id - Update user
-  async updateUser(userId: string, userData: Partial<CreateUserData>): Promise<{
-    success: boolean;
-    user?: any;
-    message?: string;
-  }> {
+  async updateUser(userId: string, userData: Partial<CreateUserData>): Promise<ApiResponse<any>> {
     try {
       const response = await api.put(`/admin/user/${userId}`, userData);
-      return { success: true, user: response.data.user, message: response.data.message };
+      return { success: true, data: response.data.user, message: response.data.message };
     } catch (error: any) {
       console.error('Update user error:', error);
       return {
@@ -133,10 +150,7 @@ class AdminService {
   }
 
   // DELETE /api/admin/user/:id - Delete user
-  async deleteUser(userId: string): Promise<{
-    success: boolean;
-    message?: string;
-  }> {
+  async deleteUser(userId: string): Promise<ApiResponse<null>> {
     try {
       const response = await api.delete(`/admin/user/${userId}`);
       return { success: true, message: response.data.message };
@@ -150,17 +164,13 @@ class AdminService {
   }
 
   // POST /api/admin/announcement - Create announcement
-  async createAnnouncement(announcementData: AnnouncementData): Promise<{
-    success: boolean;
-    announcement?: any;
-    message?: string;
-  }> {
+  async createAnnouncement(announcementData: AnnouncementData): Promise<ApiResponse<any>> {
     try {
       const response = await api.post('/admin/announcement', announcementData);
-      return { 
-        success: true, 
-        announcement: response.data.notice, 
-        message: response.data.message 
+      return {
+        success: true,
+        data: response.data.notice,
+        message: response.data.message
       };
     } catch (error: any) {
       console.error('Create announcement error:', error);
@@ -172,14 +182,10 @@ class AdminService {
   }
 
   // POST /api/admin/students - Add student
-  async addStudent(studentData: any): Promise<{
-    success: boolean;
-    student?: CreateStudentData ;
-    message?: string;
-  }> {
+  async addStudent(studentData: any): Promise<ApiResponse<CreateStudentData>> {
     try {
       const response = await api.post('/admin/students', studentData);
-      return { success: true, student: response.data.student, message: response.data.message };
+      return { success: true, data: response.data.student, message: response.data.message };
     } catch (error: any) {
       console.error('Add student error:', error);
       return {
@@ -190,14 +196,10 @@ class AdminService {
   }
 
   // PUT /api/admin/students/:id - Update student
-  async updateStudent(studentId: string, studentData: Partial<StudentUser>): Promise<{
-    success: boolean;
-    student?: StudentUser;
-    message?: string;
-  }> {
+  async updateStudent(studentId: string, studentData: Partial<StudentUser>): Promise<ApiResponse<StudentUser>> {
     try {
       const response = await api.put(`/admin/students/${studentId}`, studentData);
-      return { success: true, student: response.data.student, message: response.data.message };
+      return { success: true, data: response.data.student, message: response.data.message };
     } catch (error: any) {
       console.error('Update student error:', error);
       return {
@@ -208,10 +210,7 @@ class AdminService {
   }
 
   // DELETE /api/admin/students/:id - Delete student
-  async deleteStudent(studentId: string): Promise<{
-    success: boolean;
-    message?: string;
-  }> {
+  async deleteStudent(studentId: string): Promise<ApiResponse<null>> {
     try {
       const response = await api.delete(`/admin/students/${studentId}`);
       return { success: true, message: response.data.message };
@@ -225,14 +224,10 @@ class AdminService {
   }
 
   // POST /api/admin/teachers - Add teacher
-  async addTeacher(teacherData: any): Promise<{
-    success: boolean;
-    teacher?: TeacherUser;
-    message?: string;
-  }> {
+  async addTeacher(teacherData: any): Promise<ApiResponse<TeacherUser>> {
     try {
       const response = await api.post('/admin/teachers', teacherData);
-      return { success: true, teacher: response.data.teacher, message: response.data.message };
+      return { success: true, data: response.data.teacher, message: response.data.message };
     } catch (error: any) {
       console.error('Add teacher error:', error);
       return {
@@ -243,14 +238,10 @@ class AdminService {
   }
 
   // PUT /api/admin/teachers/:id - Update teacher
-  async updateTeacher(teacherId: string, teacherData: Partial<TeacherUser>): Promise<{
-    success: boolean;
-    teacher?: TeacherUser;
-    message?: string;
-  }> {
+  async updateTeacher(teacherId: string, teacherData: Partial<TeacherUser>): Promise<ApiResponse<TeacherUser>> {
     try {
       const response = await api.put(`/admin/teachers/${teacherId}`, teacherData);
-      return { success: true, teacher: response.data.teacher, message: response.data.message };
+      return { success: true, data: response.data.teacher, message: response.data.message };
     } catch (error: any) {
       console.error('Update teacher error:', error);
       return {
@@ -261,10 +252,7 @@ class AdminService {
   }
 
   // DELETE /api/admin/teachers/:id - Delete teacher
-  async deleteTeacher(teacherId: string): Promise<{
-    success: boolean;
-    message?: string;
-  }> {
+  async deleteTeacher(teacherId: string): Promise<ApiResponse<null>> {
     try {
       const response = await api.delete(`/admin/teachers/${teacherId}`);
       return { success: true, message: response.data.message };
@@ -278,14 +266,10 @@ class AdminService {
   }
 
   // GET /api/teacher/notices - Get all notices (admin can access all)
-  async getAllNotices(): Promise<{
-    success: boolean;
-    notices?: any[];
-    message?: string;
-  }> {
+  async getAllNotices(): Promise<ApiResponse<any[]>> {
     try {
       const response = await api.get('/teacher/notices');
-      return { success: true, notices: response.data.notices || response.data };
+      return { success: true, data: response.data.notices || response.data };
     } catch (error: any) {
       console.error('Get all notices error:', error);
       return {
@@ -300,16 +284,12 @@ class AdminService {
     title: string;
     content: string;
     isImportant?: boolean;
-  }): Promise<{
-    success: boolean;
-    notice?: any;
-    message?: string;
-  }> {
+  }): Promise<ApiResponse<any>> {
     try {
       const response = await api.post('/teacher/notices', noticeData);
-      return { 
-        success: true, 
-        notice: response.data.notice || response.data,
+      return {
+        success: true,
+        data: response.data.notice || response.data,
         message: response.data.message || 'Notice created successfully'
       };
     } catch (error: any) {
@@ -322,14 +302,10 @@ class AdminService {
   }
 
   // GET /api/admin/reports - Get admin reports data
-  async getReportsData(): Promise<{
-    success: boolean;
-    reports?: any;
-    message?: string;
-  }> {
+  async getReportsData(): Promise<ApiResponse<any>> {
     try {
       const response = await api.get('/admin/reports');
-      return { success: true, reports: response.data };
+      return { success: true, data: response.data };
     } catch (error: any) {
       console.error('Get reports data error:', error);
       return {
@@ -340,14 +316,10 @@ class AdminService {
   }
 
   // GET /api/batches - Get all batches
-  async getAllBatches(): Promise<{
-    success: boolean;
-    batches?: any[];
-    message?: string;
-  }> {
+  async getAllBatches(): Promise<ApiResponse<any[]>> {
     try {
       const response = await api.get('/batches');
-      return { success: true, batches: response.data.batches || response.data };
+      return { success: true, data: response.data.batches || response.data };
     } catch (error: any) {
       console.error('Get all batches error:', error);
       return {
@@ -358,14 +330,10 @@ class AdminService {
   }
 
   // POST /api/batches - Create batch
-  async createBatch(batchData: any): Promise<{
-    success: boolean;
-    batch?: any;
-    message?: string;
-  }> {
+  async createBatch(batchData: any): Promise<ApiResponse<any>> {
     try {
       const response = await api.post('/batches', batchData);
-      return { success: true, batch: response.data.batch, message: response.data.message };
+      return { success: true, data: response.data.batch, message: response.data.message };
     } catch (error: any) {
       console.error('Create batch error:', error);
       return {
@@ -376,20 +344,12 @@ class AdminService {
   }
 
   // GET /api/admin/pending-approvals - Get all pending students and teachers with details
-  async getPendingApprovals(): Promise<{
-    success: boolean;
-    students?: StudentUser[];
-    teachers?: TeacherUser[];
-    total?: number;
-    message?: string;
-  }> {
+  async getPendingApprovals(): Promise<ApiResponse<any>> {
     try {
       const response = await api.get('/admin/pending-approvals');
       return {
         success: true,
-        students: response.data.students,
-        teachers: response.data.teachers,
-        total: response.data.total,
+        data: response.data,
       };
     } catch (error: any) {
       console.error('Get pending approvals error:', error);
@@ -405,16 +365,12 @@ class AdminService {
     id: string,
     role: "student" | "teacher",
     status: string
-  ): Promise<{
-    success: boolean;
-    user?: StudentUser | TeacherUser;
-    message?: string;
-  }> {
+  ): Promise<ApiResponse<any>> {
     try {
       const response = await api.patch(`/admin/user/${id}/status`, { role, status });
       return {
         success: true,
-        user: response.data.user,
+        data: response.data.user,
         message: response.data.message,
       };
     } catch (error: any) {
@@ -427,20 +383,12 @@ class AdminService {
   }
 
   // GET /api/admin/active-users - Get all students and teachers active in the last 24 hours
-  async getActiveUsers(): Promise<{
-    success: boolean;
-    students?: StudentUser[];
-    teachers?: TeacherUser[];
-    total?: number;
-    message?: string;
-  }> {
+  async getActiveUsers(): Promise<ApiResponse<any>> {
     try {
       const response = await api.get('/admin/active-users');
       return {
         success: true,
-        students: response.data.students,
-        teachers: response.data.teachers,
-        total: response.data.total,
+        data: response.data,
       };
     } catch (error: any) {
       console.error('Get active users error:', error);
@@ -450,9 +398,67 @@ class AdminService {
       };
     }
   }
+  
+  // GET /api/schedule/all - Fetches all schedules with optional filters
+  async getAllSchedules(filters: { teacherId?: string; batchId?: string; day?: string }): Promise<ApiResponse<Schedule[]>> {
+    try {
+      // The API endpoint is '/schedule/all', not '/api/schedule/all'
+      const res = await api.get<ApiResponse<Schedule[]>>("/schedule/all", { params: filters });
+      return res.data;
+    } catch (error) {
+      console.error("Error fetching schedules:", error);
+      return { success: false, message: "Failed to fetch schedules" };
+    }
+  }
+
+  // POST /api/schedule - Creates a new schedule
+  async createSchedule(scheduleData: ScheduleFormData): Promise<ApiResponse<null>> {
+    try {
+      // The API endpoint is '/schedule', not '/api/schedule'
+      const res = await api.post<ApiResponse<null>>("/schedule", scheduleData);
+      return res.data;
+    } catch (error) {
+      console.error("Error creating schedule:", error);
+      return { success: false, message: "Failed to create schedule" };
+    }
+  }
+
+  // PUT /api/schedule/:id - Updates an existing schedule
+  async updateSchedule(scheduleId: string, scheduleData: ScheduleFormData): Promise<ApiResponse<null>> {
+    try {
+      // The API endpoint is '/schedule/:id', not '/api/schedule/:id'
+      const res = await api.put<ApiResponse<null>>(`/schedule/${scheduleId}`, scheduleData);
+      return res.data;
+    } catch (error) {
+      console.error("Error updating schedule:", error);
+      return { success: false, message: "Failed to update schedule" };
+    }
+  }
+
+  // DELETE /api/schedule/:id - Deletes a schedule
+  async deleteSchedule(scheduleId: string): Promise<ApiResponse<null>> {
+    try {
+      // The API endpoint is '/schedule/:id', not '/api/schedule/:id'
+      const res = await api.delete<ApiResponse<null>>(`/schedule/${scheduleId}`);
+      return res.data;
+    } catch (error) {
+      console.error("Error deleting schedule:", error);
+      return { success: false, message: "Failed to delete schedule" };
+    }
+  }
+  // GET /api/courses - Fetches all courses
+  async getAllCourses(): Promise<ApiResponse<Course[]>> {
+    try {
+      const response = await api.get('/courses');
+      return { success: true, data: response.data.courses || response.data };
+    } catch (error: any) {
+      console.error('Get all courses error:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || 'Failed to fetch courses',
+      };
+    }
+  }
 }
 
-
-
-//  Correct export after closing the class
 export default new AdminService();

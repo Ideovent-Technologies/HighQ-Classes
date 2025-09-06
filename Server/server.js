@@ -71,18 +71,18 @@ app.use(express.static("public")); // Serve static files from the "public" direc
 app.use(cookieParser()); // Parse cookies
 
 // Mount routes
-app.use("/api/auth", authRoutes);                     // /login, /register, /refresh-token
-app.use("/api/teacher", teacherRoutes);               // /profile, /profile PUT
-app.use("/api/teacher/notices", noticeRoutes);        // notices CRUD
-app.use("/api/teacher/schedule", scheduleRoutes);     // schedule
+app.use("/api/auth", authRoutes);                  // /login, /register, /refresh-token
+app.use("/api/teacher", teacherRoutes);            // /profile, /profile PUT
+app.use("/api/teacher/notices", noticeRoutes);     // notices CRUD
+app.use("/api/schedule", scheduleRoutes);          // schedule (Updated to match client-side calls)
 app.use("/api/attendance", attendanceRoutes);
-app.use("/api/student", studentRoutes);         // /:id/profile, pic, change-password
-app.use("/api/student", studentDashboardRoutes);        // /dashboard
-app.use("/api/courses", courseRoutes);                  // / | GET course list + topics      // attendance
+app.use("/api/student", studentRoutes);          // /:id/profile, pic, change-password
+app.use("/api/student", studentDashboardRoutes);       // /dashboard
+app.use("/api/courses", courseRoutes);                   // / | GET course list + topics       // attendance
 
 app.use("/api/recordings", recordingRoutes);
-app.use("/api/materials", materialRoutes);            // Study materials routes
-app.use("/api/assignments", assignmentRoutes);        // Assignment routes
+app.use("/api/materials", materialRoutes);         // Study materials routes
+app.use("/api/assignments", assignmentRoutes);       // Assignment routes
 
 app.use("/api/admin", adminRoutes);
 app.use("/api/batches", batchRouter);
