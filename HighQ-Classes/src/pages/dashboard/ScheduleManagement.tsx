@@ -7,6 +7,7 @@ import AdminService from "@/API/services/AdminService";
 
 interface Schedule {
   _id: string;
+  // The API may not always return the full object, so we adjust the interface to reflect this
   batchId: { _id: string; name: string } | null;
   teacherId: { _id: string; name: string } | null;
   courseId: { _id: string; name: string } | null;
@@ -14,6 +15,16 @@ interface Schedule {
   startTime: string;
   endTime: string;
   room: string;
+}
+
+interface Teacher {
+  _id: string;
+  name: string;
+}
+
+interface Batch {
+  _id: string;
+  name: string;
 }
 
 interface Course {
@@ -25,8 +36,8 @@ const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
 
 export default function ScheduleManagement() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
-  const [teachers, setTeachers] = useState<any[]>([]);
-  const [batches, setBatches] = useState<any[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [batches, setBatches] = useState<Batch[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [filters, setFilters] = useState({ teacherId: "", batchId: "", day: "" });
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -51,61 +62,63 @@ export default function ScheduleManagement() {
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
-      await Promise.all([
-        fetchSchedules(),
-        fetchTeachers(),
-        fetchBatches(),
-        fetchCourses(),
-      ]);
-      setIsLoading(false);
+      try {
+        // Fetch all required data in parallel
+        const [teachersRes, batchesRes, coursesRes, schedulesRes] = await Promise.all([
+          AdminService.getAllTeachers(),
+          AdminService.getAllBatches(),
+          AdminService.getAllCourses(),
+          AdminService.getAllSchedules(filters),
+        ]);
+
+        // Safely extract data, defaulting to an empty array.
+        const fetchedTeachers: Teacher[] = (teachersRes.success && teachersRes.data) ? teachersRes.data : [];
+        const fetchedBatches: Batch[] = (batchesRes.success && batchesRes.data) ? batchesRes.data : [];
+        const fetchedCourses: Course[] = (coursesRes.success && coursesRes.data) ? coursesRes.data : [];
+
+        setTeachers(fetchedTeachers);
+        setBatches(fetchedBatches);
+        setCourses(fetchedCourses);
+
+        // Populate schedules with fetched data
+        if (schedulesRes.success && Array.isArray(schedulesRes.data)) {
+          const schedulesData = schedulesRes.data as Schedule[];
+          const populatedSchedules = schedulesData.map(schedule => {
+            // Find the full objects using the IDs. The API might return an ID string or a partial object, so we handle both.
+            const teacherIdStr = typeof schedule.teacherId === "string" ? schedule.teacherId : schedule.teacherId?._id;
+            const batchIdStr = typeof schedule.batchId === "string" ? schedule.batchId : schedule.batchId?._id;
+            const courseIdStr = typeof schedule.courseId === "string" ? schedule.courseId : schedule.courseId?._id;
+
+            const foundTeacher = fetchedTeachers.find(t => t._id === teacherIdStr);
+            const foundBatch = fetchedBatches.find(b => b._id === batchIdStr);
+            const foundCourse = fetchedCourses.find(c => c._id === courseIdStr);
+
+            return {
+              ...schedule,
+              teacherId: foundTeacher ? { _id: foundTeacher._id, name: foundTeacher.name } : null,
+              batchId: foundBatch ? { _id: foundBatch._id, name: foundBatch.name } : null,
+              courseId: foundCourse ? { _id: foundCourse._id, name: foundCourse.name } : null,
+            };
+          });
+
+          setSchedules(populatedSchedules);
+        } else {
+          setSchedules([]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch and populate data:", err);
+        setSchedules([]);
+        setTeachers([]);
+        setBatches([]);
+        setCourses([]);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchData();
   }, [filters, refreshTrigger]);
 
-  const fetchSchedules = async () => {
-    try {
-      const res = await AdminService.getAllSchedules(filters);
-      if (res.success && res.data) {
-        setSchedules(res.data as Schedule[]);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const fetchTeachers = async () => {
-    try {
-      const res = await AdminService.getAllTeachers();
-      if (res.success && res.data) {
-        setTeachers(res.data);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const fetchBatches = async () => {
-    try {
-      const res = await AdminService.getAllBatches();
-      if (res.success && res.data) {
-        setBatches(res.data);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const fetchCourses = async () => {
-    try {
-      const res = await AdminService.getAllCourses();
-      if (res.success && res.data) {
-        setCourses(res.data);
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
 
   const openModal = (schedule?: Schedule) => {
     if (schedule) {
