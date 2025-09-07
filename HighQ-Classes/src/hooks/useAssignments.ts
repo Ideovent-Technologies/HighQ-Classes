@@ -79,20 +79,28 @@ export const useAssignments = () => {
 
   // Fetches the teacher's profile, including assigned courses and batches.
   const fetchTeacherProfile = useCallback(async () => {
-    try {
-      const { data } = await axios.get("/api/teacher/profile", {
-        withCredentials: true,
-      });
-      setAssignedCourses(data?.teacher?.courses || []);
-      setAssignedBatches(data?.teacher?.batches || []);
-    } catch (err: any) {
-      console.error("❌ Error fetching teacher profile:", err);
-      setError(
-        err.response?.data?.message ||
-          "Failed to load assigned courses and batches."
-      );
-    }
-  }, []);
+  try {
+    const { data } = await axios.get("/api/teacher/profile", {
+      withCredentials: true,
+    });
+    setAssignedCourses(data?.teacher?.courses || []);
+    setAssignedBatches(data?.teacher?.batches || []);
+  } catch (err: any) {
+    // FIX: Only skip teacher data if forbidden, do not set error for admin/student
+    if (err.response?.status === 403) {
+      setAssignedCourses([]);
+      setAssignedBatches([]);
+      // Do not set error, allow dashboard to load for admin/student
+      return;
+    }
+    // For other errors, set error
+    console.error("❌ Error fetching teacher profile:", err);
+    setError(
+      err.response?.data?.message ||
+        "Failed to load assigned courses and batches."
+    );
+  }
+}, []);
 
   // Fetches all assignments.
   const fetchAssignments = useCallback(async () => {
@@ -229,19 +237,25 @@ export const useAssignments = () => {
 
   // Initial data load when the component mounts.
   useEffect(() => {
-    const initialLoad = async () => {
-      setLoading(true);
-      setError(null);
+    setLoading(true);
+    setError(null);
+    const load = async () => {
       try {
-        await Promise.all([fetchTeacherProfile(), fetchAssignments()]);
+        await fetchTeacherProfile();
+      } catch {
+        // Ignore error, already handled in fetchTeacherProfile
+      }
+      try {
+        await fetchAssignments();
       } catch {
         setError("An unexpected error occurred during initial load.");
       } finally {
         setLoading(false);
       }
     };
-    initialLoad();
-  }, [fetchTeacherProfile, fetchAssignments]);
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // The returned object provides all the state and functions for the component to use.
   return {
@@ -255,8 +269,6 @@ export const useAssignments = () => {
     deleteAssignment,
     submissionsByAssignment,
     fetchSubmissionsForAssignment,
-
-    // New exports for teacher submissions
     teacherSubmissions,
     teacherSubmissionsLoading,
     teacherSubmissionsError,
