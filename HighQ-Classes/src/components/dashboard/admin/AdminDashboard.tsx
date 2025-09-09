@@ -147,7 +147,7 @@ const AdminDashboard: React.FC = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await AdminService.getAdminData();
+                const response = await AdminService.getReportsData();
                 if (response.success) {
                     setData(response.data);
                     console.log("Dashboard data fetched successfully:", response.data);

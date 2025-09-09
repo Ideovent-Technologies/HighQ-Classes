@@ -13,7 +13,6 @@ const noticeSchema = new mongoose.Schema(
     },
     postedByModel: {
       type: String,
-      required: true,
       enum: ["Admin", "Teacher", "Student"], // 👈 allowed models
     },
 
@@ -44,5 +43,16 @@ const noticeSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+/**
+ * 🔧 Auto-fix: ensure postedByModel is always set
+ * Based on the User model name (Admin, Teacher, Student)
+ */
+noticeSchema.pre("save", function (next) {
+  if (this.postedBy && !this.postedByModel && this.$__?.ownerDocument?.constructor?.modelName) {
+    this.postedByModel = this.$__?.ownerDocument?.constructor?.modelName;
+  }
+  next();
+});
 
 export default mongoose.model("Notice", noticeSchema);
