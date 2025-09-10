@@ -112,7 +112,7 @@ const adminItems = [
     createNavItem("/dashboard/batches/manage", Building, "Manage Batches"),
     createNavItem("/dashboard/batches/add", Building, "Create Batch"),
     // Removed "Manage Notices" because already handled above
-    createNavItem("/admin/announcements", Megaphone, "Announcements"),
+  
     createNavItem("/dashboard/fee-management", IndianRupeeIcon, "Fee Management"),
     createNavItem("/dashboard/schedule-management", BookOpen, "Schedule Management"),
     createNavItem("/admin/materials", FileText, "Materials Management"),

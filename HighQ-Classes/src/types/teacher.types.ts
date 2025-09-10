@@ -116,7 +116,7 @@ export interface TeacherDashboardData {
     title: string;
     description: string;
     date: string;
-    type: 'assignment' | 'material' | 'announcement';
+    type: 'assignment' | 'material' | 'notice' ;
   }>;
   performanceOverview: {
     totalCourses: number;

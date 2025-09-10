@@ -1,3 +1,4 @@
+// src/pages/dashboard/ManageNotices.tsx
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
@@ -7,7 +8,6 @@ import {
   Trash2,
   Eye,
   Calendar,
-  Users,
   Search,
   Filter,
   Loader2,
@@ -131,6 +131,7 @@ const ManageNotices: React.FC = () => {
           });
         }
       }
+
       setIsDialogOpen(false);
       setFormData({
         title: "",
@@ -173,8 +174,8 @@ const ManageNotices: React.FC = () => {
     setFormData({
       title: notice.title,
       description: notice.description,
-      isImportant: notice.isImportant || false,
-      targetAudience: notice.targetAudience as NoticeFormData["targetAudience"],
+      isImportant: notice.isImportant,
+      targetAudience: notice.targetAudience,
     });
     setIsDialogOpen(true);
   };
@@ -323,16 +324,14 @@ const ManageNotices: React.FC = () => {
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search notices..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Search notices..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
             </div>
             <Select value={filterType} onValueChange={setFilterType}>
               <SelectTrigger className="w-48">
@@ -399,6 +398,9 @@ const ManageNotices: React.FC = () => {
                         <span className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
                           {new Date(notice.createdAt).toLocaleDateString()}
+                        </span>
+                        <span className="text-gray-400 text-xs">
+                          By: {notice.postedBy.name} ({notice.postedBy.role})
                         </span>
                       </div>
                     </div>

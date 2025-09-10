@@ -143,9 +143,7 @@ const AdminDashboard = React.lazy(
     () => import("@/components/dashboard/admin/AdminDashboard")
 );
 const AdminProfile = React.lazy(() => import("@/pages/admin/AdminProfile"));
-const AdminAnnouncementPage = React.lazy(
-    () => import("@/components/dashboard/admin/AdminAnnouncementPage")
-);
+
 const ManageNotices = React.lazy(
     () => import("@/pages/dashboard/ManageNotices")
 );
@@ -465,14 +463,7 @@ const App: React.FC = () => {
                                         </ProtectedRoute>
                                     }
                                 />
-                                <Route
-                                    path="/admin/announcements"
-                                    element={
-                                        <ProtectedRoute roles={["admin"]}>
-                                            <AdminAnnouncementPage />
-                                        </ProtectedRoute>
-                                    }
-                                />
+                                
                                 <Route
                                     path="/admin/tickets/:id"
                                     element={
