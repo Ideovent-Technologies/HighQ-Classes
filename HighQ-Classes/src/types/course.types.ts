@@ -1,4 +1,4 @@
-import { Batch } from "../API/services/admin/batches.service";
+import { BatchService} from "../API/services/admin/batches.service";
 
 export interface CourseTopic {
   title: string;
@@ -13,7 +13,7 @@ export interface Course {
   duration: string;   // or number, depending on backend
   fee: number;
   topics?: CourseTopic[];
-  batches?: Batch[];
+  batches?: BatchService[];
   createdAt?: string; // ISO date string from backend
   updatedAt?: string;
 }
