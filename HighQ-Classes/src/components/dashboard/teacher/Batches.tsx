@@ -35,7 +35,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
-interface Announcement {
+interface Notice {
   _id: string;
   title: string;
   description: string;
@@ -48,24 +48,24 @@ interface Announcement {
   updatedAt: Date;
 }
 
-interface AnnouncementFormData {
+interface NoticeFormData {
   title: string;
   description: string;
   targetAudience: "all" | "students" | "teachers" | "batch";
   targetBatchIds: string[];
-  scheduledAt?: Date;
   isScheduled: boolean;
+  scheduledAt?: Date;
 }
 
 const AdminAnnouncementPage: React.FC = () => {
   const { toast } = useToast();
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [announcements, setAnnouncements] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filterAudience, setFilterAudience] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [formData, setFormData] = useState<AnnouncementFormData>({
+  const [formData, setFormData] = useState<NoticeFormData>({
     title: "",
     description: "",
     targetAudience: "all",
@@ -74,38 +74,35 @@ const AdminAnnouncementPage: React.FC = () => {
   });
 
   useEffect(() => {
-    fetchAnnouncements();
+    fetchNotices();
   }, []);
 
-  const fetchAnnouncements = async () => {
+  const fetchNotices = async () => {
     setLoading(true);
     try {
-      // Assuming a dedicated endpoint for announcements
       const response = await AdminService.getAllNotices();
       if (response.success && response.data) {
-        const formattedAnnouncements: Announcement[] = response.data.map(
-          (notice: any) => ({
-            _id: notice._id,
-            title: notice.title,
-            description: notice.description,
-            targetAudience: notice.targetAudience,
-            targetBatchIds: notice.targetBatchIds || [],
-            scheduledAt: notice.scheduledAt ? new Date(notice.scheduledAt) : undefined,
-            isScheduled: notice.isScheduled,
-            isActive: notice.isActive,
-            createdAt: new Date(notice.createdAt),
-            updatedAt: new Date(notice.updatedAt),
-          })
-        );
-        setAnnouncements(formattedAnnouncements);
+        const formattedNotices: Notice[] = response.data.map((notice: any) => ({
+          _id: notice._id,
+          title: notice.title,
+          description: notice.description,
+          targetAudience: notice.targetAudience,
+          targetBatchIds: notice.targetBatchIds || [],
+          scheduledAt: notice.scheduledAt ? new Date(notice.scheduledAt) : undefined,
+          isScheduled: notice.isScheduled,
+          isActive: notice.isActive,
+          createdAt: new Date(notice.createdAt),
+          updatedAt: new Date(notice.updatedAt),
+        }));
+        setAnnouncements(formattedNotices);
       } else {
-        throw new Error(response.message || "Failed to fetch announcements");
+        throw new Error(response.message || "Failed to fetch notices");
       }
     } catch (error) {
-      console.error("Failed to fetch announcements:", error);
+      console.error("Failed to fetch notices:", error);
       toast({
         title: "Error",
-        description: "Failed to fetch announcements.",
+        description: "Failed to fetch notices.",
         variant: "destructive",
       });
     } finally {
@@ -116,21 +113,19 @@ const AdminAnnouncementPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
-      const response = await AdminService.createAdminNotice({
+      const response = await AdminService.createNotice({
         title: formData.title,
         description: formData.description,
         targetAudience: formData.targetAudience,
         targetBatchIds: formData.targetBatchIds,
         isScheduled: formData.isScheduled,
-        scheduledAt: formData.isScheduled ? formData.scheduledAt : null,
+        scheduledAt: formData.isScheduled ? formData.scheduledAt : undefined,
       });
-
       if (response.success) {
         toast({
           title: "Success",
-          description: "Announcement created successfully!",
+          description: "Notice created successfully!",
         });
         setFormData({
           title: "",
@@ -140,15 +135,15 @@ const AdminAnnouncementPage: React.FC = () => {
           isScheduled: false,
         });
         setIsDialogOpen(false);
-        fetchAnnouncements();
+        fetchNotices();
       } else {
-        throw new Error(response.message || "Failed to create announcement");
+        throw new Error(response.message || "Failed to create notice");
       }
     } catch (error: any) {
-      console.error("Failed to create announcement:", error);
+      console.error("Failed to create notice:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to create announcement",
+        description: error.message || "Failed to create notice",
         variant: "destructive",
       });
     } finally {
@@ -156,28 +151,26 @@ const AdminAnnouncementPage: React.FC = () => {
     }
   };
 
-  const handleDelete = async (announcementId: string) => {
-    if (!window.confirm("Are you sure you want to delete this announcement?")) {
+  const handleDelete = async (noticeId: string) => {
+    if (!window.confirm("Are you sure you want to delete this notice?")) {
       return;
     }
-
     try {
-      // Assuming a delete method exists in AdminService
-      const response = await AdminService.deleteNotice(announcementId);
+      const response = await AdminService.deleteNotice(noticeId);
       if (response.success) {
         toast({
           title: "Success",
-          description: "Announcement deleted successfully.",
+          description: "Notice deleted successfully.",
         });
-        fetchAnnouncements();
+        fetchNotices();
       } else {
-        throw new Error(response.message || "Failed to delete announcement");
+        throw new Error(response.message || "Failed to delete notice");
       }
     } catch (error: any) {
-      console.error("Failed to delete announcement:", error);
+      console.error("Failed to delete notice:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to delete announcement",
+        description: error.message || "Failed to delete notice",
         variant: "destructive",
       });
     }
@@ -225,10 +218,10 @@ const AdminAnnouncementPage: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
             <Megaphone className="h-8 w-8 text-purple-600" />
-            Announcements Management
+            Notices Management
           </h1>
           <p className="text-gray-600 mt-2">
-            Create and manage system-wide announcements
+            Create and manage system-wide notices
           </p>
         </div>
 
@@ -236,14 +229,14 @@ const AdminAnnouncementPage: React.FC = () => {
           <DialogTrigger asChild>
             <Button className="bg-purple-600 hover:bg-purple-700">
               <Plus className="h-4 w-4 mr-2" />
-              New Announcement
+              New Notice
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Megaphone className="h-5 w-5" />
-                Create New Announcement
+                Create New Notice
               </DialogTitle>
             </DialogHeader>
 
@@ -256,7 +249,7 @@ const AdminAnnouncementPage: React.FC = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  placeholder="Enter announcement title"
+                  placeholder="Enter notice title"
                   required
                 />
               </div>
@@ -269,7 +262,7 @@ const AdminAnnouncementPage: React.FC = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  placeholder="Enter announcement description"
+                  placeholder="Enter notice description"
                   rows={4}
                   required
                 />
@@ -314,7 +307,7 @@ const AdminAnnouncementPage: React.FC = () => {
                   ) : (
                     <>
                       <Send className="h-4 w-4 mr-2" />
-                      Create Announcement
+                      Create Notice
                     </>
                   )}
                 </Button>
@@ -330,7 +323,7 @@ const AdminAnnouncementPage: React.FC = () => {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <Input
-                placeholder="Search announcements..."
+                placeholder="Search notices..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full"
@@ -360,7 +353,7 @@ const AdminAnnouncementPage: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-100">Total Announcements</p>
+                <p className="text-purple-100">Total Notices</p>
                 <p className="text-2xl font-bold">{announcements.length}</p>
               </div>
               <Megaphone className="h-8 w-8 text-purple-200" />
@@ -405,12 +398,12 @@ const AdminAnnouncementPage: React.FC = () => {
         </Card>
       </div>
 
-      {/* Announcements List */}
+      {/* Notices List */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
-            Announcements ({filteredAnnouncements.length})
+            Notices ({filteredAnnouncements.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -422,12 +415,12 @@ const AdminAnnouncementPage: React.FC = () => {
             <div className="text-center p-8">
               <Megaphone className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                No announcements found
+                No notices found
               </h3>
               <p className="text-gray-600">
                 {searchTerm || filterAudience !== "all"
                   ? "Try adjusting your filters"
-                  : "Create your first announcement to get started"}
+                  : "Create your first notice to get started"}
               </p>
             </div>
           ) : (

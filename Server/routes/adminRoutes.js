@@ -7,7 +7,7 @@ import {
     getAllTeachers,
     updateUser,
     deleteUser,
-    createAnnouncement,
+    createNotice, // Changed from createAnnouncement to be consistent
     addStudent,
     updateStudent,
     deleteStudent,
@@ -16,10 +16,13 @@ import {
     deleteTeacher,
     CreateUser,
     getAdminProfile,
-    syncRelations, // <-- added
+    syncRelations,
     changeUserStatus,
-    getPendingApprovals, // <-- added
-    getActiveUsers
+    getPendingApprovals,
+    getActiveUsers,
+    getAllNotices, // Added for fetching all notices
+    updateNotice, // Added for updating a notice
+    deleteNotice // Added for deleting a notice
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -33,7 +36,7 @@ router.get("/dashboard", getAdminDashboard);
 router.get("/profile", getAdminProfile);
 
 // Users
-router.post("/user", validateAdminCreateUser, CreateUser); //  new
+router.post("/user", validateAdminCreateUser, CreateUser);
 router.put("/user/:id", updateUser);
 router.patch('/user/:id/status', changeUserStatus);
 router.delete("/user/:id", deleteUser);
@@ -52,11 +55,17 @@ router.post("/teachers", addTeacher);
 router.put("/teachers/:id", updateTeacher);
 router.delete("/teachers/:id", deleteTeacher);
 
-// Announcements
-router.post("/announcement", createAnnouncement);
+// Notices (formerly Announcements)
+// Now using a dedicated and consistent /notices path for all CRUD operations
+router.route("/notices")
+    .get(getAllNotices) // GET all notices
+    .post(createNotice); // POST to create a new notice
 
-// One-off sync endpoint (admin only) — backfill Teacher.courseIds, Teacher.batches, Course.batches
-// Use with caution; it's idempotent (uses $addToSet) and accepts optional ?limit=100
+router.route("/notices/:id")
+    .put(updateNotice) // PUT to update a notice
+    .delete(deleteNotice); // DELETE to delete a notice
+
+// One-off sync endpoint (admin only)
 router.post("/sync/relations", syncRelations);
 
 // Pending approvals

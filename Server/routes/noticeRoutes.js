@@ -5,7 +5,6 @@ import {
   getNoticeById,
   updateNotice,
   deleteNotice,
-  getNoticesByBatch,
   getNoticesForStudent,
 } from "../controllers/noticeController.js";
 import { protect, authorize } from "../middleware/authMiddleware.js";
@@ -25,7 +24,6 @@ router.delete("/:id", protectTeacherOrAdmin, deleteNotice);
 // --- Student route (view only) ---
 router.get("/student/notices", protect, authorize("student"), getNoticesForStudent);
 
-// --- Batch-specific ---
-router.get("/batch/:batchId", protectTeacherOrAdmin, getNoticesByBatch);
+// The /batch/:batchId route has been removed as the functionality is now handled by the general getAllNotices route with a query parameter.
 
 export default router;

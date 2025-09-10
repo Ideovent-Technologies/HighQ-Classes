@@ -2,9 +2,9 @@ import api from "../Axios";
 import { Notice, CreateNoticeDto, UpdateNoticeDto } from "../../types/notice.types";
 
 const getBaseUrl = () => {
-  const role = localStorage.getItem("role"); // or from AuthContext
-  if (role === "student") return "/student/notices";
-  return "/teacher/notices"; // teacher + admin CRUD
+  // Corrected to use a single endpoint that matches the backend's server.js file.
+  // The backend handles the role-based logic for notice access.
+  return "/notices";
 };
 
 const noticeService = {

@@ -1,5 +1,3 @@
-// File: src/pages/dashboard/ManageNotices.tsx
-
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
@@ -15,7 +13,7 @@ import {
   Loader2,
   CheckCircle,
 } from "lucide-react";
-import noticeService from "@/API/services/noticeService";
+import AdminService from "@/API/services/AdminService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,7 +37,6 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Notice } from "../../types/notice.types";
 
-// FIX: Updated the type for 'targetAudience' to a union type to match the DTO.
 interface NoticeFormData {
   title: string;
   description: string;
@@ -60,9 +57,10 @@ const ManageNotices: React.FC = () => {
     title: "",
     description: "",
     isImportant: false,
-    // FIX: Initializing 'targetAudience' with a valid value from the union type.
     targetAudience: "all",
   });
+
+  const [editingNotice, setEditingNotice] = useState<Notice | null>(null);
 
   useEffect(() => {
     fetchNotices();
@@ -71,13 +69,12 @@ const ManageNotices: React.FC = () => {
   const fetchNotices = async () => {
     setLoading(true);
     try {
-      const response = await noticeService.getAllNotices();
-      const noticeArray = Array.isArray(response)
-        ? response
-        : response?.notices && Array.isArray(response.notices)
-        ? response.notices
-        : [];
-      setNotices(noticeArray);
+      const response = await AdminService.getAllNotices();
+      if (response.success && response.data) {
+        setNotices(response.data);
+      } else {
+        setNotices([]);
+      }
     } catch (err) {
       toast({
         title: "Error",
@@ -90,19 +87,50 @@ const ManageNotices: React.FC = () => {
     }
   };
 
+  // ------------------- CREATE / UPDATE -------------------
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const response = await noticeService.createNotice(formData);
-
-    if (response.success && response.notice) {
-      toast({
-        title: "Success",
-        description: "Notice created successfully",
-        variant: "default",
-      });
-      setNotices((prev) => [response.notice!, ...prev]);
+    try {
+      if (editingNotice) {
+        // Update notice
+        const response = await AdminService.updateNotice(editingNotice._id, formData);
+        if (response.success && response.data) {
+          setNotices((prev) =>
+            prev.map((n) => (n._id === response.data!._id ? response.data! : n))
+          );
+          toast({
+            title: "Updated",
+            description: "Notice updated successfully",
+            variant: "default",
+          });
+          setEditingNotice(null);
+        } else {
+          toast({
+            title: "Error",
+            description: response.message,
+            variant: "destructive",
+          });
+        }
+      } else {
+        // Create notice
+        const response = await AdminService.createNotice(formData);
+        if (response.success && response.data) {
+          setNotices((prev) => [response.data!, ...prev]);
+          toast({
+            title: "Created",
+            description: "Notice created successfully",
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: response.message,
+            variant: "destructive",
+          });
+        }
+      }
       setIsDialogOpen(false);
       setFormData({
         title: "",
@@ -110,25 +138,27 @@ const ManageNotices: React.FC = () => {
         isImportant: false,
         targetAudience: "all",
       });
-    } else {
+    } catch (err) {
       toast({
         title: "Error",
-        description: response.message,
+        description: "Something went wrong",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
+  // ------------------- DELETE -------------------
   const handleDelete = async (id: string) => {
-    const response = await noticeService.deleteNotice(id);
+    const response = await AdminService.deleteNotice(id);
     if (response.success) {
+      setNotices((prev) => prev.filter((n) => n._id !== id));
       toast({
         title: "Deleted",
         description: response.message,
         variant: "default",
       });
-      setNotices((prev) => prev.filter((n) => n._id !== id));
     } else {
       toast({
         title: "Error",
@@ -138,7 +168,18 @@ const ManageNotices: React.FC = () => {
     }
   };
 
-  const filteredNotices = (Array.isArray(notices) ? notices : []).filter((notice) => {
+  const openEditDialog = (notice: Notice) => {
+    setEditingNotice(notice);
+    setFormData({
+      title: notice.title,
+      description: notice.description,
+      isImportant: notice.isImportant || false,
+      targetAudience: notice.targetAudience as NoticeFormData["targetAudience"],
+    });
+    setIsDialogOpen(true);
+  };
+
+  const filteredNotices = notices.filter((notice) => {
     const matchesSearch =
       notice.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       notice.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -173,14 +214,14 @@ const ManageNotices: React.FC = () => {
           <DialogTrigger asChild>
             <Button className="bg-blue-600 hover:bg-blue-700">
               <Plus className="h-4 w-4 mr-2" />
-              Create Notice
+              {editingNotice ? "Edit Notice" : "Create Notice"}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Bell className="h-5 w-5" />
-                Create New Notice
+                {editingNotice ? "Edit Notice" : "Create New Notice"}
               </DialogTitle>
             </DialogHeader>
 
@@ -217,7 +258,10 @@ const ManageNotices: React.FC = () => {
                 <Select
                   value={formData.targetAudience}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, targetAudience: value as "all" | "teachers" | "students" | "batch" })
+                    setFormData({
+                      ...formData,
+                      targetAudience: value as NoticeFormData["targetAudience"],
+                    })
                   }
                 >
                   <SelectTrigger className="w-full">
@@ -238,10 +282,7 @@ const ManageNotices: React.FC = () => {
                   id="important"
                   checked={formData.isImportant}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      isImportant: e.target.checked,
-                    })
+                    setFormData({ ...formData, isImportant: e.target.checked })
                   }
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
@@ -252,7 +293,10 @@ const ManageNotices: React.FC = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
+                  onClick={() => {
+                    setIsDialogOpen(false);
+                    setEditingNotice(null);
+                  }}
                 >
                   Cancel
                 </Button>
@@ -260,12 +304,12 @@ const ManageNotices: React.FC = () => {
                   {isSubmitting ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Creating...
+                      {editingNotice ? "Updating..." : "Creating..."}
                     </>
                   ) : (
                     <>
                       <CheckCircle className="h-4 w-4 mr-2" />
-                      Create Notice
+                      {editingNotice ? "Update Notice" : "Create Notice"}
                     </>
                   )}
                 </Button>
@@ -305,49 +349,6 @@ const ManageNotices: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-100">Total Notices</p>
-                <p className="text-2xl font-bold">{notices.length}</p>
-              </div>
-              <Bell className="h-8 w-8 text-blue-200" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-100">Active Notices</p>
-                <p className="text-2xl font-bold">
-                  {notices.filter((n) => n.isActive).length}
-                </p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-200" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-orange-100">Important</p>
-                <p className="text-2xl font-bold">
-                  {notices.filter((n) => n.isImportant).length}
-                </p>
-              </div>
-              <Users className="h-8 w-8 text-orange-200" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Notices List */}
       <Card>
         <CardHeader>
@@ -368,9 +369,9 @@ const ManageNotices: React.FC = () => {
                 Notice Management
               </h3>
               <p className="text-gray-600 mb-4">
-                  {searchTerm || filterType !== "all"
-                    ? "Try adjusting your filters"
-                    : "No notices found"}
+                {searchTerm || filterType !== "all"
+                  ? "Try adjusting your filters"
+                  : "No notices found"}
               </p>
             </div>
           ) : (
@@ -391,13 +392,9 @@ const ManageNotices: React.FC = () => {
                         {notice.isImportant && (
                           <Badge variant="destructive">Important</Badge>
                         )}
-                        {notice.isActive && (
-                          <Badge variant="default">Active</Badge>
-                        )}
+                        {notice.isActive && <Badge variant="default">Active</Badge>}
                       </div>
-                      <p className="text-gray-600 mb-3">
-                        {notice.description}
-                      </p>
+                      <p className="text-gray-600 mb-3">{notice.description}</p>
                       <div className="flex items-center gap-4 text-sm text-gray-500">
                         <span className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
@@ -409,7 +406,11 @@ const ManageNotices: React.FC = () => {
                       <Button variant="outline" size="sm">
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openEditDialog(notice)}
+                      >
                         <Edit3 className="h-4 w-4" />
                       </Button>
                       <Button

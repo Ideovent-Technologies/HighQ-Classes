@@ -42,24 +42,25 @@ interface ScheduleFormData {
   room: string;
 }
 
-interface AnnouncementData {
+interface Notice {
+  _id: string;
   title: string;
   description: string;
-  targetAudience: "all" | "students" | "teachers" | "batch";
+  targetAudience: string;
   targetBatchIds?: string[];
-  scheduledAt?: Date | null;
-  isScheduled?: boolean;
+  isScheduled: boolean;
+  scheduledAt?: Date;
+  postedBy: { _id: string; name: string; role: string };
 }
 
 class AdminService {
-  // ---------------- NOTICES & ANNOUNCEMENTS ----------------
-  // All notice-related actions are now consolidated under this section
-  // and use the same API endpoints for consistency.
+  // ---------------- NOTICES ----------------
 
-  async getAllNotices(): Promise<ApiResponse<any[]>> {
+  async getAllNotices(): Promise<ApiResponse<Notice[]>> {
     try {
-      const response = await api.get("/admin/notices");
-      return { success: true, data: response.data.notices };
+      const response = await api.get("/admin/notices"); // Corrected path for admin access
+      console.log("Notices API response:", response.data);
+      return { success: true, data: response.data.data, message: "Notices fetched successfully" };
     } catch (error: any) {
       console.error("Get all notices error:", error);
       return {
@@ -69,30 +70,43 @@ class AdminService {
     }
   }
 
-  // This function is now the single point for creating notices/announcements.
-  async createAdminNotice(noticeData: AnnouncementData): Promise<ApiResponse<any>> {
+  async createNotice(noticeData: { title: string; description: string; targetAudience?: string; targetBatchIds?: string[]; isScheduled?: boolean; scheduledAt?: Date }): Promise<ApiResponse<Notice>> {
     try {
-      const response = await api.post("/admin/notices", noticeData);
+      const response = await api.post("/admin/notices", noticeData); // Corrected path
       return {
         success: true,
-        data: response.data.notice,
-        message: response.data.message || "Notice created successfully",
+        data: response.data.data,
+        message: response.data.message,
       };
     } catch (error: any) {
-      console.error("Create admin notice error:", error);
+      console.error('Create notice error:', error);
       return {
         success: false,
-        message: error.response?.data?.message || "Failed to create notice",
+        message: error.response?.data?.message || 'Failed to create notice',
       };
     }
   }
-  
-  // NOTE: The redundant `createAnnouncement` function has been removed.
 
-  // New method to delete a notice/announcement
+  async updateNotice(noticeId: string, noticeData: Partial<Notice>): Promise<ApiResponse<Notice>> {
+    try {
+      const response = await api.put(`/admin/notices/${noticeId}`, noticeData); // Corrected path
+      return {
+        success: true,
+        data: response.data.data,
+        message: response.data.message,
+      };
+    } catch (error: any) {
+      console.error("Update notice error:", error);
+      return {
+        success: false,
+        message: error.response?.data?.message || "Failed to update notice",
+      };
+    }
+  }
+
   async deleteNotice(noticeId: string): Promise<ApiResponse<null>> {
     try {
-      const response = await api.delete(`/admin/notices/${noticeId}`);
+      const response = await api.delete(`/admin/notices/${noticeId}`); // Corrected path
       return {
         success: true,
         message: response.data.message || "Notice deleted successfully",
