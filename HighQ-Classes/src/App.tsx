@@ -78,8 +78,7 @@ const EditBatchPage = React.lazy(() => import("./pages/batch/EditBatchPage"));
 // Lazy load fee management pages
 const StudentFeeStatus = React.lazy(() => import("@/modules/fees/FeeStatus"));
 const AdminFeeDashboard = React.lazy(
-    () => import("@/components/admin/AdminFeeDashboard")
-);
+    () => import("@/components/admin/fees/AdminFeeDashboard.tsx") );
 const BatchDetails = React.lazy(
     () => import("./components/dashboard/batch/BatchDetsils")
 );
