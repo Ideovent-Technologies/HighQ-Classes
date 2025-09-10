@@ -10,6 +10,7 @@ import {
   FaSpinner,
   FaListAlt,
 } from "react-icons/fa";
+import axios from "axios";
 
 interface Course {
   _id: string;
@@ -58,6 +59,27 @@ export default function TeacherAssignments() {
     error: submissionsError,
     fetchSubmissionsByTeacher,
   } = useSubmissions();
+
+  // Add state for all courses and batches (not just assigned)
+  const [allCourses, setAllCourses] = useState<Course[]>([]);
+  const [allBatches, setAllBatches] = useState<Batch[]>([]);
+
+  // Fetch all courses and batches on mount
+  useEffect(() => {
+    const fetchAllCoursesAndBatches = async () => {
+      try {
+        const [coursesRes, batchesRes] = await Promise.all([
+          axios.get("/api/courses", { withCredentials: true }),
+          axios.get("/api/batches", { withCredentials: true }),
+        ]);
+        setAllCourses(coursesRes.data.courses || []);
+        setAllBatches(batchesRes.data.batches || []);
+      } catch (err) {
+        // Optionally handle error
+      }
+    };
+    fetchAllCoursesAndBatches();
+  }, []);
 
   useEffect(() => {
     if (activeTab === "reports") {
@@ -208,6 +230,7 @@ export default function TeacherAssignments() {
             />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Batch dropdown: show all batches */}
               <select
                 name="batchId"
                 value={form.batchId}
@@ -218,13 +241,14 @@ export default function TeacherAssignments() {
                 <option value="" disabled>
                   Select Batch
                 </option>
-                {assignedBatches.map((batch) => (
+                {allBatches.map((batch) => (
                   <option key={batch._id} value={batch._id}>
                     {batch.name}
                   </option>
                 ))}
               </select>
 
+              {/* Course dropdown: show all courses */}
               <select
                 name="courseId"
                 value={form.courseId}
@@ -235,13 +259,14 @@ export default function TeacherAssignments() {
                 <option value="" disabled>
                   Select Course
                 </option>
-                {assignedCourses.map((course) => (
+                {allCourses.map((course) => (
                   <option key={course._id} value={course._id}>
                     {course.name}
                   </option>
                 ))}
               </select>
 
+              {/* ...existing code for totalMarks input... */}
               <input
                 type="number"
                 name="totalMarks"

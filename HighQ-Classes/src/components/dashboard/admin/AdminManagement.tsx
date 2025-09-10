@@ -16,7 +16,6 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import AdminAnnouncementPage from "./AdminAnnouncementPage";
 import AdminUserManagement from "./AdminUserManagement";
 import AdminReportsPage from "./AdminReportsPage";
 import AdminSystemSettings from "./AdminSystemSettings";
@@ -50,14 +49,6 @@ const AdminManagement: React.FC = () => {
             icon: BookOpen,
             badge: "New",
             color: "green",
-        },
-        {
-            id: "announcements",
-            title: "Announcements",
-            description: "Create and manage system-wide announcements",
-            icon: Megaphone,
-            badge: "Hot",
-            color: "purple",
         },
         {
             id: "reports",
@@ -187,7 +178,7 @@ const AdminManagement: React.FC = () => {
                                 12
                             </h3>
                             <p className="text-purple-700">
-                                Active Announcements
+                                Active Notices
                             </p>
                         </CardContent>
                     </Card>
@@ -319,8 +310,6 @@ const AdminManagement: React.FC = () => {
 
     const renderContent = () => {
         switch (activeSection) {
-            case "announcements":
-                return <AdminAnnouncementPage />;
             case "users":
                 return <AdminUserManagement />;
             case "courses":

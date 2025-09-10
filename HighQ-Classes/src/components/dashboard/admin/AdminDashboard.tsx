@@ -147,7 +147,7 @@ const AdminDashboard: React.FC = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await AdminService.getAdminData();
+                const response = await AdminService.getReportsData();
                 if (response.success) {
                     setData(response.data);
                     console.log("Dashboard data fetched successfully:", response.data);
@@ -338,7 +338,7 @@ const AdminDashboard: React.FC = () => {
                             <CardHeader className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
                                 <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
                                     <Bell className="h-7 w-7 text-purple-600" />
-                                    Recent Announcements
+                                    Recent Notices
                                 </CardTitle>
                                 <CardDescription className="text-gray-600 dark:text-gray-400 mt-1">
                                     Stay informed with the latest updates and important notices.
@@ -363,7 +363,7 @@ const AdminDashboard: React.FC = () => {
                                     <div className="text-center py-8">
                                         <img src="https://placehold.co/100x100/e0e7ff/4f46e5?text=📢" alt="No Notices" className="mx-auto mb-4 opacity-80" />
                                         <p className="text-lg text-gray-600 dark:text-gray-400 font-medium">
-                                            No recent announcements found.
+                                            No recent notices found.
                                         </p>
                                         <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
                                             Everything seems quiet on the notice board!
@@ -372,7 +372,7 @@ const AdminDashboard: React.FC = () => {
                                 )}
                                 {recentNotices.length > 4 && (
                                     <div className="mt-6 text-center">
-                                        <Link to="/dashboard/notices">
+                                        <Link to="/dashboard/manage-notices">
                                             <motion.button
                                                 className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-white bg-purple-600 hover:bg-purple-700 transition-colors duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
                                                 whileTap={{ scale: 0.95 }}

@@ -1,4 +1,3 @@
-// Server/controllers/adminController.js
 import Admin from "../models/Admin.js";
 import Teacher from "../models/Teacher.js";
 import Student from "../models/Student.js";
@@ -7,7 +6,7 @@ import Batch from "../models/Batch.js";
 import Fee from "../models/Fee.js";
 import Notice from "../models/Notice.js";
 import bcrypt from "bcryptjs";
-
+import asyncHandler from 'express-async-handler';
 
 
 // 🧠 Admin Dashboard Data
@@ -325,28 +324,128 @@ export const CreateUser = async (req, res) => {
   }
 };
 
-// ✅ Create Announcement
-export const createAnnouncement = async (req, res) => {
-  try {
-    const { message, visibleTo = ['student', 'teacher'], expiresAt } = req.body;
+// ---------------- Notices (Admin Only) ----------------
 
-    if (!message || message.trim() === '')
-      return res.status(400).json({ message: 'Message is required' });
+/**
+ * @desc    Create a new notice as admin
+ * @route   POST /api/admin/notices
+ * @access  Private (Admin only)
+ */
+export const createNotice = asyncHandler(async (req, res) => {
+  const { title, description, targetBatchIds, targetAudience, scheduledAt, isScheduled } = req.body;
 
-    const notice = new Notice({
-      message,
-      visibleTo,
-      expiresAt,
-      createdBy: req.user.id,
-      role: req.user.role || 'admin'
-    });
+  const notice = new Notice({
+    title,
+    description,
+    targetBatchIds,
+    targetAudience,
+    isScheduled: !!isScheduled,
+    scheduledAt: isScheduled ? new Date(scheduledAt) : null,
+    postedBy: req.user._id,
+  });
 
-    await notice.save();
-    res.status(201).json({ message: 'Notice created successfully', notice });
-  } catch (err) {
-    res.status(500).json({ message: 'Failed to create announcement', error: err.message });
+  await notice.save();
+
+  res.status(201).json({
+    success: true,
+    message: 'Notice created successfully.',
+    data: notice,
+  });
+});
+
+/**
+ * @desc    Get all notices
+ * @route   GET /api/admin/notices/all
+ * @access  Private (Admin only)
+ */
+export const getAllNotices = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 10, targetAudience, targetBatchId, keyword, date } = req.query;
+  const skip = (page - 1) * limit;
+
+  const baseFilter = {
+    $or: [
+      { isScheduled: false },
+      { isScheduled: true, scheduledAt: { $lte: new Date() } },
+    ],
+  };
+
+  const filter = { ...baseFilter };
+
+  if (targetAudience) filter.targetAudience = targetAudience;
+  if (targetBatchId) filter.targetBatchIds = { $in: [targetBatchId] };
+
+  if (keyword) {
+    filter.$and = [
+      baseFilter,
+      {
+        $or: [
+          { title: { $regex: keyword, $options: "i" } },
+          { description: { $regex: keyword, $options: "i" } }
+        ]
+      }
+    ];
+    delete filter.$or;
   }
-};
+
+  if (date) {
+    const start = new Date(date);
+    const end = new Date(date);
+    end.setHours(23, 59, 59, 999);
+    filter.createdAt = { $gte: start, $lte: end };
+  }
+
+  const total = await Notice.countDocuments(filter);
+  const notices = await Notice.find(filter)
+    .populate("postedBy", "name role")
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(Number(limit));
+
+  res.json({
+    success: true,
+    total,
+    page: Number(page),
+    pages: Math.ceil(total / limit),
+    data: notices,
+  });
+});
+
+/**
+ * @desc    Update a notice
+ * @route   PUT /api/admin/notices/:id
+ * @access  Private (Admin only)
+ */
+export const updateNotice = asyncHandler(async (req, res) => {
+  const noticeId = req.params.id;
+  const updates = req.body;
+
+  const notice = await Notice.findById(noticeId);
+  if (!notice) {
+    return res.status(404).json({ success: false, message: 'Notice not found' });
+  }
+
+  Object.assign(notice, updates);
+  const updatedNotice = await notice.save();
+
+  res.status(200).json({ success: true, message: 'Notice updated successfully', data: updatedNotice });
+});
+
+/**
+ * @desc    Delete a notice
+ * @route   DELETE /api/admin/notices/:id
+ * @access  Private (Admin only)
+ */
+export const deleteNotice = asyncHandler(async (req, res) => {
+  const notice = await Notice.findById(req.params.id);
+  if (!notice) {
+    return res.status(404).json({ success: false, message: 'Notice not found' });
+  }
+
+  await notice.deleteOne();
+
+  res.status(200).json({ success: true, message: 'Notice deleted successfully' });
+});
+
 
 /**
  * PATCH /api/admin/user/:id/status
