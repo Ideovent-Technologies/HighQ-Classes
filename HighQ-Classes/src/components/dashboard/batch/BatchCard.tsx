@@ -1,106 +1,174 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Batch } from "@/types/Batch.Types";
 import { Eye, Edit, Trash2 } from "lucide-react";
+import { motion } from "framer-motion";
+
+interface CourseRef {
+  _id: string;
+  name: string;
+}
+
+interface TeacherRef {
+  _id: string;
+  name: string;
+}
+
+interface StudentRef {
+  _id: string;
+  name: string;
+  email?: string;
+}
+
+export interface Batch {
+  _id: string;
+  name: string;
+  courseId: CourseRef;
+  teacherId: TeacherRef;
+  students: StudentRef[];
+  schedule?: {
+    days: string[];
+    startTime: string;
+    endTime: string;
+  };
+  startDate?: string;
+  endDate?: string;
+  createdAt: string;
+  updatedAt: string;
+  status?: "active" | "inactive" | "completed";
+  capacity?: number;
+  description?: string;
+}
 
 interface BatchCardProps {
-    batch: Batch;
-    onEdit?: (batch: Batch) => void;
-    onDelete?: (batchId: string) => void;
+  batch: Batch;
+  onEdit?: (batch: Batch) => void;
+  onDelete?: (batchId: string) => void;
 }
 
 const BatchCard: React.FC<BatchCardProps> = ({ batch, onEdit, onDelete }) => {
-    const {
-        _id,
-        name,
-        courseId,
-        teacherId,
-        students,
-        status = "active", // fallback default
-    } = batch;
+  const [showConfirm, setShowConfirm] = useState(false);
+  const {
+    _id,
+    name,
+    courseId,
+    teacherId,
+    students,
+    status = "active", // fallback default
+  } = batch;
 
-    const courseName =
-        typeof courseId === "object" && courseId !== null
-            ? courseId.name
-            : String(courseId);
-    const teacherName =
-        typeof teacherId === "object" && teacherId !== null
-            ? teacherId.name
-            : "N/A";
+  const courseName = courseId?.name || "N/A";
+  const teacherName = teacherId?.name || "N/A";
 
-    const handleEdit = () => {
-        if (onEdit) {
-            onEdit(batch);
-        }
-    };
+  const handleEdit = () => {
+    if (onEdit) {
+      onEdit(batch);
+    }
+  };
 
-    const handleDelete = () => {
-        if (
-            onDelete &&
-            window.confirm(
-                `Are you sure you want to delete the batch "${name}"?`
-            )
-        ) {
-            onDelete(_id);
-        }
-    };
+  const handleDeleteClick = () => {
+    setShowConfirm(true);
+  };
 
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex justify-between items-center">
-                    <span>{name}</span>
-                    <Badge variant="secondary">{status}</Badge>
-                </CardTitle>
-            </CardHeader>
+  const confirmDelete = () => {
+    if (onDelete) {
+      onDelete(_id);
+      setShowConfirm(false);
+    }
+  };
 
-            <CardContent className="space-y-2 text-sm text-gray-700">
-                <p>
-                    <strong>Course:</strong> {courseName || "N/A"}
-                </p>
-                <p>
-                    <strong>Teacher:</strong> {teacherName}
-                </p>
-                <p>
-                    <strong>Students:</strong> {students?.length ?? 0}
-                </p>
+  const cancelDelete = () => {
+    setShowConfirm(false);
+  };
 
-                <div className="mt-4 flex gap-2">
-                    <Link to={`/dashboard/batches/${_id}`}>
-                        <Button size="sm" variant="outline">
-                            <Eye className="h-4 w-4 mr-1" />
-                            View Details
-                        </Button>
-                    </Link>
+  return (
+    <Card className="rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+      <CardHeader>
+        <CardTitle className="flex justify-between items-center text-xl font-bold">
+          <span>{name}</span>
+          <Badge
+            className={`rounded-full px-3 py-1 text-sm font-semibold
+              ${status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
+            `}
+          >
+            {status}
+          </Badge>
+        </CardTitle>
+      </CardHeader>
 
-                    {onEdit && (
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={handleEdit}
-                        >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit
-                        </Button>
-                    )}
+      <CardContent className="space-y-3 text-sm text-gray-700">
+        <p>
+          <strong>Course:</strong> {courseName}
+        </p>
+        <p>
+          <strong>Teacher:</strong> {teacherName}
+        </p>
+        <p>
+          <strong>Students:</strong> {students?.length ?? 0}
+        </p>
 
-                    {onDelete && (
-                        <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={handleDelete}
-                        >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Delete
-                        </Button>
-                    )}
-                </div>
-            </CardContent>
-        </Card>
-    );
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link to={`/dashboard/batches/${_id}`} className="flex-1">
+            <Button size="sm" variant="outline" className="w-full">
+              <Eye className="h-4 w-4 mr-1" />
+              View Details
+            </Button>
+          </Link>
+
+          {onEdit && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleEdit}
+              className="flex-1"
+            >
+              <Edit className="h-4 w-4 mr-1" />
+              Edit
+            </Button>
+          )}
+
+          {onDelete && (
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={handleDeleteClick}
+              className="flex-1"
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete
+            </Button>
+          )}
+        </div>
+      </CardContent>
+
+      {/* Confirmation Modal UI */}
+      {showConfirm && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+        >
+          <div className="bg-white rounded-2xl p-6 shadow-xl max-w-sm w-full space-y-4 text-center">
+            <h3 className="text-xl font-bold">Confirm Deletion</h3>
+            <p className="text-gray-600">
+              Are you sure you want to delete the batch "<span className="font-semibold">{name}</span>"? This action cannot be undone.
+            </p>
+            <div className="flex gap-4 justify-center mt-6">
+              <Button variant="outline" onClick={cancelDelete} className="flex-1">
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={confirmDelete} className="flex-1">
+                Delete
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </Card>
+  );
 };
 
 export default BatchCard;

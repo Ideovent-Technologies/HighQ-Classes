@@ -17,7 +17,7 @@ import {
     Download,
     Loader2,
 } from "lucide-react";
-import AdminService from "@/API/services/AdminService";
+import AdminService from "@/API/services/admin";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

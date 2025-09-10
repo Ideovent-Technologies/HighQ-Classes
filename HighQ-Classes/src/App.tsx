@@ -52,9 +52,8 @@ const Schedule = React.lazy(
 const Recordings = React.lazy(
     () => import("@/components/dashboard/teacher/Recordings")
 );
-const Batches = React.lazy(
-    () => import("@/components/dashboard/teacher/Batches")
-);
+
+
 const Notices = React.lazy(
     () => import("@/components/dashboard/teacher/Notices")
 );
@@ -81,7 +80,7 @@ const AdminFeeDashboard = React.lazy(
     () => import("@/components/admin/fees/AdminFeeDashboard")
 );
 const BatchDetails = React.lazy(
-    () => import("./components/dashboard/batch/BatchDetsils")
+    () => import("./components/dashboard/batch/BatchDetails.tsx")
 );
 
 const StudentDashboardTest = React.lazy(
@@ -373,7 +372,7 @@ const App: React.FC = () => {
                                     path="/student/recordings"
                                     element={
                                         <ProtectedRoute roles={["student"]}>
-                                            <StudentRecordingsPage userRole="student" />
+                                            <StudentRecordingsPage />
                                         </ProtectedRoute>
                                     }
                                 />
@@ -427,14 +426,6 @@ const App: React.FC = () => {
                                     element={
                                         <ProtectedRoute roles={["teacher"]}>
                                             <Recordings />
-                                        </ProtectedRoute>
-                                    }
-                                />
-                                <Route
-                                    path="/dashboard/batches"
-                                    element={
-                                        <ProtectedRoute roles={["teacher"]}>
-                                            <Batches />
                                         </ProtectedRoute>
                                     }
                                 />
@@ -755,21 +746,21 @@ const App: React.FC = () => {
                                     path="/dashboard/fees/new"
                                     element={
                                         <ProtectedRoute roles={["admin"]}>
-                                        <CreateFeeForm/>
+                                        <CreateFeeForm onSubmit={() => {}} onCancel={() => {}}/>
                                         </ProtectedRoute>
                                     }/>
                                 <Route 
                                     path="/dashboard/fees/bulk" 
                                     element={
                                         <ProtectedRoute roles={["admin"]}>
-                                            <BulkFeeForm />
+                                            <BulkFeeForm onSubmit={() => {}} onCancel={() => {}} />
                                         </ProtectedRoute>
                                     }/>
                                 <Route
                                     path="/student/recordings"
                                     element={
                                         <ProtectedRoute roles={["student"]}>
-                                            <StudentRecordingsPage userRole="student" />
+                                            <StudentRecordingsPage />
                                         </ProtectedRoute>
                                     }
                                 />

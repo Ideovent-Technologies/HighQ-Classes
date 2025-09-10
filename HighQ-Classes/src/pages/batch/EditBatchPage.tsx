@@ -1,197 +1,153 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { toast } from "react-hot-toast";
-
-// Assuming these are the correct paths and interfaces
-import { Batch, CreateBatchData, CourseRef, TeacherRef, StudentRef } from "@/types/Batch.Types"; // Import CourseRef, TeacherRef, StudentRef
-import batchService from "@/API/services/batchService";
-
-// UI Components
-import BatchForm, { BatchFormProps } from "@/components/dashboard/batch/BatchForm";
-import Loader from "@/components/common/Loader"; // Your Loader component
-import ErrorBoundary from "@/components/common/ErrorBoundary"; // Your ErrorBoundary component
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
-// The main EditBatchPage component logic
-const EditBatchPageContent: React.FC = () => {
-  const { batchId } = useParams<{ batchId: string }>();
+const EditBatchPage = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
-  const [batch, setBatch] = useState<Batch | null>(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    course: "",
+    teacher: "",
+    startDate: "",
+    endDate: "",
+  });
   const [loading, setLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // --- Fetch Batch Data on mount ---
+  // Placeholder for fetching existing batch data
   useEffect(() => {
-    const fetchBatch = async () => {
-      if (!batchId) {
-        toast.error("Batch ID is missing in the URL.");
-        navigate("/dashboard/batches/manage");
-        return;
-      }
-      try {
-        const response = await batchService.getBatchById(batchId);
-        if (response.success && response.batch) {
-          // Cast response.batch to 'any' initially to handle potential API response inconsistencies
-          const apiBatch: any = response.batch;
+    // In a real app, you would fetch data using the batch ID
+    // const fetchBatchData = async () => {
+    //   const data = await batchService.getBatchById(id);
+    //   setFormData(data);
+    //   setLoading(false);
+    // };
+    // fetchBatchData();
 
-          // Explicitly map properties to ensure they conform to the 'Batch' interface.
-          // This handles cases where the API might return just IDs (strings) instead of full objects for references,
-          // and ensures 'createdAt'/'updatedAt' are always present as strings.
-          const mappedBatch: Batch = {
-            _id: apiBatch._id || '',
-            name: apiBatch.name || '',
-            description: apiBatch.description || '', // Ensure description is always present
-            capacity: apiBatch.capacity || 0, // Ensure capacity is always present
-            status: apiBatch.status || 'active', // Ensure status is always present
-            schedule: {
-              days: apiBatch.schedule?.days || [],
-              startTime: apiBatch.schedule?.startTime || '',
-              endTime: apiBatch.schedule?.endTime || '',
-            },
-            startDate: apiBatch.startDate || '',
-            endDate: apiBatch.endDate || '',
+    // Mock data for demonstration
+    setTimeout(() => {
+      setFormData({
+        name: "Mock Batch 1",
+        course: "Math 101",
+        teacher: "Jane Doe",
+        startDate: "2023-01-01",
+        endDate: "2023-06-30",
+      });
+      setLoading(false);
+    }, 1000);
+  }, [id]);
 
-            // Handle courseId: if it's a string, create a dummy CourseRef object, otherwise use as is.
-            courseId: typeof apiBatch.courseId === 'string'
-              ? { _id: apiBatch.courseId, name: 'Unknown Course' } as CourseRef
-              : apiBatch.courseId as CourseRef, // Assert as CourseRef if it's already an object
-            
-            // Handle teacherId: if it's a string, create a dummy TeacherRef object, otherwise use as is.
-            teacherId: typeof apiBatch.teacherId === 'string'
-              ? { _id: apiBatch.teacherId, name: 'Unknown Teacher' } as TeacherRef
-              : apiBatch.teacherId as TeacherRef, // Assert as TeacherRef if it's already an object
-
-            // Handle students: map each student to a StudentRef object if it's a string ID.
-            students: apiBatch.students?.map((s: string | StudentRef) =>
-              typeof s === 'string' ? { _id: s, name: 'Unknown Student' } as StudentRef : s as StudentRef
-            ) || [],
-            
-            // Ensure createdAt and updatedAt are present as per Batch interface, providing fallbacks.
-            createdAt: apiBatch.createdAt || new Date().toISOString(),
-            updatedAt: apiBatch.updatedAt || new Date().toISOString(),
-          };
-          setBatch(mappedBatch);
-        } else {
-          toast.error("Batch not found. Redirecting...");
-          navigate("/dashboard/batches/manage");
-        }
-      } catch (err) {
-        toast.error("Failed to load batch data. Please try again.");
-        console.error("Error fetching batch:", err);
-        navigate("/dashboard/batches/manage");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchBatch();
-  }, [batchId, navigate]);
-
-  // --- Handle Form Submission ---
-  const handleUpdate = async (data: CreateBatchData) => {
-    if (!batchId) return;
-
-    setIsSubmitting(true);
-    try {
-      // Convert string dates from formData to actual Date objects for the API payload
-      // if your 'updateBatch' service expects 'Date' objects for 'startDate' and 'endDate'.
-      const dataToSend: any = { ...data }; // Use 'any' to allow flexible date type assignment
-
-      if (dataToSend.startDate) {
-        dataToSend.startDate = new Date(dataToSend.startDate); // Convert string to Date object
-      } else {
-        delete dataToSend.startDate; // Remove if empty or null
-      }
-      if (dataToSend.endDate) {
-        dataToSend.endDate = new Date(dataToSend.endDate); // Convert string to Date object
-      } else {
-        delete dataToSend.endDate; // Remove if empty or null
-      }
-
-      const response = await batchService.updateBatch(batchId, dataToSend);
-
-      if (response.success) {
-        toast.success("Batch updated successfully!");
-        navigate("/dashboard/batches/manage");
-      } else {
-        toast.error(response.message || "Failed to update batch.");
-      }
-    } catch (err) {
-      toast.error("An error occurred during update.");
-      console.error("Error updating batch:", err);
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
 
-  // --- Render based on state ---
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Placeholder for API call to update a batch
+    console.log(`Updating batch ${id}:`, formData);
+    // After successful update, navigate back to the management page
+    navigate("/dashboard/batches");
+  };
+
   if (loading) {
-    // FIX: Changed 'message' prop to 'text' to match the updated Loader component interface.
     return (
-      <div className="flex justify-center items-center h-screen">
-        <Loader text="Loading batch details..." />
+      <div className="flex justify-center items-center h-full py-24">
+        <p className="text-xl text-gray-500">Loading batch details...</p>
       </div>
     );
   }
 
-  // If loading is false and batch is still null, it means data was not found or an error occurred.
-  if (!batch) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Card className="w-full max-w-lg">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-gray-900">
-              Batch Data Unavailable
-            </CardTitle>
-            <p className="text-gray-600">
-              The batch you are looking for could not be loaded or does not exist.
-            </p>
-          </CardHeader>
-          <CardContent className="flex justify-center">
-            <Button onClick={() => navigate("/dashboard/batches/manage")}>
-              Go to Batches List
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // --- Main Component JSX ---
   return (
-    <div className="container mx-auto p-4 md:p-8">
-      <Card className="max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-3xl font-bold">Edit Batch: {batch.name}</CardTitle>
-          <p className="text-gray-500">
-            Modify the details for the batch.
-          </p>
-        </CardHeader>
-        <CardContent>
-          <BatchForm
-            initialData={batch}
-            onSubmit={handleUpdate}
-            isSubmitting={isSubmitting}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="p-8 md:p-10 max-w-4xl mx-auto space-y-8 bg-white/80 backdrop-blur-md rounded-3xl shadow-lg border border-gray-200"
+    >
+      <h1 className="text-4xl font-extrabold tracking-tight text-center bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-transparent bg-clip-text">
+        ✏️ Edit Batch
+      </h1>
+      <p className="text-gray-600 text-center mt-2 text-lg">
+        Update the details for Batch ID: <span className="font-mono text-sm bg-gray-100 p-1 rounded-md">{id}</span>
+      </p>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <Label htmlFor="name" className="text-gray-700 font-semibold">Batch Name</Label>
+          <Input
+            id="name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            className="mt-1"
+            required
           />
-        </CardContent>
-      </Card>
-      <div className="flex justify-center mt-4">
+        </div>
+        <div>
+          <Label htmlFor="course" className="text-gray-700 font-semibold">Course</Label>
+          <Input
+            id="course"
+            name="course"
+            value={formData.course}
+            onChange={handleChange}
+            className="mt-1"
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="teacher" className="text-gray-700 font-semibold">Teacher</Label>
+          <Input
+            id="teacher"
+            name="teacher"
+            value={formData.teacher}
+            onChange={handleChange}
+            className="mt-1"
+            required
+          />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <Label htmlFor="startDate" className="text-gray-700 font-semibold">Start Date</Label>
+            <Input
+              id="startDate"
+              name="startDate"
+              type="date"
+              value={formData.startDate}
+              onChange={handleChange}
+              className="mt-1"
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="endDate" className="text-gray-700 font-semibold">End Date</Label>
+            <Input
+              id="endDate"
+              name="endDate"
+              type="date"
+              value={formData.endDate}
+              onChange={handleChange}
+              className="mt-1"
+              required
+            />
+          </div>
+        </div>
         <Button
-          variant="outline"
-          onClick={() => navigate("/dashboard/batches/manage")}
+          type="submit"
+          className="w-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white"
         >
-          Cancel
+          Update Batch
         </Button>
-      </div>
-    </div>
+      </form>
+    </motion.div>
   );
 };
-
-// Wrap the component with your ErrorBoundary for error handling
-const EditBatchPage = () => (
-  <ErrorBoundary>
-    <EditBatchPageContent />
-  </ErrorBoundary>
-);
 
 export default EditBatchPage;

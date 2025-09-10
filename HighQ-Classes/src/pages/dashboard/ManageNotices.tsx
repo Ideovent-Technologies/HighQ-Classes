@@ -13,7 +13,7 @@ import {
   Loader2,
   CheckCircle,
 } from "lucide-react";
-import AdminService from "@/API/services/AdminService";
+import { NoticeService } from "@/API/services/admin/notices.service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +44,8 @@ interface NoticeFormData {
   targetAudience: "all" | "teachers" | "students" | "batch";
 }
 
+const noticeService = new NoticeService();
+
 const ManageNotices: React.FC = () => {
   const { toast } = useToast();
   const [notices, setNotices] = useState<Notice[]>([]);
@@ -69,7 +71,7 @@ const ManageNotices: React.FC = () => {
   const fetchNotices = async () => {
     setLoading(true);
     try {
-      const response = await AdminService.getAllNotices();
+      const response = await noticeService.getAllNotices();
       if (response.success && response.data) {
         setNotices(response.data);
       } else {
@@ -95,7 +97,7 @@ const ManageNotices: React.FC = () => {
     try {
       if (editingNotice) {
         // Update notice
-        const response = await AdminService.updateNotice(editingNotice._id, formData);
+        const response = await noticeService.updateNotice(editingNotice._id, formData);
         if (response.success && response.data) {
           setNotices((prev) =>
             prev.map((n) => (n._id === response.data!._id ? response.data! : n))
@@ -115,7 +117,7 @@ const ManageNotices: React.FC = () => {
         }
       } else {
         // Create notice
-        const response = await AdminService.createNotice(formData);
+        const response = await noticeService.createNotice(formData);
         if (response.success && response.data) {
           setNotices((prev) => [response.data!, ...prev]);
           toast({
@@ -152,7 +154,7 @@ const ManageNotices: React.FC = () => {
 
   // ------------------- DELETE -------------------
   const handleDelete = async (id: string) => {
-    const response = await AdminService.deleteNotice(id);
+    const response = await noticeService.deleteNotice(id);
     if (response.success) {
       setNotices((prev) => prev.filter((n) => n._id !== id));
       toast({

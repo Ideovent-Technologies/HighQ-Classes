@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import AdminService from "@/API/services/AdminService";
+import AdminService from "@/API/services/admin";
 import { AdminUser } from "@/types/admin.types"; // Using your defined type
 
 // UI Components from shadcn/ui and lucide-react

@@ -27,7 +27,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import AdminService from "@/API/services/AdminService";
+import { StudentService } from "@/API/services/admin/students.service";
 import { useToast } from "@/hooks/use-toast";
 
 // Interface for Student data, consistent with the original code
@@ -65,6 +65,8 @@ const AllStudents = () => {
         direction: "asc", // Default sort direction
     });
 
+    const studentService = new StudentService();
+
     // useEffect hook to fetch students data when the component mounts
     useEffect(() => {
         fetchStudents();
@@ -75,12 +77,12 @@ const AllStudents = () => {
      * Handles loading state and error notifications.
      */
     const fetchStudents = async () => {
-        setLoading(true); // Set loading to true before fetching
+        setLoading(true);
         try {
-            const response = await AdminService.getAllStudents(); // API call
-            if (response.success && response.students) {
+            const response = await studentService.getAllStudents();
+            if (response.success && response.data) {
                 // Transform the API response to match our Student interface
-                const transformedStudents: Student[] = response.students.map(
+                const transformedStudents: Student[] = response.data.map(
                     (student: any) => ({
                         _id: student._id,
                         name: student.name,
@@ -224,31 +226,30 @@ const AllStudents = () => {
 
     const handleDelete = async (studentId: string) => {
         if (!window.confirm("Are you sure you want to delete this student?")) return;
-      
         try {
-          const response = await AdminService.deleteStudent(studentId);
-          if (response.success) {
-            toast({
-              title: "Deleted",
-              description: "Student removed successfully",
-              variant: "success",
-            });
-            fetchStudents(); // Refresh list
-          } else {
-            toast({
-              title: "Error",
-              description: response.message || "Failed to delete student",
-              variant: "destructive",
-            });
-          }
+            const response = await studentService.deleteStudent(studentId);
+            if (response.success) {
+                toast({
+                    title: "Deleted",
+                    description: "Student removed successfully",
+                    variant: "default",
+                });
+                fetchStudents();
+            } else {
+                toast({
+                    title: "Error",
+                    description: response.message || "Failed to delete student",
+                    variant: "destructive",
+                });
+            }
         } catch (error) {
-          toast({
-            title: "Error",
-            description: "An error occurred while deleting student",
-            variant: "destructive",
-          });
+            toast({
+                title: "Error",
+                description: "An error occurred while deleting student",
+                variant: "destructive",
+            });
         }
-      };
+    };
       
     const exportToCSV = () => {
         const filtered = getFilteredStudents();

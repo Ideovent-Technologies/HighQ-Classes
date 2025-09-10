@@ -1,124 +1,89 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { useNavigate, useParams } from "react-router-dom";
-import batchService from "@/API/services/batchService";
-import AdminService from "@/API/services/AdminService";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-interface Student {
-    _id: string;
-    name: string;
-    email: string;
-}
+const AddStudentPage = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [studentIds, setStudentIds] = useState("");
+  const [batchName, setBatchName] = useState("");
+  const [loading, setLoading] = useState(true);
 
-const AddStudentsToBatchPage = () => {
-    const { batchId } = useParams<{ batchId: string }>();
-    const [students, setStudents] = useState<Student[]>([]);
-    const [selectedIds, setSelectedIds] = useState<string[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-    const { toast } = useToast();
-    const navigate = useNavigate();
+  // Placeholder for fetching batch details
+  useEffect(() => {
+    // In a real app, you would fetch batch details to display the batch name
+    // const fetchBatchName = async () => {
+    //   const data = await batchService.getBatchById(id);
+    //   setBatchName(data.name);
+    //   setLoading(false);
+    // };
+    // fetchBatchName();
 
-    // Fetch all students
-    const fetchStudents = async () => {
-        setLoading(true);
-        try {
-            const res = await AdminService.getAllStudents();
-            setStudents(res.students || []);
-            console.log(res)
-        } catch {
-            toast({
-                title: "Error",
-                description: "Failed to fetch students",
-                variant: "destructive",
-            });
-        }
-        setLoading(false);
-    };
+    // Mock data for demonstration
+    setTimeout(() => {
+      setBatchName("Mock Batch 1");
+      setLoading(false);
+    }, 500);
+  }, [id]);
 
-    const handleCheckboxChange = (studentId: string) => {
-        setSelectedIds((prev) =>
-            prev.includes(studentId)
-                ? prev.filter((id) => id !== studentId)
-                : [...prev, studentId]
-        );
-    };
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const idsArray = studentIds.split(",").map(id => id.trim());
+    // Placeholder for API call to add students
+    console.log(`Adding students ${idsArray} to batch ${id}`);
+    // After successful addition, navigate back to the batch management page
+    navigate("/dashboard/batches");
+  };
 
-    const handleAddStudents = async () => {
-        if (selectedIds.length === 0) {
-            toast({
-                title: "Warning",
-                description: "Please select at least one student",
-                variant: "destructive",
-            });
-            return;
-        }
-        try {
-            const result = await batchService.addStudentsToBatch(batchId!, selectedIds);
-            if (result.success) {
-                toast({
-                    title: "Success",
-                    description: "Students added to batch successfully!",
-                });
-                console.log(result)
-                navigate("/dashboard/batches");
-            } else {
-                toast({
-                    title: "Error",
-                    description: result.message || "Failed to add students to batch",
-                    variant: "destructive",
-                });
-            }
-        } catch {
-            toast({
-                title: "Error",
-                description: "An error occurred while adding students",
-                variant: "destructive",
-            });
-        }
-    };
-
-    useEffect(() => {
-        fetchStudents();
-    }, []);
-
+  if (loading) {
     return (
-        <div className="p-6 max-w-4xl mx-auto space-y-6">
-            <h1 className="text-2xl font-bold">Add Students to Batch</h1>
-
-            {loading ? (
-                <p>Loading students...</p>
-            ) : students.length === 0 ? (
-                <p>No students found.</p>
-            ) : (
-                <div className="space-y-4">
-                    {students.map((student) => (
-                        <div
-                            key={student._id}
-                            className="flex items-center justify-between border p-3 rounded"
-                        >
-                            <div>
-                                <p className="font-semibold">{student.name}</p>
-                                <p className="text-sm text-gray-500">{student.email}</p>
-                            </div>
-                            <input
-                                type="checkbox"
-                                checked={selectedIds.includes(student._id)}
-                                onChange={() => handleCheckboxChange(student._id)}
-                            />
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            <div className="flex gap-4">
-                <Button onClick={handleAddStudents}>Add Selected Students</Button>
-                <Button variant="outline" onClick={() => navigate("/dashboard/batches")}>
-                    Cancel
-                </Button>
-            </div>
-        </div>
+      <div className="flex justify-center items-center h-full py-24">
+        <p className="text-xl text-gray-500">Loading batch details...</p>
+      </div>
     );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="p-8 md:p-10 max-w-4xl mx-auto space-y-8 bg-white/80 backdrop-blur-md rounded-3xl shadow-lg border border-gray-200"
+    >
+      <h1 className="text-4xl font-extrabold tracking-tight text-center bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-transparent bg-clip-text">
+        👨‍🎓 Add Students to Batch
+      </h1>
+      <p className="text-gray-600 text-center mt-2 text-lg">
+        Add students to <span className="font-semibold">{batchName}</span>.
+      </p>
+      <p className="text-sm text-gray-500 text-center">
+        Enter student IDs separated by commas.
+      </p>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <Label htmlFor="studentIds" className="text-gray-700 font-semibold">Student IDs</Label>
+          <Input
+            id="studentIds"
+            name="studentIds"
+            value={studentIds}
+            onChange={(e) => setStudentIds(e.target.value)}
+            className="mt-1"
+            required
+          />
+        </div>
+        <Button
+          type="submit"
+          className="w-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white"
+        >
+          Add Students
+        </Button>
+      </form>
+    </motion.div>
+  );
 };
 
-export default AddStudentsToBatchPage;
+export default AddStudentPage;

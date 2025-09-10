@@ -16,7 +16,7 @@ import {
 
 // The following imports are external to this compilation unit and are assumed to be provided by the environment.
 // They are not 'mocked' but rather treated as external dependencies.
-import AdminService from "@/API/services/AdminService";
+import AdminService from "@/API/services/admin";
 
 import QuickActions from "@/components/dashboard/Widgets/QuickActions";
 import { useToast } from "@/hooks/use-toast";
@@ -147,7 +147,8 @@ const AdminDashboard: React.FC = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await AdminService.getReportsData();
+                // Fetch dashboard data
+                const response = await AdminService.reports.getReportsData();
                 if (response.success) {
                     setData(response.data);
                     console.log("Dashboard data fetched successfully:", response.data);
@@ -174,6 +175,21 @@ const AdminDashboard: React.FC = () => {
             }
         };
         fetchData();
+        // Fetch recent notices for admin
+        const fetchNotices = async () => {
+            try {
+                const noticeRes = await AdminService.notices.getAllNotices();
+                if (noticeRes.success && noticeRes.data) {
+                    setData((prev: any) => ({
+                        ...prev,
+                        recentNotices: noticeRes.data.slice(0, 10) // show up to 10 recent notices
+                    }));
+                }
+            } catch (err) {
+                console.error("Error fetching notices:", err);
+            }
+        };
+        fetchNotices();
     }, [toast]);
 
     const pageVariants: Variants = {
@@ -348,13 +364,13 @@ const AdminDashboard: React.FC = () => {
                                 {recentNotices && recentNotices.length > 0 ? (
                                     <ul className="space-y-4">
                                         {recentNotices
-                                            .slice(0, 4) // Show up to 4 recent notices
-                                            .map((notice: any) => ( // Using 'any' for notice type as it's not strictly defined here
+                                            .slice(0, 4)
+                                            .map((notice: any) => (
                                                 <NoticeCard
                                                     key={notice._id}
                                                     title={notice.title || "Untitled Notice"}
-                                                    content={notice.content || "No content available."}
-                                                    date={notice.createdAt || new Date().toISOString()} // Fallback to current date
+                                                    content={notice.description || "No content available."}
+                                                    date={notice.createdAt || new Date().toISOString()}
                                                     _id={notice._id}
                                                 />
                                             ))}

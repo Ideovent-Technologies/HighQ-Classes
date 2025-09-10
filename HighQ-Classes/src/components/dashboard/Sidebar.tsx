@@ -110,7 +110,6 @@ const adminItems = [
     createNavItem("/dashboard/teacher-management", UserCheck, "Manage Teachers"),
     createNavItem("/dashboard/course-management", GraduationCap, "Manage Courses"),
     createNavItem("/dashboard/batches/manage", Building, "Manage Batches"),
-    createNavItem("/dashboard/batches/add", Building, "Create Batch"),
     // Removed "Manage Notices" because already handled above
   
     createNavItem("/dashboard/fee-management", IndianRupeeIcon, "Fee Management"),
@@ -121,7 +120,6 @@ const adminItems = [
     createNavItem("/admin/contact-messages", MessageSquare, "Contact Messages"),
     createNavItem("/admin/student-teacher-messages", UserCog, "Student/Teacher Messages"),
     createNavItem("/dashboard/CustomerSupport", Settings, "Customer Support"),
-    createNavItem("/dashboard/UserSupport", FileText, "User Support"),
 ];
 
 

@@ -1,61 +1,61 @@
-// import React, { useState, useEffect } from "react";
-// import { motion } from "framer-motion";
-// import {
-//   Megaphone,
-//   Calendar,
-//   Send,
-//   Bell,
-//   Trash2,
-//   Plus,
-//   Clock,
-//   Target,
-//   Loader2,
-//   CheckCircle,
-// } from "lucide-react";
-// import AdminService from "@/API/services/AdminService";
-// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// import { Button } from "@/components/ui/button";
-// import { Badge } from "@/components/ui/badge";
-// import {
-//   Dialog,
-//   DialogContent,
-//   DialogHeader,
-//   DialogTitle,
-//   DialogTrigger,
-// } from "@/components/ui/dialog";
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from "@/components/ui/select";
-// import { Input } from "@/components/ui/input";
-// import { Textarea } from "@/components/ui/textarea";
-// import { Label } from "@/components/ui/label";
-// import { useToast } from "@/hooks/use-toast";
+// // import React, { useState, useEffect } from "react";
+// // import { motion } from "framer-motion";
+// // import {
+// //   Megaphone,
+// //   Calendar,
+// //   Send,
+// //   Bell,
+// //   Trash2,
+// //   Plus,
+// //   Clock,
+// //   Target,
+// //   Loader2,
+// //   CheckCircle,
+// // } from "lucide-react";
+// // import AdminService from "@/API/services/AdminService";
+// // import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// // import { Button } from "@/components/ui/button";
+// // import { Badge } from "@/components/ui/badge";
+// // import {
+// //   Dialog,
+// //   DialogContent,
+// //   DialogHeader,
+// //   DialogTitle,
+// //   DialogTrigger,
+// // } from "@/components/ui/dialog";
+// // import {
+// //   Select,
+// //   SelectContent,
+// //   SelectItem,
+// //   SelectTrigger,
+// //   SelectValue,
+// // } from "@/components/ui/select";
+// // import { Input } from "@/components/ui/input";
+// // import { Textarea } from "@/components/ui/textarea";
+// // import { Label } from "@/components/ui/label";
+// // import { useToast } from "@/hooks/use-toast";
 
-// interface Notice {
-//   _id: string;
-//   title: string;
-//   description: string;
-//   targetAudience: "all" | "students" | "teachers" | "batch";
-//   targetBatchIds?: string[];
-//   scheduledAt?: Date;
-//   isScheduled: boolean;
-//   isActive: boolean;
-//   createdAt: Date;
-//   updatedAt: Date;
-// }
+// // interface Notice {
+// //   _id: string;
+// //   title: string;
+// //   description: string;
+// //   targetAudience: "all" | "students" | "teachers" | "batch";
+// //   targetBatchIds?: string[];
+// //   scheduledAt?: Date;
+// //   isScheduled: boolean;
+// //   isActive: boolean;
+// //   createdAt: Date;
+// //   updatedAt: Date;
+// // }
 
-// interface NoticeFormData {
-//   title: string;
-//   description: string;
-//   targetAudience: "all" | "students" | "teachers" | "batch";
-//   targetBatchIds: string[];
-//   isScheduled: boolean;
-//   scheduledAt?: Date;
-// }
+// // interface NoticeFormData {
+// //   title: string;
+// //   description: string;
+// //   targetAudience: "all" | "students" | "teachers" | "batch";
+// //   targetBatchIds: string[];
+// //   isScheduled: boolean;
+// //   scheduledAt?: Date;
+// // }
 
 // // const AdminAnnouncementPage: React.FC = () => {
 // //   const { toast } = useToast();
@@ -73,116 +73,116 @@
 // //     isScheduled: false,
 // //   });
 
-//   useEffect(() => {
-//     fetchNotices();
-//   }, []);
+// //   useEffect(() => {
+// //     fetchNotices();
+// //   }, []);
 
-//   const fetchNotices = async () => {
-//     setLoading(true);
-//     try {
-//       const response = await AdminService.getAllNotices();
-//       if (response.success && response.data) {
-//         const formattedNotices: Notice[] = response.data.map((notice: any) => ({
-//           _id: notice._id,
-//           title: notice.title,
-//           description: notice.description,
-//           targetAudience: notice.targetAudience,
-//           targetBatchIds: notice.targetBatchIds || [],
-//           scheduledAt: notice.scheduledAt ? new Date(notice.scheduledAt) : undefined,
-//           isScheduled: notice.isScheduled,
-//           isActive: notice.isActive,
-//           createdAt: new Date(notice.createdAt),
-//           updatedAt: new Date(notice.updatedAt),
-//         }));
-//         setAnnouncements(formattedNotices);
-//       } else {
-//         throw new Error(response.message || "Failed to fetch notices");
-//       }
-//     } catch (error) {
-//       console.error("Failed to fetch notices:", error);
-//       toast({
-//         title: "Error",
-//         description: "Failed to fetch notices.",
-//         variant: "destructive",
-//       });
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
+// //   const fetchNotices = async () => {
+// //     setLoading(true);
+// //     try {
+// //       const response = await AdminService.getAllNotices();
+// //       if (response.success && response.data) {
+// //         const formattedNotices: Notice[] = response.data.map((notice: any) => ({
+// //           _id: notice._id,
+// //           title: notice.title,
+// //           description: notice.description,
+// //           targetAudience: notice.targetAudience,
+// //           targetBatchIds: notice.targetBatchIds || [],
+// //           scheduledAt: notice.scheduledAt ? new Date(notice.scheduledAt) : undefined,
+// //           isScheduled: notice.isScheduled,
+// //           isActive: notice.isActive,
+// //           createdAt: new Date(notice.createdAt),
+// //           updatedAt: new Date(notice.updatedAt),
+// //         }));
+// //         setAnnouncements(formattedNotices);
+// //       } else {
+// //         throw new Error(response.message || "Failed to fetch notices");
+// //       }
+// //     } catch (error) {
+// //       console.error("Failed to fetch notices:", error);
+// //       toast({
+// //         title: "Error",
+// //         description: "Failed to fetch notices.",
+// //         variant: "destructive",
+// //       });
+// //     } finally {
+// //       setLoading(false);
+// //     }
+// //   };
 
-//   const handleSubmit = async (e: React.FormEvent) => {
-//     e.preventDefault();
-//     setIsSubmitting(true);
-//     try {
-//       const response = await AdminService.createNotice({
-//         title: formData.title,
-//         description: formData.description,
-//         targetAudience: formData.targetAudience,
-//         targetBatchIds: formData.targetBatchIds,
-//         isScheduled: formData.isScheduled,
-//         scheduledAt: formData.isScheduled ? formData.scheduledAt : undefined,
-//       });
-//       if (response.success) {
-//         toast({
-//           title: "Success",
-//           description: "Notice created successfully!",
-//         });
-//         setFormData({
-//           title: "",
-//           description: "",
-//           targetAudience: "all",
-//           targetBatchIds: [],
-//           isScheduled: false,
-//         });
-//         setIsDialogOpen(false);
-//         fetchNotices();
-//       } else {
-//         throw new Error(response.message || "Failed to create notice");
-//       }
-//     } catch (error: any) {
-//       console.error("Failed to create notice:", error);
-//       toast({
-//         title: "Error",
-//         description: error.message || "Failed to create notice",
-//         variant: "destructive",
-//       });
-//     } finally {
-//       setIsSubmitting(false);
-//     }
-//   };
+// //   const handleSubmit = async (e: React.FormEvent) => {
+// //     e.preventDefault();
+// //     setIsSubmitting(true);
+// //     try {
+// //       const response = await AdminService.createNotice({
+// //         title: formData.title,
+// //         description: formData.description,
+// //         targetAudience: formData.targetAudience,
+// //         targetBatchIds: formData.targetBatchIds,
+// //         isScheduled: formData.isScheduled,
+// //         scheduledAt: formData.isScheduled ? formData.scheduledAt : undefined,
+// //       });
+// //       if (response.success) {
+// //         toast({
+// //           title: "Success",
+// //           description: "Notice created successfully!",
+// //         });
+// //         setFormData({
+// //           title: "",
+// //           description: "",
+// //           targetAudience: "all",
+// //           targetBatchIds: [],
+// //           isScheduled: false,
+// //         });
+// //         setIsDialogOpen(false);
+// //         fetchNotices();
+// //       } else {
+// //         throw new Error(response.message || "Failed to create notice");
+// //       }
+// //     } catch (error: any) {
+// //       console.error("Failed to create notice:", error);
+// //       toast({
+// //         title: "Error",
+// //         description: error.message || "Failed to create notice",
+// //         variant: "destructive",
+// //       });
+// //     } finally {
+// //       setIsSubmitting(false);
+// //     }
+// //   };
 
-//   const handleDelete = async (noticeId: string) => {
-//     if (!window.confirm("Are you sure you want to delete this notice?")) {
-//       return;
-//     }
-//     try {
-//       const response = await AdminService.deleteNotice(noticeId);
-//       if (response.success) {
-//         toast({
-//           title: "Success",
-//           description: "Notice deleted successfully.",
-//         });
-//         fetchNotices();
-//       } else {
-//         throw new Error(response.message || "Failed to delete notice");
-//       }
-//     } catch (error: any) {
-//       console.error("Failed to delete notice:", error);
-//       toast({
-//         title: "Error",
-//         description: error.message || "Failed to delete notice",
-//         variant: "destructive",
-//       });
-//     }
-//   };
+// //   const handleDelete = async (noticeId: string) => {
+// //     if (!window.confirm("Are you sure you want to delete this notice?")) {
+// //       return;
+// //     }
+// //     try {
+// //       const response = await AdminService.deleteNotice(noticeId);
+// //       if (response.success) {
+// //         toast({
+// //           title: "Success",
+// //           description: "Notice deleted successfully.",
+// //         });
+// //         fetchNotices();
+// //       } else {
+// //         throw new Error(response.message || "Failed to delete notice");
+// //       }
+// //     } catch (error: any) {
+// //       console.error("Failed to delete notice:", error);
+// //       toast({
+// //         title: "Error",
+// //         description: error.message || "Failed to delete notice",
+// //         variant: "destructive",
+// //       });
+// //     }
+// //   };
 
-//   const filteredAnnouncements = announcements.filter((announcement) => {
-//     const matchesSearch =
-//       announcement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//       announcement.description.toLowerCase().includes(searchTerm.toLowerCase());
+// //   const filteredAnnouncements = announcements.filter((announcement) => {
+// //     const matchesSearch =
+// //       announcement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+// //       announcement.description.toLowerCase().includes(searchTerm.toLowerCase());
 
-//     const matchesFilter =
-//       filterAudience === "all" || announcement.targetAudience === filterAudience;
+// //     const matchesFilter =
+// //       filterAudience === "all" || announcement.targetAudience === filterAudience;
 
 //     return matchesSearch && matchesFilter;
 //   });

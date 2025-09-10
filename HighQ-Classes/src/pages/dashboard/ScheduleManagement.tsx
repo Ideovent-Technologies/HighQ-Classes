@@ -2,12 +2,13 @@ import React, { useEffect, useState } from "react";
 import { Plus, Edit3, Trash2 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import Modal from "@/components/ui/modal";
-import AdminService from "@/API/services/AdminService";
+import Modal from "@/components/ui/Modal";
+import AdminService from "@/API/services/admin";
+
+const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 interface Schedule {
   _id: string;
-  // The API may not always return the full object, so we adjust the interface to reflect this
   batchId: { _id: string; name: string } | null;
   teacherId: { _id: string; name: string } | null;
   courseId: { _id: string; name: string } | null;
@@ -25,14 +26,13 @@ interface Teacher {
 interface Batch {
   _id: string;
   name: string;
+  courseId: string | { _id: string; name: string };
 }
 
 interface Course {
   _id: string;
   name: string;
 }
-
-const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 export default function ScheduleManagement() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
@@ -63,15 +63,13 @@ export default function ScheduleManagement() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Fetch all required data in parallel
         const [teachersRes, batchesRes, coursesRes, schedulesRes] = await Promise.all([
-          AdminService.getAllTeachers(),
-          AdminService.getAllBatches(),
-          AdminService.getAllCourses(),
-          AdminService.getAllSchedules(filters),
+          AdminService.teachers.getAllTeachers(),
+          AdminService.batches.getAllBatches(),
+          AdminService.courses.getAllCourses(),
+          AdminService.schedules.getAllSchedules(filters),
         ]);
 
-        // Safely extract data, defaulting to an empty array.
         const fetchedTeachers: Teacher[] = (teachersRes.success && teachersRes.data) ? teachersRes.data : [];
         const fetchedBatches: Batch[] = (batchesRes.success && batchesRes.data) ? batchesRes.data : [];
         const fetchedCourses: Course[] = (coursesRes.success && coursesRes.data) ? coursesRes.data : [];
@@ -80,28 +78,8 @@ export default function ScheduleManagement() {
         setBatches(fetchedBatches);
         setCourses(fetchedCourses);
 
-        // Populate schedules with fetched data
         if (schedulesRes.success && Array.isArray(schedulesRes.data)) {
-          const schedulesData = schedulesRes.data as Schedule[];
-          const populatedSchedules = schedulesData.map(schedule => {
-            // Find the full objects using the IDs. The API might return an ID string or a partial object, so we handle both.
-            const teacherIdStr = typeof schedule.teacherId === "string" ? schedule.teacherId : schedule.teacherId?._id;
-            const batchIdStr = typeof schedule.batchId === "string" ? schedule.batchId : schedule.batchId?._id;
-            const courseIdStr = typeof schedule.courseId === "string" ? schedule.courseId : schedule.courseId?._id;
-
-            const foundTeacher = fetchedTeachers.find(t => t._id === teacherIdStr);
-            const foundBatch = fetchedBatches.find(b => b._id === batchIdStr);
-            const foundCourse = fetchedCourses.find(c => c._id === courseIdStr);
-
-            return {
-              ...schedule,
-              teacherId: foundTeacher ? { _id: foundTeacher._id, name: foundTeacher.name } : null,
-              batchId: foundBatch ? { _id: foundBatch._id, name: foundBatch.name } : null,
-              courseId: foundCourse ? { _id: foundCourse._id, name: foundCourse.name } : null,
-            };
-          });
-
-          setSchedules(populatedSchedules);
+          setSchedules(schedulesRes.data as Schedule[]);
         } else {
           setSchedules([]);
         }
@@ -115,10 +93,8 @@ export default function ScheduleManagement() {
         setIsLoading(false);
       }
     };
-
     fetchData();
   }, [filters, refreshTrigger]);
-
 
   const openModal = (schedule?: Schedule) => {
     if (schedule) {
@@ -142,9 +118,9 @@ export default function ScheduleManagement() {
   const handleSave = async () => {
     try {
       if (editingSchedule) {
-        await AdminService.updateSchedule(editingSchedule._id, formData);
+        await AdminService.schedules.updateSchedule(editingSchedule._id, formData);
       } else {
-        await AdminService.createSchedule(formData);
+        await AdminService.schedules.createSchedule(formData);
       }
       setModalOpen(false);
       setRefreshTrigger(prev => prev + 1);
@@ -161,7 +137,7 @@ export default function ScheduleManagement() {
   const confirmDelete = async () => {
     if (scheduleToDelete) {
       try {
-        await AdminService.deleteSchedule(scheduleToDelete);
+        await AdminService.schedules.deleteSchedule(scheduleToDelete);
         setRefreshTrigger(prev => prev + 1);
       } catch (err) {
         console.error(err);
@@ -171,6 +147,15 @@ export default function ScheduleManagement() {
       }
     }
   };
+
+  // Filter batches by selected course
+  const filteredBatches = batches.filter(b => {
+    if (!formData.courseId) return false;
+    if (typeof b.courseId === "object" && b.courseId._id) {
+      return b.courseId._id === formData.courseId;
+    }
+    return b.courseId === formData.courseId;
+  });
 
   return (
     <div className="p-4">
@@ -293,32 +278,33 @@ export default function ScheduleManagement() {
           </div>
 
           <div>
-            <label className="block mb-1">Batch</label>
+            <label className="block mb-1">Course</label>
             <select
               className="border w-full p-2 rounded-md"
-              value={formData.batchId}
-              onChange={e => setFormData({ ...formData, batchId: e.target.value })}
+              value={formData.courseId}
+              onChange={e => setFormData({ ...formData, courseId: e.target.value, batchId: "" })}
             >
-              <option value="">Select Batch</option>
-              {batches.map(b => (
-                <option key={b._id} value={b._id}>
-                  {b.name}
+              <option value="">Select Course</option>
+              {courses.map(c => (
+                <option key={c._id} value={c._id}>
+                  {c.name}
                 </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block mb-1">Course</label>
+            <label className="block mb-1">Batch</label>
             <select
               className="border w-full p-2 rounded-md"
-              value={formData.courseId}
-              onChange={e => setFormData({ ...formData, courseId: e.target.value })}
+              value={formData.batchId}
+              onChange={e => setFormData({ ...formData, batchId: e.target.value })}
+              disabled={!formData.courseId}
             >
-              <option value="">Select Course</option>
-              {courses.map(c => (
-                <option key={c._id} value={c._id}>
-                  {c.name}
+              <option value="">{formData.courseId ? "Select Batch" : "Select a course first"}</option>
+              {filteredBatches.map(b => (
+                <option key={b._id} value={b._id}>
+                  {b.name}
                 </option>
               ))}
             </select>

@@ -1,25 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import api from '../Axios';
-
-// Types for batch operations
-interface Batch {
-    _id: string;
-    name: string;
-    courseId: string; //  match backend
-    teacherId: string; //  match backend
-    students: string[];
-    startDate: Date;
-    endDate: Date;
-    schedule: {
-        days: string[];
-        startTime: string;
-        endTime: string;
-    };
-    capacity: number;
-    enrolled: number;
-    status: 'active' | 'inactive' | 'completed';
-    description?: string;
-}
+import { Batch } from './admin/batches.service';
+// Types for batch operations (using the main Batch type)
 
 // Student-specific batch interfaces
 export interface BatchCourse {

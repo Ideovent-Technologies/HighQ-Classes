@@ -76,10 +76,24 @@ export const CreateBatch = async (req, res) => {
 export const GetAllBatch = async (req, res) => {
   try {
     const batches = await Batch.find()
-      .populate("courseId")
-      .populate("teacherId")
-      .populate("students");  // Populate students' data
-    res.status(200).json(batches);
+      .populate({ path: "courseId", select: "_id name" })
+      .populate({ path: "teacherId", select: "_id name" });
+    // Map batches to include all required fields for frontend
+    const formattedBatches = batches.map(b => ({
+      _id: b._id,
+      name: b.name,
+      courseId: b.courseId ? { _id: b.courseId._id, name: b.courseId.name } : "",
+      teacherId: b.teacherId ? { _id: b.teacherId._id, name: b.teacherId.name } : "",
+      students: b.students || [],
+      startDate: b.startDate,
+      endDate: b.endDate,
+      createdAt: b.createdAt,
+      updatedAt: b.updatedAt,
+      status: b.status || "active",
+      capacity: b.capacity || 20,
+      description: b.description || ""
+    }));
+    res.status(200).json({ batches: formattedBatches });
   } catch (error) {
     console.error("GetAllBatch error:", error);
     res.status(500).json({ message: "Error fetching batches", error: error.message });
