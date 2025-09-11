@@ -42,13 +42,17 @@ export class BatchService {
   }
 
   async getBatchById(batchId: string): Promise<BatchServiceResponse<Batch>> {
-    try {
-      const response = await api.get(`/batches/${batchId}?populate=courseId,teacherId,students`);
-      return { success: true, batch: response.data.batch };
-    } catch (error: any) {
-      return { success: false, message: error.response?.data?.message || "Failed to fetch batch" };
-    }
+  try {
+    const response = await api.get(`/batches/${batchId}`);
+    return { success: true, data: response.data }; // ✔ return actual batch
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Failed to fetch batch"
+    };
   }
+}
+
 
   async createBatch(batchData: any): Promise<BatchServiceResponse<Batch>> {
     try {
