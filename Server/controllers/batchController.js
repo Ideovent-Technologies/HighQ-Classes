@@ -227,7 +227,6 @@ export const UpdateBatch = async (req, res) => {
 export const getBatchById = async (req, res) => {
   try {
     const batchId = req.params.batchId;
-    console.log("Batch ID received:", batchId);
 
     if (!batchId || batchId.length !== 24) {
       return res.status(400).json({ error: "Invalid batch ID format" });
