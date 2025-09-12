@@ -103,55 +103,57 @@ const StudentForm: React.FC = () => {
   };
 
   // ✅ Submit form
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMessage("");
+ // ✅ Submit form
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setMessage("");
 
-    if (!validateForm()) return;
+  if (!validateForm()) return;
 
-    setLoading(true);
+  setLoading(true);
 
-    try {
-      const payload = {
-        ...formData,
-        role: "student",
-        status: "active",
-        batch: batchId,
-        dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth) : null,
-        mobile: formData.mobile.trim(),
-        parentContact: formData.parentContact.trim(),
-      };
+  try {
+    const payload: CreateStudentData & { role: string; status: string; batchId: string } = {
+      ...formData,
+      role: "student",
+      status: "active",
+      batchId, // ✅ Use only batchId, consistent with backend
+      dateOfBirth: formData.dateOfBirth || "", // ✅ send as string
+      mobile: formData.mobile.trim(),
+      parentContact: formData.parentContact.trim(),
+    };
 
-      console.log("Submitting student payload:", payload);
+    console.log("Submitting student payload:", payload);
 
-      const res = await studentService.addStudent(payload);
+    const res = await studentService.addStudent(payload);
 
-      if (res.success) {
-        setMessage("✅ Student added successfully!");
-        setFormData({
-          name: "",
-          email: "",
-          mobile: "",
-          password: "",
-          parentName: "",
-          parentContact: "",
-          grade: "",
-          schoolName: "",
-          gender: "male",
-          dateOfBirth: "",
-          address: { street: "", city: "", state: "", zipCode: "", country: "" },
-        });
-        setBatchId("");
-        setErrors({});
-      } else {
-        setMessage(`❌ ${res.message}`);
-      }
-    } catch (err: any) {
-      setMessage(`❌ ${err.message || "Failed to add student"}`);
+    if (res.success) {
+      setMessage("✅ Student added successfully!");
+      setFormData({
+        name: "",
+        email: "",
+        mobile: "",
+        password: "",
+        parentName: "",
+        parentContact: "",
+        grade: "",
+        schoolName: "",
+        gender: "male",
+        dateOfBirth: "",
+        address: { street: "", city: "", state: "", zipCode: "", country: "" },
+      });
+      setBatchId("");
+      setErrors({});
+    } else {
+      setMessage(`❌ ${res.message}`);
     }
+  } catch (err: any) {
+    setMessage(`❌ ${err.message || "Failed to add student"}`);
+  }
 
-    setLoading(false);
-  };
+  setLoading(false);
+};
+
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100 p-6">
