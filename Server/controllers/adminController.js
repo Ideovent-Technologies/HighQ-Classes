@@ -303,24 +303,49 @@ export const deleteUser = async (req, res) => {
 // ✅ Create User from Admin Panel
 export const CreateUser = async (req, res) => {
   try {
-    const { role, email, password, ...rest } = req.body;
+    const { email, mobile } = req.body;
 
-    if (!role || !email || !password)
-      return res.status(400).json({ success: false, message: 'Missing required fields' });
+    // Check if email already exists
+    const existingEmail = await Student.findOne({ email });
+    if (existingEmail) {
+      return res.status(400).json({
+        success: false,
+        message: "Email already registered",
+      });
+    }
 
-    const Model = role === 'student' ? Student : role === 'teacher' ? Teacher : role === 'admin' ? Admin : null;
-    if (!Model) return res.status(400).json({ success: false, message: 'Invalid role' });
+    // Check if mobile already exists
+    const existingMobile = await Student.findOne({ mobile });
+    if (existingMobile) {
+      return res.status(400).json({
+        success: false,
+        message: "Mobile number already registered",
+      });
+    }
 
-    const exists = await Model.findOne({ email });
-    if (exists) return res.status(409).json({ success: false, message: `${role} already exists` });
+    // ✅ No manual hashing — let pre('save') handle it
+    const student = new Student(req.body);
+    await student.save();
 
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const user = new Model({ email, password: hashedPassword, ...rest });
-
-    await user.save();
-    res.status(201).json({ success: true, message: `${role} created successfully`, user });
+    res.status(201).json({
+      success: true,
+      message: "Student created successfully",
+      data: {
+        id: student._id,
+        name: student.name,
+        email: student.email,
+        mobile: student.mobile,
+        role: student.role,
+        status: student.status,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error creating user', error: error.message });
+    console.error("CreateUser Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
   }
 };
 
