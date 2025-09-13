@@ -20,22 +20,22 @@ router.use(protect);
 
 // Routes for all assignments
 router.route('/')
-    .post(authorize('teacher'), fileUpload, createAssignment)
+    .post(authorize('teacher', 'admin'), fileUpload, createAssignment)
     .get(getAssignments);
 
 // Routes for specific assignment
 router.route('/:id')
     .get(getAssignment)
-    .put(authorize('teacher'), fileUpload, updateAssignment)
-    .delete(authorize('teacher'), deleteAssignment);
+    .put(authorize('teacher', 'admin'), fileUpload, updateAssignment)
+    .delete(authorize('teacher', 'admin'), deleteAssignment);
 
 // Submit assignment (students only)
 router.post('/:id/submit', authorize('student'), fileUpload, submitAssignment);
 
-// Grade submission (teachers only)
-router.put('/:id/grade/:submissionId', authorize('teacher'), gradeSubmission);
+// Grade submission (teachers & admins only)
+router.put('/:id/grade/:submissionId', authorize('teacher', 'admin'), gradeSubmission);
 
-// Get all submissions for an assignment (teachers only)
-router.get('/:id/submissions', authorize('teacher'), getSubmissions);
+// Get all submissions for an assignment (teachers & admins only)
+router.get('/:id/submissions', authorize('teacher', 'admin'), getSubmissions);
 
 export default router;

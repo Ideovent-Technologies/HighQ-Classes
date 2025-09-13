@@ -112,6 +112,7 @@ const AttendanceManagementPage: React.FC<AttendanceManagementPageProps> = ({
             const res = await batchService.getAllBatches();
             const list = parseList(res, ["batches"]);
             setBatches(list);
+            console.log(list);
 
             // if no batch is selected, auto-select the first batch to speed up flow
             if ((!selectedBatch || selectedBatch === "") && list.length > 0) {

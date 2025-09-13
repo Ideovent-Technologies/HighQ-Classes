@@ -1,33 +1,29 @@
-// routes/noticeRoutes.js
 import express from "express";
 import {
   createNotice,
   getAllNotices,
-  getNoticeById,   //  FIXED NAME HERE
+  getNoticeById,
   updateNotice,
   deleteNotice,
+  getNoticesForStudent,
 } from "../controllers/noticeController.js";
-
 import { protect, authorize } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Middleware for teacher protection
-const protectTeacher = [protect, authorize("teacher")];
+// Middleware to allow teacher or admin
+const protectTeacherOrAdmin = [protect, authorize(["teacher", "admin"])];
 
-//  Create a new notice
-router.post("/", protectTeacher, createNotice);
+// --- Admin + Teacher routes (CRUD) ---
+router.post("/", protectTeacherOrAdmin, createNotice);
+router.get("/", protectTeacherOrAdmin, getAllNotices);
+router.get("/:id", protectTeacherOrAdmin, getNoticeById);
+router.put("/:id", protectTeacherOrAdmin, updateNotice);
+router.delete("/:id", protectTeacherOrAdmin, deleteNotice);
 
-//  Get all notices posted by the teacher (with filters + pagination)
-router.get("/", protectTeacher, getAllNotices);
+// --- Student route (view only) ---
+router.get("/student/notices", protect, authorize("student"), getNoticesForStudent);
 
-//  Get a single notice by ID (must be posted by this teacher)
-router.get("/:id", protectTeacher, getNoticeById); //  FIXED HERE TOO
-
-//  Update a notice by ID
-router.put("/:id", protectTeacher, updateNotice);
-
-//  Delete a notice by ID
-router.delete("/:id", protectTeacher, deleteNotice);
+// The /batch/:batchId route has been removed as the functionality is now handled by the general getAllNotices route with a query parameter.
 
 export default router;
