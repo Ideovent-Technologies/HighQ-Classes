@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import batchService, { StudentBatchInfo } from '@/API/services/batchService';
+import batchService from '@/API/services/admin/batches.service';
+import { Batch } from '@/types/batch.types';  // ✅ make sure to import Batch
 
 interface UseBatchReturn {
-  batchInfo: StudentBatchInfo | null;
+  batchInfo: Batch | null;
   materials: any[];
   recordings: any[];
   assignments: any[];
@@ -17,7 +18,7 @@ interface UseBatchReturn {
  * Hook for managing student's batch data and related content
  */
 export const useBatch = (): UseBatchReturn => {
-  const [batchInfo, setBatchInfo] = useState<StudentBatchInfo | null>(null);
+  const [batchInfo, setBatchInfo] = useState<Batch | null>(null);
   const [materials, setMaterials] = useState<any[]>([]);
   const [recordings, setRecordings] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<any[]>([]);
@@ -108,7 +109,7 @@ export const useBatch = (): UseBatchReturn => {
  * Hook for getting only batch info (lighter version)
  */
 export const useBatchInfo = () => {
-  const [batchInfo, setBatchInfo] = useState<StudentBatchInfo | null>(null);
+  const [batchInfo, setBatchInfo] = useState<Batch | null>(null); // ✅ changed StudentBatchInfo → Batch
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

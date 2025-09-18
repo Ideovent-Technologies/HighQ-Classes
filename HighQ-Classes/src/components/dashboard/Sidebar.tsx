@@ -82,25 +82,46 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
         </li>
     );
 
-    const commonItems = [
-        createNavItem(
-            user?.role === "admin" ? "/admin/dashboard" : "/dashboard",
-            Home,
-            "Dashboard"
-        ),
-        createNavItem(
-            user?.role === "admin" ? "/admin/profile" : "/profile",
-            User,
-            "Profile"
-        ),
-        createNavItem(
-            user?.role === "student"
-                ? "/student/notices"
-                : "/dashboard/notices",
-            Bell,
-            "Notices"
-        ),
-    ];
+   // Common items (Dashboard, Profile, Notices)
+const commonItems = [
+    createNavItem(
+        "/dashboard", // all roles go to their dashboard
+        Home,
+        "Dashboard"
+    ),
+    createNavItem(
+        user?.role === "admin" ? "/admin/profile" : "/profile",
+        User,
+        "Profile"
+    ),
+    // Notices handled per role
+    createNavItem(
+        user?.role === "student"
+            ? "/student/notices"
+            : "/dashboard/manage-notices",
+        Bell,
+        "Notices"
+    ),
+];
+
+// Admin-only items (Notice removed from here to avoid duplicate)
+const adminItems = [
+    createNavItem("/dashboard/all-students", Users, "All Students"),
+    createNavItem("/dashboard/teacher-management", UserCheck, "Manage Teachers"),
+    createNavItem("/dashboard/course-management", GraduationCap, "Manage Courses"),
+    createNavItem("/dashboard/batches/manage", Building, "Manage Batches"),
+    // Removed "Manage Notices" because already handled above
+  
+    createNavItem("/dashboard/fee-management", IndianRupeeIcon, "Fee Management"),
+    createNavItem("/dashboard/schedule-management", BookOpen, "Schedule Management"),
+    createNavItem("/admin/materials", FileText, "Materials Management"),
+    createNavItem("/admin/attendance", ClipboardCheck, "Attendance Management"),
+    createNavItem("/admin/assignments", FileText, "Assignment Management"),
+    createNavItem("/admin/contact-messages", MessageSquare, "Contact Messages"),
+    createNavItem("/admin/student-teacher-messages", UserCog, "Student/Teacher Messages"),
+    createNavItem("/dashboard/CustomerSupport", Settings, "Customer Support"),
+];
+
 
     const teacherItems = [
         createNavItem("/dashboard/materials", Upload, "Study Materials"),
@@ -123,56 +144,7 @@ const Sidebar = ({ isOpen, onClose, isMobile }: SidebarProps) => {
         createNavItem("/dashboard/contact-admin", Settings, "Contact Admin"),
     ];
 
-    const adminItems = [
-        createNavItem("/dashboard/all-students", Users, "All Students"),
-        createNavItem(
-            "/dashboard/teacher-management",
-            UserCheck,
-            "Manage Teachers"
-        ),
-        createNavItem(
-            "/dashboard/course-management",
-            GraduationCap,
-            "Manage Courses"
-        ),
-        createNavItem("/dashboard/batches/manage", Building, "Manage Batches"),
-        createNavItem("/dashboard/batches/add", Building, "Create Batch"),
-        createNavItem("/dashboard/manage-notices", Bell, "Manage Notices"),
-        createNavItem("/admin/announcements", Megaphone, "Announcements"),
-        createNavItem(
-            "/dashboard/fee-management",
-            IndianRupeeIcon,
-            "Fee Management"
-        ),
-        createNavItem(
-            "/dashboard/schedule-management",
-            BookOpen,
-            "Schedule Management"
-        ),
-        createNavItem("/admin/materials", FileText, "Materials Management"),
-        createNavItem(
-            "/admin/attendance",
-            ClipboardCheck,
-            "Attendance Management"
-        ),
-        createNavItem("/admin/assignments", FileText, "Assignment Management"),
-        createNavItem(
-            "/admin/contact-messages",
-            MessageSquare,
-            "Contact Messages"
-        ),
-        createNavItem(
-            "/admin/student-teacher-messages",
-            UserCog,
-            "Student/Teacher Messages"
-        ),
-        createNavItem(
-            "/dashboard/CustomerSupport",
-            Settings,
-            "Customer Support"
-        ),
-        createNavItem("/dashboard/UserSupport", FileText, "User Support"),
-    ];
+    
 
     let roleBasedItems: JSX.Element[] = [];
     if (user?.role === "teacher") roleBasedItems = teacherItems;

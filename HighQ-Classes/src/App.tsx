@@ -52,9 +52,8 @@ const Schedule = React.lazy(
 const Recordings = React.lazy(
     () => import("@/components/dashboard/teacher/Recordings")
 );
-const Batches = React.lazy(
-    () => import("@/components/dashboard/teacher/Batches")
-);
+
+
 const Notices = React.lazy(
     () => import("@/components/dashboard/teacher/Notices")
 );
@@ -81,8 +80,9 @@ const AdminFeeDashboard = React.lazy(
     () => import("@/components/admin/fees/AdminFeeDashboard")
 );
 const BatchDetails = React.lazy(
-    () => import("./components/dashboard/batch/BatchDetsils")
+    () => import("./components/dashboard/batch/BatchDetails.tsx")
 );
+
 const StudentDashboardTest = React.lazy(
     () => import("@/components/debug/StudentDashboardTest")
 );
@@ -142,9 +142,7 @@ const AdminDashboard = React.lazy(
     () => import("@/components/dashboard/admin/AdminDashboard")
 );
 const AdminProfile = React.lazy(() => import("@/pages/admin/AdminProfile"));
-const AdminAnnouncementPage = React.lazy(
-    () => import("@/components/dashboard/admin/AdminAnnouncementPage")
-);
+
 const ManageNotices = React.lazy(
     () => import("@/pages/dashboard/ManageNotices")
 );
@@ -178,6 +176,8 @@ const CustomerSupport = React.lazy(
 const UserSupport = React.lazy(
     () => import("@/components/dashboard/admin/UserSupport")
 );
+import CreateFeeForm from "./components/dashboard/fee/FeeForm.tsx";
+import BulkFeeForm from "./components/dashboard/fee/bulkFee.tsx";
 
 const queryClient = new QueryClient();
 
@@ -372,7 +372,7 @@ const App: React.FC = () => {
                                     path="/student/recordings"
                                     element={
                                         <ProtectedRoute roles={["student"]}>
-                                            <StudentRecordingsPage userRole="student" />
+                                            <StudentRecordingsPage />
                                         </ProtectedRoute>
                                     }
                                 />
@@ -430,14 +430,6 @@ const App: React.FC = () => {
                                     }
                                 />
                                 <Route
-                                    path="/dashboard/batches"
-                                    element={
-                                        <ProtectedRoute roles={["teacher"]}>
-                                            <Batches />
-                                        </ProtectedRoute>
-                                    }
-                                />
-                                <Route
                                     path="/dashboard/notices"
                                     element={
                                         <ProtectedRoute roles={["teacher"]}>
@@ -462,14 +454,7 @@ const App: React.FC = () => {
                                         </ProtectedRoute>
                                     }
                                 />
-                                <Route
-                                    path="/admin/announcements"
-                                    element={
-                                        <ProtectedRoute roles={["admin"]}>
-                                            <AdminAnnouncementPage />
-                                        </ProtectedRoute>
-                                    }
-                                />
+                                
                                 <Route
                                     path="/admin/tickets/:id"
                                     element={
@@ -486,14 +471,7 @@ const App: React.FC = () => {
                                         </ProtectedRoute>
                                     }
                                 />
-                                <Route
-                                    path="/dashboard/fee-management"
-                                    element={
-                                        <ProtectedRoute roles={["admin"]}>
-                                            <AdminFeeDashboard />
-                                        </ProtectedRoute>
-                                    }
-                                />
+                               
                                 <Route
                                     path="/dashboard/schedule-management"
                                     element={
@@ -518,6 +496,7 @@ const App: React.FC = () => {
                                         </ProtectedRoute>
                                     }
                                 />
+                              
                                 {/* <Route path="/admin/dashboard" element={<Dashboard />}/>
                                  */}
                                 <Route
@@ -763,11 +742,25 @@ const App: React.FC = () => {
                                         </ProtectedRoute>
                                     }
                                 />
+                                  <Route 
+                                    path="/dashboard/fees/new"
+                                    element={
+                                        <ProtectedRoute roles={["admin"]}>
+                                        <CreateFeeForm onSubmit={() => {}} onCancel={() => {}}/>
+                                        </ProtectedRoute>
+                                    }/>
+                                <Route 
+                                    path="/dashboard/fees/bulk" 
+                                    element={
+                                        <ProtectedRoute roles={["admin"]}>
+                                            <BulkFeeForm onSubmit={() => {}} onCancel={() => {}} />
+                                        </ProtectedRoute>
+                                    }/>
                                 <Route
                                     path="/student/recordings"
                                     element={
                                         <ProtectedRoute roles={["student"]}>
-                                            <StudentRecordingsPage userRole="student" />
+                                            <StudentRecordingsPage />
                                         </ProtectedRoute>
                                     }
                                 />

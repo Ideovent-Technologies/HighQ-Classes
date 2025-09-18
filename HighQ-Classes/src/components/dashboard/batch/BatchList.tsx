@@ -1,5 +1,5 @@
 import React from "react";
-import { Batch } from "@/types/Batch.Types";
+import { Batch } from "@/types/batch.types";
 import {
     Table,
     TableBody,

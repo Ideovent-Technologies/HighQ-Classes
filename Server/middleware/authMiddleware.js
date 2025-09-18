@@ -85,8 +85,8 @@ export const authenticate = protect;
 /**
  * Generic middleware to check if user has required role(s)
  */
-export const authorize = (roles) => {
-  const allowedRoles = Array.isArray(roles) ? roles : [roles];
+export const authorize = (...roles) => { // rest parameter
+  const allowedRoles = roles;
 
   return (req, res, next) => {
     if (!req.user || !req.user.role) {

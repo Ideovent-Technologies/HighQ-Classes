@@ -27,13 +27,18 @@ import {
     CourseRef,
     TeacherRef,
     StudentRef,
-} from "@/types/Batch.Types";
+} from "@/types/batch.types";
 
 // Services
-import courseService from "@/API/services/courseService";
-import teacherService from "@/API/services/teacherService";
-import batchService from "@/API/services/batchService";
-import AdminService from "@/API/services/AdminService";
+import { BatchService } from "@/API/services/admin/batches.service";
+import { CourseService } from "@/API/services/admin/courses.service";
+import { TeacherService } from "@/API/services/admin/teachers.service";
+import { StudentService } from "@/API/services/admin/students.service";
+
+const courseService = new CourseService();
+const teacherService = new TeacherService();
+const batchService = new BatchService();
+const studentService = new StudentService();
 
 const WEEK_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -100,21 +105,20 @@ const BatchForm: React.FC<BatchFormProps> = ({
     // Fetch Courses, Teachers, and Students
     useEffect(() => {
         const fetchData = async () => {
-            setIsLoadingResources(true); // Set loading for resources
+            setIsLoadingResources(true);
             try {
                 const [coursesData, teachersData, studentsData] = await Promise.all([
                     courseService.getAllCourses(),
                     teacherService.getAllTeachers(),
-                    AdminService.getAllStudents(),
+                    studentService.getAllStudents(),
                 ]);
-
-                setCourses(coursesData.courses || []);
-                setTeachers(teachersData.teachers || []);
-                setAllStudents(studentsData.students || []);
+                setCourses(coursesData.data || []);
+                setTeachers(teachersData.data || []);
+                setAllStudents(studentsData.data || []);
             } catch (error) {
                 toast.error("Failed to load required data.");
             } finally {
-                setIsLoadingResources(false); // Clear loading for resources
+                setIsLoadingResources(false);
             }
         };
         fetchData();
@@ -503,6 +507,7 @@ const BatchForm: React.FC<BatchFormProps> = ({
                         </div>
                     </CardContent>
                 </Card>
+                
 
                 <div className="flex justify-end">
                     <Button

@@ -181,7 +181,7 @@ const StudentNotices: React.FC = () => {
                         </h1>
                     </div>
                     <p className="text-gray-600">
-                        Stay updated with the latest announcements and important
+                        Stay updated with the latest notices and important
                         information
                     </p>
                 </div>
@@ -196,7 +196,7 @@ const StudentNotices: React.FC = () => {
                                     No Notices Available
                                 </h3>
                                 <p className="text-gray-600">
-                                    New notices and announcements will appear
+                                    New notices will appear
                                     here.
                                 </p>
                             </div>

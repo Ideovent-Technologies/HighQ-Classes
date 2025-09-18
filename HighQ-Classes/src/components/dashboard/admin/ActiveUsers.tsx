@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import AdminService from "@/API/services/AdminService";
+import AdminService from "@/API/services/admin";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 

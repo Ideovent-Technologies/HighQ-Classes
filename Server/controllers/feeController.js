@@ -23,25 +23,18 @@ export const createFee = async (req, res) => {
       description
     } = req.body;
 
-    if (!courseId || !batchId) {
-      return res.status(400).json({
-        success: false,
-        message: "Course ID and Batch ID are required"
-      });
-    }
+        // Check if student exists
+        const student = await Student.findById(studentId);
+        if (!student) {
+            return res.status(404).json({
+                success: false,
+                message: 'Student not found'
+            });
+        }
 
-    let fees = [];
-
-    // Case 1: Admin selects "All Students"
-    if (studentId === "all") {
-      const students = await Student.find({ course: courseId, batch: batchId });
-      if (students.length === 0) {
-        return res.status(404).json({ success: false, message: "No students found" });
-      }
-      fees = await Promise.all(
-        students.map(student =>
-          new Fee({
-            student: student._id,
+        // Create new fee record
+        const fee = new Fee({
+            student: studentId,
             course: courseId,
             batch: batchId,
             amount,
@@ -50,57 +43,10 @@ export const createFee = async (req, res) => {
             month,
             year,
             description,
-            status: "pending"
-          }).save()
-        )
-      );
-    }
-    // Case 2: Admin selects multiple students
-    else if (studentIds && Array.isArray(studentIds) && studentIds.length > 0) {
-      const students = await Student.find({ _id: { $in: studentIds } });
-      if (students.length === 0) {
-        return res.status(404).json({ success: false, message: "No students found" });
-      }
-      fees = await Promise.all(
-        students.map(student =>
-          new Fee({
-            student: student._id,
-            course: courseId,
-            batch: batchId,
-            amount,
-            dueDate: new Date(dueDate),
-            feeType,
-            month,
-            year,
-            description,
-            status: "pending"
-          }).save()
-        )
-      );
-    }
-    // Case 3: Single student
-    else if (studentId) {
-      const student = await Student.findById(studentId);
-      if (!student) {
-        return res.status(404).json({ success: false, message: "Student not found" });
-      }
-      const fee = new Fee({
-        student: student._id,
-        course: courseId,
-        batch: batchId,
-        amount,
-        dueDate: new Date(dueDate),
-        feeType,
-        month,
-        year,
-        description,
-        status: "pending"
-      });
-      await fee.save();
-      fees.push(fee);
-    } else {
-      return res.status(400).json({ success: false, message: "No student(s) specified" });
-    }
+            status: 'pending'
+        });
+
+        await fee.save();
 
     res.status(201).json({
       success: true,

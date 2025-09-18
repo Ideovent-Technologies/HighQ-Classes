@@ -1,4 +1,3 @@
-// Server/controllers/adminController.js
 import Admin from "../models/Admin.js";
 import Teacher from "../models/Teacher.js";
 import Student from "../models/Student.js";
@@ -7,7 +6,7 @@ import Batch from "../models/Batch.js";
 import Fee from "../models/Fee.js";
 import Notice from "../models/Notice.js";
 import bcrypt from "bcryptjs";
-
+import asyncHandler from 'express-async-handler';
 
 
 // 🧠 Admin Dashboard Data
@@ -304,49 +303,174 @@ export const deleteUser = async (req, res) => {
 // ✅ Create User from Admin Panel
 export const CreateUser = async (req, res) => {
   try {
-    const { role, email, password, ...rest } = req.body;
+    const { email, mobile } = req.body;
 
-    if (!role || !email || !password)
-      return res.status(400).json({ success: false, message: 'Missing required fields' });
+    // Check if email already exists
+    const existingEmail = await Student.findOne({ email });
+    if (existingEmail) {
+      return res.status(400).json({
+        success: false,
+        message: "Email already registered",
+      });
+    }
 
-    const Model = role === 'student' ? Student : role === 'teacher' ? Teacher : role === 'admin' ? Admin : null;
-    if (!Model) return res.status(400).json({ success: false, message: 'Invalid role' });
+    // Check if mobile already exists
+    const existingMobile = await Student.findOne({ mobile });
+    if (existingMobile) {
+      return res.status(400).json({
+        success: false,
+        message: "Mobile number already registered",
+      });
+    }
 
-    const exists = await Model.findOne({ email });
-    if (exists) return res.status(409).json({ success: false, message: `${role} already exists` });
+    // ✅ No manual hashing — let pre('save') handle it
+    const student = new Student(req.body);
+    await student.save();
 
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const user = new Model({ email, password: hashedPassword, ...rest });
-
-    await user.save();
-    res.status(201).json({ success: true, message: `${role} created successfully`, user });
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Error creating user', error: error.message });
-  }
-};
-
-// ✅ Create Announcement
-export const createAnnouncement = async (req, res) => {
-  try {
-    const { message, visibleTo = ['student', 'teacher'], expiresAt } = req.body;
-
-    if (!message || message.trim() === '')
-      return res.status(400).json({ message: 'Message is required' });
-
-    const notice = new Notice({
-      message,
-      visibleTo,
-      expiresAt,
-      createdBy: req.user.id,
-      role: req.user.role || 'admin'
+    res.status(201).json({
+      success: true,
+      message: "Student created successfully",
+      data: {
+        id: student._id,
+        name: student.name,
+        email: student.email,
+        mobile: student.mobile,
+        role: student.role,
+        status: student.status,
+      },
     });
-
-    await notice.save();
-    res.status(201).json({ message: 'Notice created successfully', notice });
-  } catch (err) {
-    res.status(500).json({ message: 'Failed to create announcement', error: err.message });
+  } catch (error) {
+    console.error("CreateUser Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
   }
 };
+
+// ---------------- Notices (Admin Only) ----------------
+
+/**
+ * @desc    Create a new notice as admin
+ * @route   POST /api/admin/notices
+ * @access  Private (Admin only)
+ */
+export const createNotice = asyncHandler(async (req, res) => {
+  const { title, description, targetBatchIds, targetAudience, scheduledAt, isScheduled } = req.body;
+
+  const notice = new Notice({
+    title,
+    description,
+    targetBatchIds,
+    targetAudience,
+    isScheduled: !!isScheduled,
+    scheduledAt: isScheduled ? new Date(scheduledAt) : null,
+    postedBy: req.user._id,
+  });
+
+  await notice.save();
+
+  res.status(201).json({
+    success: true,
+    message: 'Notice created successfully.',
+    data: notice,
+  });
+});
+
+/**
+ * @desc    Get all notices
+ * @route   GET /api/admin/notices/all
+ * @access  Private (Admin only)
+ */
+export const getAllNotices = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 10, targetAudience, targetBatchId, keyword, date } = req.query;
+  const skip = (page - 1) * limit;
+
+  const baseFilter = {
+    $or: [
+      { isScheduled: false },
+      { isScheduled: true, scheduledAt: { $lte: new Date() } },
+    ],
+  };
+
+  const filter = { ...baseFilter };
+
+  if (targetAudience) filter.targetAudience = targetAudience;
+  if (targetBatchId) filter.targetBatchIds = { $in: [targetBatchId] };
+
+  if (keyword) {
+    filter.$and = [
+      baseFilter,
+      {
+        $or: [
+          { title: { $regex: keyword, $options: "i" } },
+          { description: { $regex: keyword, $options: "i" } }
+        ]
+      }
+    ];
+    delete filter.$or;
+  }
+
+  if (date) {
+    const start = new Date(date);
+    const end = new Date(date);
+    end.setHours(23, 59, 59, 999);
+    filter.createdAt = { $gte: start, $lte: end };
+  }
+
+  const total = await Notice.countDocuments(filter);
+  const notices = await Notice.find(filter)
+    .populate("postedBy", "name role")
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(Number(limit));
+
+  res.json({
+    success: true,
+    total,
+    page: Number(page),
+    pages: Math.ceil(total / limit),
+    data: notices,
+  });
+});
+
+/**
+ * @desc    Update a notice
+ * @route   PUT /api/admin/notices/:id
+ * @access  Private (Admin only)
+ */
+export const updateNotice = asyncHandler(async (req, res) => {
+  const noticeId = req.params.id;
+  const updates = req.body;
+
+  const notice = await Notice.findById(noticeId);
+  if (!notice) {
+    return res.status(404).json({ success: false, message: 'Notice not found' });
+  }
+
+  Object.assign(notice, updates);
+  const updatedNotice = await notice.save();
+
+  res.status(200).json({ success: true, message: 'Notice updated successfully', data: updatedNotice });
+});
+
+/**
+ * @desc    Delete a notice
+ * @route   DELETE /api/admin/notices/:id
+ * @access  Private (Admin only)
+ */
+export const deleteNotice = asyncHandler(async (req, res) => {
+  const notice = await Notice.findById(req.params.id);
+  if (!notice) {
+    return res.status(404).json({ success: false, message: 'Notice not found' });
+  }
+
+  await notice.deleteOne();
+
+  res.status(200).json({ success: true, message: 'Notice deleted successfully' });
+});
+
 
 /**
  * PATCH /api/admin/user/:id/status

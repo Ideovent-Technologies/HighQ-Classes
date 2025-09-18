@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import AdminService from "@/API/services/AdminService";
+import AdminService from "@/API/services/admin";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
